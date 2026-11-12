@@ -26,13 +26,6 @@ export default function Sidebar({
 }: SidebarProps) {
   const { user, favoriteSongs, openAuthModal } = useAuth();
 
-  const playlists = [
-    { name: "Tuyển tập Sơn Tùng M-TP", author: "Danh sách phát", avatar: "https://yt3.ggpht.com/ru3SakOhxGBHZnrVeKPwmMndF81j1-gIrsPtmGSHV1YbX3Y6JoFVMR93UdlfpKp9_xIeh62t=s240-c-k-c0xffffffff-no-rj-mo" },
-    { name: "US-UK Top Hits", author: "Danh sách phát", avatar: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=300&fit=crop" },
-    { name: "Lofi Chill & Study", author: "Danh sách phát", avatar: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=300&h=300&fit=crop" },
-    { name: "Piano Nhạc Việt", author: "Danh sách phát", avatar: "https://images.unsplash.com/photo-1520523839898-507121c43b9e?w=300&h=300&fit=crop" },
-  ];
-
   return (
     <aside className="w-64 bg-black flex flex-col h-full p-2 gap-2 text-gray-300 select-none border-r border-[#242424] flex-shrink-0">
       {/* Top Section */}
@@ -116,25 +109,9 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Playlists */}
+        {/* Playlists area */}
         <div className="flex-1 overflow-y-auto space-y-1 pr-1 border-t border-white/5 pt-2">
-          {playlists.map((pl, idx) => (
-            <div
-              key={idx}
-              onClick={() => onOpenArtist(pl.name)}
-              className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#1f1f1f] transition cursor-pointer"
-            >
-              <div className="w-11 h-11 rounded-md overflow-hidden bg-black flex-shrink-0">
-                <img src={pl.avatar} alt={pl.name} className="w-full h-full object-cover" />
-              </div>
-              <div className="overflow-hidden min-w-0">
-                <p className="text-sm font-semibold text-white group-hover:text-[#1db954] truncate transition">
-                  {pl.name}
-                </p>
-                <p className="text-xs text-gray-400 truncate">{pl.author}</p>
-              </div>
-            </div>
-          ))}
+          {/* Sẽ hiển thị danh sách playlist riêng khi người dùng tạo */}
         </div>
 
         {/* Upload Card at bottom */}
