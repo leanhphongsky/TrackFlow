@@ -157,10 +157,12 @@ export default function NowPlayingPanel({
           <div className="space-y-3">
             <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group select-none">
               
-              {/* 1. Static Album Cover Image */}
+              {/* 1. Static Album Cover Image (Always shown when paused or when Canvas is turned off) */}
               <div
-                className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${
-                  isCanvasMode ? "opacity-0 pointer-events-none" : "opacity-100"
+                className={`absolute inset-0 w-full h-full z-10 transition-opacity duration-300 ${
+                  isCanvasMode && isPlaying
+                    ? "opacity-0 pointer-events-none"
+                    : "opacity-100"
                 }`}
               >
                 {currentSong?.image_url ? (
@@ -182,32 +184,32 @@ export default function NowPlayingPanel({
                   isCanvasMode ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
-                {/* Scale & Crop Centered to eliminate YouTube top title bar & bottom logo and eliminate black bars */}
-                <div className="w-full h-full flex items-center justify-center overflow-hidden bg-black">
+                {/* 16:9 Oversized Crop: 160% height x 284% width perfectly pushes title and watermark out of view with 0 black bars */}
+                <div className="w-full h-full relative overflow-hidden bg-black">
                   <div
-                    className="relative flex items-center justify-center transition-all duration-300"
+                    className="absolute flex items-center justify-center transition-all duration-300"
                     style={{
-                      width: isLocked ? "178%" : "100%",
-                      height: "100%",
-                      aspectRatio: "16 / 9",
-                      transform: isLocked ? "scale(1.36)" : "scale(1)",
-                      transformOrigin: "center center",
+                      width: isLocked ? "284%" : "100%",
+                      height: isLocked ? "160%" : "100%",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
                     }}
                   >
-                    <div id="youtube-player-frame" className="w-full h-full" />
+                    <div
+                      id="youtube-player-frame"
+                      className={`w-full h-full ${
+                        isLocked ? "pointer-events-none" : "pointer-events-auto"
+                      }`}
+                    />
                   </div>
                 </div>
 
-                {/* 3. Transparent Touch/Click Overlay with Skip-Ad Hole */}
+                {/* 3. Transparent Touch/Click Overlay */}
                 {isCanvasMode && (
                   <div
                     onClick={() => {
                       if (isLocked) togglePlay();
-                    }}
-                    style={{
-                      clipPath: isLocked
-                        ? "polygon(0 0, 100% 0, 100% calc(100% - 60px), calc(100% - 130px) calc(100% - 60px), calc(100% - 130px) 100%, 0 100%)"
-                        : undefined,
                     }}
                     className={`absolute inset-0 z-10 ${
                       isLocked
