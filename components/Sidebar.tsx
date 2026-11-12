@@ -24,7 +24,7 @@ export default function Sidebar({
   setActiveTab,
   onOpenArtist,
 }: SidebarProps) {
-  const { user, favoriteSongs, openAuthModal } = useAuth();
+  const { user, favoriteSongs, openAuthModal, followedArtists } = useAuth();
 
   return (
     <aside className="w-64 bg-black flex flex-col h-full p-2 gap-2 text-gray-300 select-none border-r border-[#242424] flex-shrink-0">
@@ -109,9 +109,43 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Playlists area */}
+        {/* Followed Artists & Library items */}
         <div className="flex-1 overflow-y-auto space-y-1 pr-1 border-t border-white/5 pt-2">
-          {/* Sẽ hiển thị danh sách playlist riêng khi người dùng tạo */}
+          {followedArtists.length > 0 ? (
+            followedArtists.map((artist) => (
+              <div
+                key={artist.id}
+                onClick={() => onOpenArtist(artist.artist_name)}
+                className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#1f1f1f] transition cursor-pointer"
+              >
+                {/* Circular Avatar (Spotify signature for artists) */}
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-black flex-shrink-0 shadow border border-white/10 group-hover:scale-105 transition">
+                  {artist.avatar_url ? (
+                    <img
+                      src={artist.avatar_url}
+                      alt={artist.artist_name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-800 text-[#1db954] font-bold text-sm">
+                      {artist.artist_name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                <div className="overflow-hidden min-w-0">
+                  <p className="text-sm font-semibold text-white group-hover:text-[#1db954] truncate transition">
+                    {artist.artist_name}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">Nghệ sĩ</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-[11px] text-gray-500 px-2 py-4 text-center leading-relaxed">
+              Theo dõi nghệ sĩ yêu thích để ghim vào thư viện của bạn.
+            </p>
+          )}
         </div>
 
         {/* Upload Card at bottom */}

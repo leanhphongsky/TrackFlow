@@ -4,6 +4,13 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthUser } from "@/lib/auth";
 import { Song } from "@/lib/db";
 
+export interface FollowedArtist {
+  id: number;
+  artist_name: string;
+  channel_id?: string | null;
+  avatar_url?: string | null;
+}
+
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
@@ -22,6 +29,10 @@ interface AuthContextType {
   isFavorite: (song: { id?: number | string; audio_url?: string }) => boolean;
   toggleFavorite: (song: any) => Promise<boolean>;
   refreshFavorites: () => Promise<void>;
+  followedArtists: FollowedArtist[];
+  isFollowingArtist: (artistName?: string, channelId?: string) => boolean;
+  toggleFollowArtist: (artist: { name: string; channelId?: string; avatar?: string }) => Promise<boolean>;
+  refreshFollowedArtists: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,6 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [favoriteSongs, setFavoriteSongs] = useState<Song[]>([]);
   const [favoriteSongIds, setFavoriteSongIds] = useState<Set<number>>(new Set());
   const [favoriteAudioUrls, setFavoriteAudioUrls] = useState<Set<string>>(new Set());
+
+  const [followedArtists, setFollowedArtists] = useState<FollowedArtist[]>([]);
 
   // Check login status on mount
   useEffect(() => {
@@ -78,8 +91,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Fetch followed artists
+  const refreshFollowedArtists = async () => {
+    if (!user) {
+      setFollowedArtists([]);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/artists/follow");
+      if (res.ok) {
+        const data = await res.json();
+        setFollowedArtists(data.artists || []);
+      }
+    } catch (err) {
+      console.error("Error loading followed artists:", err);
+    }
+  };
+
   useEffect(() => {
     refreshFavorites();
+    refreshFollowedArtists();
   }, [user?.id]);
 
   const openAuthModal = (tab: "login" | "register" = "login") => {
@@ -136,6 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setFavoriteSongs([]);
       setFavoriteSongIds(new Set());
       setFavoriteAudioUrls(new Set());
+      setFollowedArtists([]);
       openAuthModal("login");
     } catch (err) {
       console.error("Logout error:", err);
@@ -146,6 +179,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof song.id === "number" && favoriteSongIds.has(song.id)) return true;
     if (song.audio_url && favoriteAudioUrls.has(song.audio_url)) return true;
     return false;
+  };
+
+  const isFollowingArtist = (artistName?: string, channelId?: string) => {
+    if (!artistName && !channelId) return false;
+    return followedArtists.some((a) => {
+      if (artistName && a.artist_name.toLowerCase() === artistName.toLowerCase()) return true;
+      if (channelId && a.channel_id === channelId) return true;
+      return false;
+    });
+  };
+
+  const toggleFollowArtist = async (artist: {
+    name: string;
+    channelId?: string;
+    avatar?: string;
+  }): Promise<boolean> => {
+    if (!user) {
+      openAuthModal("login");
+      return false;
+    }
+
+    const currentlyFollowing = isFollowingArtist(artist.name, artist.channelId);
+
+    if (currentlyFollowing) {
+      // Optimistic remove
+      setFollowedArtists((prev) =>
+        prev.filter(
+          (a) =>
+            a.artist_name.toLowerCase() !== artist.name.toLowerCase() &&
+            (!artist.channelId || a.channel_id !== artist.channelId)
+        )
+      );
+
+      const params = new URLSearchParams();
+      if (artist.name) params.set("artistName", artist.name);
+      else if (artist.channelId) params.set("channelId", artist.channelId);
+
+      await fetch(`/api/artists/follow?${params.toString()}`, { method: "DELETE" });
+      return false;
+    } else {
+      // Optimistic add
+      const tempItem: FollowedArtist = {
+        id: Date.now(),
+        artist_name: artist.name,
+        channel_id: artist.channelId || null,
+        avatar_url: artist.avatar || null,
+      };
+      setFollowedArtists((prev) => [tempItem, ...prev]);
+
+      const res = await fetch("/api/artists/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          artist_name: artist.name,
+          channel_id: artist.channelId,
+          avatar_url: artist.avatar,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.artist) {
+          setFollowedArtists((prev) => [
+            data.artist,
+            ...prev.filter(
+              (a) =>
+                a.artist_name.toLowerCase() !== artist.name.toLowerCase() &&
+                a.id !== tempItem.id
+            ),
+          ]);
+        }
+      }
+      return true;
+    }
   };
 
   const toggleFavorite = async (song: any): Promise<boolean> => {
@@ -233,6 +340,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isFavorite,
         toggleFavorite,
         refreshFavorites,
+        followedArtists,
+        isFollowingArtist,
+        toggleFollowArtist,
+        refreshFollowedArtists,
       }}
     >
       {children}

@@ -31,6 +31,19 @@ async function main() {
   console.log("Table 'favorites' ready!");
 
   await sql`
+    CREATE TABLE IF NOT EXISTS followed_artists (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      artist_name VARCHAR(150) NOT NULL,
+      channel_id VARCHAR(100),
+      avatar_url TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE (user_id, artist_name)
+    );
+  `;
+  console.log("Table 'followed_artists' ready!");
+
+  await sql`
     ALTER TABLE songs 
     ADD COLUMN IF NOT EXISTS user_id INT REFERENCES users(id) ON DELETE SET NULL;
   `;

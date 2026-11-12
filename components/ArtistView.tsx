@@ -44,10 +44,11 @@ export default function ArtistView({
   const [artist, setArtist] = useState<Artist | null>(null);
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
 
   const { currentSong, isPlaying, playSong, togglePlay } = usePlayer();
-  const { isFavorite, toggleFavorite } = useAuth();
+  const { isFavorite, toggleFavorite, isFollowingArtist, toggleFollowArtist } = useAuth();
+  
+  const isFollowing = artist ? isFollowingArtist(artist.name, artist.id) : false;
 
   useEffect(() => {
     async function loadArtist() {
@@ -191,11 +192,19 @@ export default function ArtistView({
         )}
 
         <button
-          onClick={() => setIsFollowing(!isFollowing)}
+          onClick={() => {
+            if (artist) {
+              toggleFollowArtist({
+                name: artist.name,
+                channelId: artist.id,
+                avatar: artist.avatar,
+              });
+            }
+          }}
           className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider border transition ${
             isFollowing
-              ? "border-[#1db954] text-[#1db954] bg-[#1db954]/10"
-              : "border-gray-500 text-white hover:border-white"
+              ? "border-[#1db954] text-[#1db954] bg-[#1db954]/10 shadow-[0_0_12px_rgba(29,185,84,0.2)]"
+              : "border-gray-500 text-white hover:border-white hover:scale-105"
           }`}
         >
           {isFollowing ? "Đang theo dõi" : "Theo dõi"}
