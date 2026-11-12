@@ -153,7 +153,18 @@ export default function NowPlayingPanel({
         <div className="flex-1 overflow-y-auto p-4 space-y-5 pb-28">
           
           {/* Large Song Artwork / Spotify Canvas Frame */}
-          <div className="space-y-3">
+          <div className="space-y-3 relative">
+            {/* Ambient Diffuse Glow */}
+            {currentSong?.image_url && (
+              <div
+                className="absolute -inset-1 rounded-3xl opacity-20 blur-xl pointer-events-none -z-10"
+                style={{
+                  backgroundImage: `url(${currentSong.image_url})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            )}
             <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group select-none">
               
               {/* 1. Static Album Cover Image (Always shown when paused or when Canvas is turned off) */}
@@ -216,7 +227,13 @@ export default function NowPlayingPanel({
                 />
               </div>
 
-              {/* 4. Top Utility Switcher: Canvas / Cover Art */}
+              {/* 4. Bottom Transition Zone: Smooth Backdrop Blur & Gradient Fade into panel background */}
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#121212] via-[#121212]/60 to-transparent pointer-events-none z-10 backdrop-blur-[3px]" />
+
+              {/* 5. Top Subtle Vignette */}
+              <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-10" />
+
+              {/* 6. Top Utility Switcher: Canvas / Cover Art */}
               {isYouTube && (
                 <div className="absolute top-2.5 right-2.5 z-20 pointer-events-auto">
                   <button
