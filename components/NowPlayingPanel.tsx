@@ -53,7 +53,6 @@ export default function NowPlayingPanel({
   const [lyricsMessage, setLyricsMessage] = useState<string>("");
   const [loadingLyrics, setLoadingLyrics] = useState<boolean>(false);
   const [isExpandedLyrics, setIsExpandedLyrics] = useState<boolean>(false);
-  const [isLocked, setIsLocked] = useState<boolean>(true);
 
   const activeLineRef = useRef<HTMLParagraphElement | null>(null);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
@@ -184,13 +183,13 @@ export default function NowPlayingPanel({
                   isCanvasMode ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
-                {/* 16:9 Oversized Crop: 160% height x 284% width perfectly pushes title and watermark out of view with 0 black bars */}
+                {/* 16:9 Oversized Crop: 160% height x 284% width permanently eliminates title, watermark, and black bars */}
                 <div className="w-full h-full relative overflow-hidden bg-black">
                   <div
-                    className="absolute flex items-center justify-center transition-all duration-300"
+                    className="absolute flex items-center justify-center pointer-events-none select-none"
                     style={{
-                      width: isLocked ? "284%" : "100%",
-                      height: isLocked ? "160%" : "100%",
+                      width: "284%",
+                      height: "160%",
                       top: "50%",
                       left: "50%",
                       transform: "translate(-50%, -50%)",
@@ -198,77 +197,35 @@ export default function NowPlayingPanel({
                   >
                     <div
                       id="youtube-player-frame"
-                      className={`w-full h-full ${
-                        isLocked ? "pointer-events-none" : "pointer-events-auto"
-                      }`}
+                      className="w-full h-full pointer-events-none select-none"
                     />
                   </div>
                 </div>
 
-                {/* 3. Transparent Touch/Click Overlay: Blocks all clicks when locked */}
-                {isCanvasMode && (
-                  <div
-                    onClick={(e) => {
-                      if (isLocked) {
-                        e.stopPropagation();
-                        // Ở trạng thái khóa: chặn hoàn toàn mọi click, không làm gián đoạn Canvas
-                      }
-                    }}
-                    className={`absolute inset-0 z-10 ${
-                      isLocked
-                        ? "pointer-events-auto cursor-default"
-                        : "pointer-events-none"
-                    }`}
-                  />
-                )}
+                {/* 3. 100% Locked Transparent Overlay: blocks all clicks and touches permanently */}
+                <div
+                  className="absolute inset-0 z-10 pointer-events-auto cursor-default select-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                />
               </div>
 
-              {/* 4. Top Utility Badges for Canvas & Lock Mode */}
+              {/* 4. Top Utility Switcher: Canvas / Cover Art */}
               {isYouTube && (
-                <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between pointer-events-auto">
-                  {/* Lock / Unlock Toggle Button */}
-                  {isCanvasMode ? (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsLocked(!isLocked);
-                      }}
-                      className={`backdrop-blur-md text-[10px] font-bold px-3 py-1 rounded-full border transition flex items-center gap-1.5 shadow-lg ${
-                        isLocked
-                          ? "bg-black/70 hover:bg-black/90 text-white border-white/20"
-                          : "bg-amber-500/90 hover:bg-amber-500 text-black border-amber-400 font-extrabold"
-                      }`}
-                      title={
-                        isLocked
-                          ? "Đang khóa hoàn toàn (Không bị vướng click khi xem). Bấm để mở tương tác trực tiếp."
-                          : "Đã mở khóa (Có thể click thao tác trực tiếp với video). Bấm để khóa lại chế độ Canvas."
-                      }
-                    >
-                      {isLocked ? (
-                        <>
-                          <Lock className="w-3 h-3 text-[#1db954]" />
-                          <span>Đang khóa</span>
-                        </>
-                      ) : (
-                        <>
-                          <Unlock className="w-3 h-3 text-black" />
-                          <span>Đã mở khóa</span>
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <div />
-                  )}
-
-                  {/* Canvas / Cover Art Switcher */}
+                <div className="absolute top-2.5 right-2.5 z-20 pointer-events-auto">
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowVideo(!showVideo);
                     }}
-                    className="bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20 transition flex items-center gap-1 shadow-lg"
+                    className="bg-black/70 hover:bg-black/90 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full border border-white/20 transition flex items-center gap-1.5 shadow-lg"
                     title={
                       showVideo
                         ? "Chuyển sang xem ảnh bìa tĩnh"
