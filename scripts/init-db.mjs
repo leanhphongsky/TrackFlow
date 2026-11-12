@@ -30,6 +30,16 @@ async function main() {
   `;
   console.log("Table 'favorites' ready!");
 
+  await sql`
+    ALTER TABLE songs 
+    ADD COLUMN IF NOT EXISTS user_id INT REFERENCES users(id) ON DELETE SET NULL;
+  `;
+  await sql`
+    ALTER TABLE songs 
+    ADD COLUMN IF NOT EXISTS source VARCHAR(20) DEFAULT 'upload';
+  `;
+  console.log("Table 'songs' updated with user_id and source columns!");
+
   const tables = await sql`SELECT table_name FROM information_schema.tables WHERE table_schema='public';`;
   console.log("Tables in database:", tables);
 }

@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ songs: [] });
+    }
+
+    // Only return uploaded songs belonging to the current user
     const songs = await sql`
       SELECT id, title, artist, audio_url, image_url, duration, created_at 
       FROM songs 
+      WHERE user_id = ${user.id} AND (source = 'upload' OR source IS NULL)
       ORDER BY created_at DESC
     `;
     return NextResponse.json({ songs });
@@ -22,6 +30,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Vui lòng đăng nhập để đăng bài hát" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { title, artist, audio_url, image_url, duration } = body;
 
@@ -33,8 +49,8 @@ export async function POST(req: Request) {
     }
 
     const result = await sql`
-      INSERT INTO songs (title, artist, audio_url, image_url, duration)
-      VALUES (${title}, ${artist}, ${audio_url}, ${image_url || null}, ${duration || 0})
+      INSERT INTO songs (title, artist, audio_url, image_url, duration, user_id, source)
+      VALUES (${title}, ${artist}, ${audio_url}, ${image_url || null}, ${duration || 0}, ${user.id}, 'upload')
       RETURNING id, title, artist, audio_url, image_url, duration, created_at
     `;
 

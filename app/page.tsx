@@ -69,7 +69,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchSongs();
-  }, []);
+  }, [user?.id]);
 
   const handlePlaySong = (song: any, queue?: any[]) => {
     playSong(song, queue);
@@ -492,11 +492,55 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Quick Liked Songs on Home if any */}
+              {favoriteSongs.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Heart className="w-5 h-5 fill-[#1db954] text-[#1db954]" />
+                      <span>Bài hát bạn đã thích gần đây ({favoriteSongs.length})</span>
+                    </h3>
+                    <button
+                      onClick={() => setActiveTab("favorites")}
+                      className="text-xs text-gray-400 hover:text-white transition font-semibold"
+                    >
+                      Xem tất cả →
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {favoriteSongs.slice(0, 6).map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => handlePlaySong(item, favoriteSongs)}
+                        className="group p-3 bg-[#181818] hover:bg-[#282828] rounded-xl transition cursor-pointer border border-white/5 hover:border-white/10"
+                      >
+                        <div className="relative aspect-square rounded-lg overflow-hidden bg-black mb-2 shadow">
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
+                              <Music2 className="w-6 h-6" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                            <Play className="w-7 h-7 fill-[#1db954] text-[#1db954]" />
+                          </div>
+                        </div>
+                        <p className="text-xs font-bold text-white truncate group-hover:text-[#1db954] transition">
+                          {item.title}
+                        </p>
+                        <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.artist}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Song Section Header */}
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   <Music2 className="w-5 h-5 text-[#1db954]" />
-                  <span>Thư viện bài hát ({songs.length})</span>
+                  <span>Bài hát bạn đã tải lên ({songs.length})</span>
                 </h2>
               </div>
 
@@ -512,16 +556,16 @@ export default function Home() {
                   <div className="w-16 h-16 rounded-full bg-[#242424] flex items-center justify-center text-gray-500 mb-4">
                     <Music2 className="w-8 h-8" />
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-1">Thư viện chưa có bài hát nào</h3>
+                  <h3 className="text-lg font-bold text-white mb-1">Bạn chưa tải lên bài hát nào</h3>
                   <p className="text-sm text-gray-400 max-w-md mb-6">
-                    Gõ tên bài hát hoặc ca sĩ vào thanh tìm kiếm ở trên để khám phá hoặc bấm Đăng nhạc để tải bài hát của bạn lên!
+                    Bấm nút Đăng nhạc để tải file MP3 của riêng bạn lên thư viện cá nhân!
                   </p>
                   <button
                     onClick={() => setIsUploadOpen(true)}
                     className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-sm py-2.5 px-6 rounded-full transition shadow-lg hover:scale-105 flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Đăng bài hát đầu tiên</span>
+                    <span>Đăng bài hát MP3</span>
                   </button>
                 </div>
               ) : (

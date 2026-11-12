@@ -61,10 +61,10 @@ export async function POST(req: Request) {
       if (existing.length > 0) {
         targetSongId = existing[0].id;
       } else {
-        // Insert new song into songs table
+        // Insert new song into songs table with source = 'youtube'
         const insertRes = await sql`
-          INSERT INTO songs (title, artist, audio_url, image_url, duration)
-          VALUES (${title || "Bài hát"}, ${artist || "Nghệ sĩ"}, ${audio_url}, ${image_url || null}, ${duration || 0})
+          INSERT INTO songs (title, artist, audio_url, image_url, duration, source)
+          VALUES (${title || "Bài hát"}, ${artist || "Nghệ sĩ"}, ${audio_url}, ${image_url || null}, ${duration || 0}, 'youtube')
           RETURNING id
         `;
         targetSongId = insertRes[0].id;

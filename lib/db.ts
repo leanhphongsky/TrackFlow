@@ -9,6 +9,8 @@ export interface Song {
   duration: number;
   created_at?: string;
   videoId?: string;
+  user_id?: number | null;
+  source?: string;
 }
 
 // Lazy Neon SQL client so it doesn't crash during build time if env is pending
