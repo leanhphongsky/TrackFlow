@@ -8,6 +8,7 @@ import SongCard from "@/components/SongCard";
 import ArtistView from "@/components/ArtistView";
 import NowPlayingPanel from "@/components/NowPlayingPanel";
 import AuthModal from "@/components/AuthModal";
+import LoginPage from "@/components/LoginPage";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -46,9 +47,10 @@ export default function Home() {
 
   // Right Now Playing / Lyrics Panel
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   const { currentSong, playSong } = usePlayer();
-  const { user, openAuthModal, logout, favoriteSongs, isFavorite, toggleFavorite } = useAuth();
+  const { user, loading: authLoading, openAuthModal, logout, favoriteSongs, isFavorite, toggleFavorite } = useAuth();
 
   const fetchSongs = async () => {
     try {
@@ -110,6 +112,23 @@ export default function Home() {
       s.artist.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // If loading auth state from cookies
+  if (authLoading) {
+    return (
+      <div className="h-screen w-screen bg-[#0a0a0a] flex flex-col items-center justify-center text-white select-none">
+        <div className="w-16 h-16 rounded-2xl bg-black border border-white/10 flex items-center justify-center shadow-2xl mb-4 animate-pulse">
+          <Disc3 className="w-9 h-9 text-[#1db954] animate-spin-slow" />
+        </div>
+        <p className="text-sm font-bold text-gray-400 tracking-wide">Đang kết nối TrackFlow...</p>
+      </div>
+    );
+  }
+
+  // If user is not authenticated and hasn't chosen to browse as guest, show modern Login Page
+  if (!user && !isGuest) {
+    return <LoginPage onContinueAsGuest={() => setIsGuest(true)} />;
+  }
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-black text-white font-sans">
       {/* Left Sidebar */}
@@ -167,7 +186,10 @@ export default function Home() {
                   </span>
                 </div>
                 <button
-                  onClick={logout}
+                  onClick={async () => {
+                    setIsGuest(false);
+                    await logout();
+                  }}
                   className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
                   title="Đăng xuất"
                 >

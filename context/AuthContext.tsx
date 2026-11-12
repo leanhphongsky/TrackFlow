@@ -46,12 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(data.user);
         } else {
           setUser(null);
-          // Tự động mở modal ở tab đăng nhập nếu chưa đăng nhập
-          openAuthModal("login");
         }
       } catch (err) {
         setUser(null);
-        openAuthModal("login");
       } finally {
         setLoading(false);
       }
