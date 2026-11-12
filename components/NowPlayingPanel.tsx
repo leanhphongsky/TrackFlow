@@ -182,14 +182,15 @@ export default function NowPlayingPanel({
                   isCanvasMode ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
-                {/* Scale & Crop Centered to eliminate YouTube top title bar & bottom logo */}
-                <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                {/* Scale & Crop Centered to eliminate YouTube top title bar & bottom logo and eliminate black bars */}
+                <div className="w-full h-full flex items-center justify-center overflow-hidden bg-black">
                   <div
-                    className="relative flex items-center justify-center"
+                    className="relative flex items-center justify-center transition-all duration-300"
                     style={{
-                      width: "180%",
-                      height: "180%",
-                      transform: "scale(1.28)",
+                      width: isLocked ? "178%" : "100%",
+                      height: "100%",
+                      aspectRatio: "16 / 9",
+                      transform: isLocked ? "scale(1.36)" : "scale(1)",
                       transformOrigin: "center center",
                     }}
                   >
@@ -208,23 +209,12 @@ export default function NowPlayingPanel({
                         ? "polygon(0 0, 100% 0, 100% calc(100% - 60px), calc(100% - 130px) calc(100% - 60px), calc(100% - 130px) 100%, 0 100%)"
                         : undefined,
                     }}
-                    className={`absolute inset-0 z-10 flex items-center justify-center ${
+                    className={`absolute inset-0 z-10 ${
                       isLocked
                         ? "cursor-pointer pointer-events-auto"
                         : "pointer-events-none"
                     }`}
-                  >
-                    {/* Center Play/Pause Indicator on Hover */}
-                    {isLocked && (
-                      <div className="w-14 h-14 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:scale-105 pointer-events-none">
-                        {isPlaying ? (
-                          <Pause className="w-6 h-6 fill-white text-white" />
-                        ) : (
-                          <Play className="w-6 h-6 fill-white text-white ml-0.5" />
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  />
                 )}
               </div>
 
