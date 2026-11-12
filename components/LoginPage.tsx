@@ -350,6 +350,19 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                   </button>
                 </p>
               )}
+              {/* Legal disclaimer link */}
+              <p className="text-[11px] text-gray-500 mt-4 leading-relaxed">
+                Bằng việc tiếp tục, bạn đồng ý với{" "}
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white underline decoration-dotted underline-offset-2"
+                >
+                  Điều khoản Dịch vụ & Pháp lý
+                </a>{" "}
+                của TrackFlow.
+              </p>
             </div>
 
           </div>

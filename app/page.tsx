@@ -9,6 +9,7 @@ import ArtistView from "@/components/ArtistView";
 import NowPlayingPanel from "@/components/NowPlayingPanel";
 import AuthModal from "@/components/AuthModal";
 import LoginPage from "@/components/LoginPage";
+import TermsView from "@/components/TermsView";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -220,6 +221,9 @@ export default function Home() {
               onBack={() => setSelectedArtist(null)}
               onSongSaved={(song) => setSongs((prev) => [song, ...prev])}
             />
+          ) : activeTab === "terms" ? (
+            /* VIEW: TERMS & LEGAL DISCLAIMER */
+            <TermsView onBack={() => setActiveTab("home")} />
           ) : activeTab === "favorites" ? (
             /* VIEW 2: FAVORITES / LIKED SONGS PAGE */
             <div className="space-y-6">

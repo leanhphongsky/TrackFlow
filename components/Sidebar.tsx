@@ -8,6 +8,7 @@ import {
   Plus,
   Disc3,
   Heart,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -149,13 +150,26 @@ export default function Sidebar({
         </div>
 
         {/* Upload Card at bottom */}
-        <div className="mt-2 pt-2 border-t border-white/5">
+        <div className="mt-2 pt-2 border-t border-white/5 space-y-2">
           <button
             onClick={onOpenUpload}
             className="w-full bg-[#1f1f1f] hover:bg-[#282828] text-white text-xs font-semibold py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition border border-white/5"
           >
             <Plus className="w-4 h-4 text-[#1db954]" />
             <span>Đăng bài hát MP3</span>
+          </button>
+
+          {/* Legal / Terms of Service Footer Link */}
+          <button
+            onClick={() => setActiveTab("terms")}
+            className={`w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium rounded transition ${
+              activeTab === "terms"
+                ? "text-[#1db954] bg-[#1db954]/10 font-semibold"
+                : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Điều khoản & Pháp lý</span>
           </button>
         </div>
       </div>
