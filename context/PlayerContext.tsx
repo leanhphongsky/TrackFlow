@@ -19,11 +19,12 @@ interface PlayerContextType {
   isMuted: boolean;
   isLooping: boolean;
   isYouTube: boolean;
+  isPlaylist: boolean;
   showVideo: boolean;
   setShowVideo: (show: boolean) => void;
-  playSong: (song: Song, newQueue?: Song[]) => void;
+  playSong: (song: Song, newQueue?: Song[], isPlaylistContext?: boolean) => void;
   togglePlay: () => void;
-  nextSong: () => void;
+  nextSong: () => Promise<void> | void;
   prevSong: () => void;
   seekTo: (time: number) => void;
   setVolumeLevel: (vol: number) => void;
@@ -40,6 +41,27 @@ declare global {
   }
 }
 
+export function cleanArtistName(artist?: string): string {
+  if (!artist) return "";
+  let clean = artist
+    .replace(/\s*-\s*Topic/gi, "")
+    .replace(/\s*Official/gi, "")
+    .replace(/\s*VEVO/gi, "")
+    .replace(/\s*Channel/gi, "")
+    .replace(/\s*Music/gi, "")
+    .trim();
+
+  // Split on collaboration delimiters to isolate primary artist name
+  const delimiters = ["//", " feat.", " ft.", " x ", " X ", ",", " & "];
+  for (const delim of delimiters) {
+    if (clean.includes(delim)) {
+      clean = clean.split(delim)[0].trim();
+      break;
+    }
+  }
+  return clean;
+}
+
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -49,12 +71,185 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [isMuted, setIsMuted] = useState(false);
   const [isLooping, setIsLooping] = useState(false);
   const [queue, setQueue] = useState<Song[]>([]);
+  const [isPlaylist, setIsPlaylist] = useState(false);
   const [isYouTube, setIsYouTube] = useState(false);
   const [showVideo, setShowVideo] = useState(true);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fresh refs to prevent stale closure in YouTube and Audio callbacks
+  const currentSongRef = useRef<Song | null>(currentSong);
+  const queueRef = useRef<Song[]>(queue);
+  const isLoopingRef = useRef<boolean>(isLooping);
+  const isPlaylistRef = useRef<boolean>(false);
+  const isAutoplayingRef = useRef<boolean>(false);
+  const playedHistoryRef = useRef<string[]>([]);
+  const nextSongRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    currentSongRef.current = currentSong;
+  }, [currentSong]);
+
+  useEffect(() => {
+    queueRef.current = queue;
+  }, [queue]);
+
+  useEffect(() => {
+    isLoopingRef.current = isLooping;
+  }, [isLooping]);
+
+  useEffect(() => {
+    isPlaylistRef.current = isPlaylist;
+  }, [isPlaylist]);
+
+  // Autoplay function: fetches next track from the same artist, or trending hits
+  const autoplayNextSong = async (song: Song) => {
+    if (isAutoplayingRef.current) return;
+    isAutoplayingRef.current = true;
+
+    try {
+      const played = new Set(playedHistoryRef.current);
+      if (song.id !== undefined && song.id !== null) played.add(String(song.id));
+      if (song.audio_url) played.add(song.audio_url);
+      if (song.videoId) played.add(`yt_${song.videoId}`);
+
+      const artistName = cleanArtistName(song.artist);
+      let candidates: Song[] = [];
+
+      // Step 1: Try fetching top popular tracks by the same artist
+      if (artistName) {
+        try {
+          const artistRes = await fetch(
+            `/api/youtube/artist?q=${encodeURIComponent(artistName)}`
+          );
+          if (artistRes.ok) {
+            const data = await artistRes.json();
+            if (data.popularSongs && Array.isArray(data.popularSongs)) {
+              candidates = data.popularSongs;
+            }
+          }
+        } catch (e) {
+          console.warn("Autoplay: artist endpoint failed", e);
+        }
+
+        // Fallback search for the artist's songs
+        if (candidates.length === 0) {
+          try {
+            const searchRes = await fetch(
+              `/api/youtube/search?q=${encodeURIComponent(
+                artistName + " official audio"
+              )}`
+            );
+            if (searchRes.ok) {
+              const data = await searchRes.json();
+              if (data.results && Array.isArray(data.results)) {
+                candidates = data.results;
+              }
+            }
+          } catch (e) {
+            console.warn("Autoplay: search artist failed", e);
+          }
+        }
+      }
+
+      // Filter out played tracks and current track
+      let unplayed = candidates.filter((item) => {
+        if (item.id === song.id || item.audio_url === song.audio_url) return false;
+        if (item.videoId && song.videoId && item.videoId === song.videoId) return false;
+        if (item.id && played.has(String(item.id))) return false;
+        if (item.audio_url && played.has(item.audio_url)) return false;
+        if (item.videoId && played.has(`yt_${item.videoId}`)) return false;
+        return true;
+      });
+
+      // If all candidate tracks have been heard, allow any except current song
+      if (unplayed.length === 0 && candidates.length > 0) {
+        unplayed = candidates.filter(
+          (item) =>
+            item.id !== song.id &&
+            item.audio_url !== song.audio_url &&
+            item.videoId !== song.videoId
+        );
+      }
+
+      // Found a song by the same artist
+      if (unplayed.length > 0) {
+        const nextTrack = unplayed[0];
+        playSong(nextTrack, unplayed, false);
+        return;
+      }
+
+      // Step 2: Fallback to "một bài bất kì" (trending / hot songs)
+      const fallbackQueries = [
+        "nhac viet hot trending",
+        "nhac tre hay nhat",
+        "top hits vietnam",
+      ];
+      const randomQuery =
+        fallbackQueries[Math.floor(Math.random() * fallbackQueries.length)];
+
+      try {
+        const fallbackRes = await fetch(
+          `/api/youtube/search?q=${encodeURIComponent(randomQuery)}`
+        );
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          const fallbackList: Song[] = fallbackData.results || [];
+          const fallbackUnplayed = fallbackList.filter(
+            (item) =>
+              item.id !== song.id &&
+              item.audio_url !== song.audio_url &&
+              (!item.id || !played.has(String(item.id))) &&
+              (!item.audio_url || !played.has(item.audio_url))
+          );
+
+          if (fallbackUnplayed.length > 0) {
+            playSong(fallbackUnplayed[0], fallbackUnplayed, false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Autoplay fallback query error", e);
+      }
+
+      // Step 3: Loop queue if everything else fails
+      if (queueRef.current.length > 0) {
+        playSong(queueRef.current[0], queueRef.current, false);
+      }
+    } finally {
+      isAutoplayingRef.current = false;
+    }
+  };
+
+  const nextSong = async () => {
+    const song = currentSongRef.current;
+    const currentQueue = queueRef.current;
+    const isPlaylistMode = isPlaylistRef.current;
+
+    if (!song) return;
+
+    // 1. If currently in a playlist with upcoming songs, play the next one
+    if (isPlaylistMode && currentQueue.length > 1) {
+      const currentIndex = currentQueue.findIndex(
+        (s) => s.id === song.id || s.audio_url === song.audio_url
+      );
+      if (currentIndex !== -1 && currentIndex < currentQueue.length - 1) {
+        playSong(currentQueue[currentIndex + 1], currentQueue, true);
+        return;
+      }
+    }
+
+    // 2. If outside a playlist (single track, search play, or playlist finished):
+    // Autoplay next track: prioritize same artist, then trending hits
+    await autoplayNextSong(song);
+  };
+
+  // Keep nextSongRef updated
+  useEffect(() => {
+    nextSongRef.current = nextSong;
+  });
 
   // Initialize HTML5 Audio
   useEffect(() => {
@@ -78,11 +273,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
       const handleEnded = () => {
         if (!isYouTube) {
-          if (isLooping) {
+          if (isLoopingRef.current) {
             audio.currentTime = 0;
             audio.play().catch(console.error);
           } else {
-            nextSong();
+            nextSongRef.current();
           }
         }
       };
@@ -98,7 +293,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         audio.pause();
       };
     }
-  }, [isLooping, isYouTube]);
+  }, [isYouTube]);
 
   // Load YouTube IFrame API Script
   useEffect(() => {
@@ -148,17 +343,24 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       } else if (event.data === 2) {
         setIsPlaying(false);
       } else if (event.data === 0) {
-        if (isLooping) {
+        if (isLoopingRef.current) {
           event.target.seekTo(0);
           event.target.playVideo();
         } else {
-          nextSong();
+          nextSongRef.current();
         }
       }
     };
 
+    const onPlayerError = (event: any) => {
+      console.warn("YouTube player encountered error:", event.data);
+      setTimeout(() => {
+        nextSongRef.current();
+      }, 1000);
+    };
+
     if (window.YT && window.YT.Player) {
-      if (ytPlayerRef.current && ytPlayerRef.current.loadVideoById) {
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === "function") {
         ytPlayerRef.current.loadVideoById(videoId);
         ytPlayerRef.current.playVideo();
         setIsPlaying(true);
@@ -178,6 +380,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           events: {
             onReady: onPlayerReady,
             onStateChange: onPlayerStateChange,
+            onError: onPlayerError,
           },
         });
       }
@@ -199,17 +402,35 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           events: {
             onReady: onPlayerReady,
             onStateChange: onPlayerStateChange,
+            onError: onPlayerError,
           },
         });
       };
     }
   };
 
-  const playSong = (song: Song, newQueue?: Song[]) => {
+  const playSong = (song: Song, newQueue?: Song[], isPlaylistContext?: boolean) => {
     setCurrentSong(song);
+    currentSongRef.current = song;
+
+    if (song.id !== undefined && song.id !== null) playedHistoryRef.current.push(String(song.id));
+    if (song.audio_url) playedHistoryRef.current.push(song.audio_url);
+    if (song.videoId) playedHistoryRef.current.push(`yt_${song.videoId}`);
+    if (playedHistoryRef.current.length > 50) {
+      playedHistoryRef.current = playedHistoryRef.current.slice(-50);
+    }
+
     if (newQueue) {
       setQueue(newQueue);
+      queueRef.current = newQueue;
     }
+
+    const playlistFlag =
+      isPlaylistContext !== undefined
+        ? isPlaylistContext
+        : Boolean(newQueue && newQueue.length > 1);
+    setIsPlaylist(playlistFlag);
+    isPlaylistRef.current = playlistFlag;
 
     const ytId = song.videoId || extractYouTubeId(song.audio_url);
 
@@ -266,27 +487,21 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const nextSong = () => {
-    if (!currentSong || queue.length === 0) return;
-    const currentIndex = queue.findIndex((s) => s.id === currentSong.id);
-    if (currentIndex !== -1 && currentIndex < queue.length - 1) {
-      playSong(queue[currentIndex + 1]);
-    } else if (queue.length > 0) {
-      playSong(queue[0]);
-    }
-  };
-
   const prevSong = () => {
-    if (!currentSong || queue.length === 0) return;
+    const song = currentSongRef.current;
+    const currentQueue = queueRef.current;
+    if (!song || currentQueue.length === 0) return;
     if (currentTime > 3) {
       seekTo(0);
       return;
     }
-    const currentIndex = queue.findIndex((s) => s.id === currentSong.id);
+    const currentIndex = currentQueue.findIndex(
+      (s) => s.id === song.id || s.audio_url === song.audio_url
+    );
     if (currentIndex > 0) {
-      playSong(queue[currentIndex - 1]);
+      playSong(currentQueue[currentIndex - 1], currentQueue, isPlaylistRef.current);
     } else {
-      playSong(queue[queue.length - 1]);
+      playSong(currentQueue[currentQueue.length - 1], currentQueue, isPlaylistRef.current);
     }
   };
 
@@ -355,6 +570,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         isMuted,
         isLooping,
         isYouTube,
+        isPlaylist,
         showVideo,
         setShowVideo,
         playSong,

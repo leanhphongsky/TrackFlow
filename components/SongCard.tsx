@@ -23,7 +23,7 @@ export default function SongCard({ song, songsList }: SongCardProps) {
     if (isCurrent) {
       togglePlay();
     } else {
-      playSong(song, songsList);
+      playSong(song, songsList, Boolean(songsList && songsList.length > 1));
     }
   };
 

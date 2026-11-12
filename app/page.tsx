@@ -71,8 +71,8 @@ export default function Home() {
     fetchSongs();
   }, [user?.id]);
 
-  const handlePlaySong = (song: any, queue?: any[]) => {
-    playSong(song, queue);
+  const handlePlaySong = (song: any, queue?: any[], isPlaylistContext?: boolean) => {
+    playSong(song, queue, isPlaylistContext);
     setIsRightPanelOpen(true);
   };
 
@@ -246,7 +246,7 @@ export default function Home() {
               {favoriteSongs.length > 0 && (
                 <div className="flex items-center gap-4">
                   <button
-                    onClick={() => handlePlaySong(favoriteSongs[0], favoriteSongs)}
+                    onClick={() => handlePlaySong(favoriteSongs[0], favoriteSongs, true)}
                     className="w-12 h-12 rounded-full bg-[#1db954] hover:bg-[#1ed760] hover:scale-105 flex items-center justify-center text-black shadow-xl transition"
                     title="Phát tất cả bài hát yêu thích"
                   >
@@ -273,7 +273,7 @@ export default function Home() {
                     return (
                       <div
                         key={song.id || index}
-                        onClick={() => handlePlaySong(song, favoriteSongs)}
+                        onClick={() => handlePlaySong(song, favoriteSongs, true)}
                         className={`group flex items-center gap-4 p-2.5 rounded-lg hover:bg-[#282828] transition cursor-pointer ${
                           isCurrent ? "bg-[#242424]" : ""
                         }`}
@@ -383,7 +383,7 @@ export default function Home() {
                             className="group flex items-center gap-3 p-3 bg-[#181818] hover:bg-[#242424] rounded-xl transition border border-white/5 hover:border-white/10"
                           >
                             <div
-                              onClick={() => handlePlaySong(item, ytResults)}
+                              onClick={() => handlePlaySong(item, [item], false)}
                               className="relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer bg-black shadow"
                             >
                               <img
@@ -398,7 +398,7 @@ export default function Home() {
 
                             <div className="flex-1 min-w-0">
                               <p
-                                onClick={() => handlePlaySong(item, ytResults)}
+                                onClick={() => handlePlaySong(item, [item], false)}
                                 className="text-sm font-semibold text-white line-clamp-1 group-hover:text-[#1db954] transition cursor-pointer"
                               >
                                 {item.title}
@@ -454,7 +454,7 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     {songs.length > 0 && (
                       <button
-                        onClick={() => handlePlaySong(songs[0], songs)}
+                        onClick={() => handlePlaySong(songs[0], songs, songs.length > 1)}
                         className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2.5 px-6 rounded-full flex items-center gap-2 transition hover:scale-105 shadow-lg"
                       >
                         <Play className="w-4 h-4 fill-black" />
@@ -471,10 +471,10 @@ export default function Home() {
                 <div className="flex items-center gap-4 overflow-x-auto pb-2">
                   {[
                     { name: "Sơn Tùng M-TP", avatar: "https://yt3.ggpht.com/ru3SakOhxGBHZnrVeKPwmMndF81j1-gIrsPtmGSHV1YbX3Y6JoFVMR93UdlfpKp9_xIeh62t=s240-c-k-c0xffffffff-no-rj-mo" },
-                    { name: "Đen Vâu", avatar: "https://yt3.googleusercontent.com/ytc/AIdro_k6BqTqF0K_9q2mO5oV8XG8Z3L3R1n0L-xW5hTf=s240-c-k-c0xffffffff-no-rj-mo" },
-                    { name: "Vũ.", avatar: "https://yt3.googleusercontent.com/ytc/AIdro_m9TqF0K_9q2mO5oV8XG8Z3L3R1n0L-xW5hTf=s240-c-k-c0xffffffff-no-rj-mo" },
-                    { name: "Taylor Swift", avatar: "https://yt3.googleusercontent.com/ytc/AIdro_mQ1sN6C_9q2mO5oV8XG8Z3L3R1n0L-xW5hTf=s240-c-k-c0xffffffff-no-rj-mo" },
-                    { name: "Charlie Puth", avatar: "https://yt3.googleusercontent.com/ytc/AIdro_l2K8M1R_9q2mO5oV8XG8Z3L3R1n0L-xW5hTf=s240-c-k-c0xffffffff-no-rj-mo" },
+                    { name: "Đen Vâu", avatar: "https://yt3.ggpht.com/EcTaxKaey8AYB8XH6FJlZHFxnScP35VpyuvlybH_feh9CZesfW6Lx9x6_gCzpwqdmQjI6Ok4Kg=s800-c-k-c0xffffffff-no-rj-mo" },
+                    { name: "Vũ.", avatar: "https://yt3.ggpht.com/styZTt-gGSXUE-CaK_R8fFvMlWZNigElEWSp-XROEJ8ea8jao6pjMNbdz13Hap-Z_7vsinT6VQ=s800-c-k-c0xffffffff-no-rj-mo" },
+                    { name: "Taylor Swift", avatar: "https://yt3.ggpht.com/M2RGEwo78CL0BVYi0czVt1p7x-iJLowHEfvovtfSLKjcSSt3YCHS7IkJ9fYJWwNTgHx-jL_u3w=s800-c-k-c0xffffffff-no-rj-mo" },
+                    { name: "Charlie Puth", avatar: "https://yt3.ggpht.com/CCdZMDe4Ta_XoUc1ecrSA9RHUNTc-e8o_o6FuitCGzX0-nLIF70b1AmKwVEHVpxSGnTCF0LUOR8=s800-c-k-c0xffffffff-no-rj-mo" },
                   ].map((art) => (
                     <button
                       key={art.name}
@@ -511,7 +511,7 @@ export default function Home() {
                     {favoriteSongs.slice(0, 6).map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => handlePlaySong(item, favoriteSongs)}
+                        onClick={() => handlePlaySong(item, favoriteSongs, true)}
                         className="group p-3 bg-[#181818] hover:bg-[#282828] rounded-xl transition cursor-pointer border border-white/5 hover:border-white/10"
                       >
                         <div className="relative aspect-square rounded-lg overflow-hidden bg-black mb-2 shadow">

@@ -177,7 +177,7 @@ export default function ArtistView({
               if (isCurrentArtistPlaying && isPlaying) {
                 togglePlay();
               } else {
-                playSong(songs[0], songs);
+                playSong(songs[0], songs, true);
               }
             }}
             className="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] hover:scale-105 flex items-center justify-center text-black shadow-xl transition"
@@ -226,7 +226,7 @@ export default function ArtistView({
             return (
               <div
                 key={song.id}
-                onClick={() => playSong(song, songs)}
+                onClick={() => playSong(song, songs, true)}
                 className={`group flex items-center gap-4 p-2.5 rounded-lg hover:bg-[#282828] transition cursor-pointer ${
                   isCurrent ? "bg-[#242424]" : ""
                 }`}
