@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "TrackFlow - Trình Nghe Nhạc Không Quảng Cáo",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className="bg-black text-white antialiased">
-        <PlayerProvider>{children}</PlayerProvider>
+        <AuthProvider>
+          <PlayerProvider>{children}</PlayerProvider>
+        </AuthProvider>
       </body>
     </html>
   );

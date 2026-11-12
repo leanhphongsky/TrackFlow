@@ -5,8 +5,7 @@ import {
   Play,
   Pause,
   CheckCircle2,
-  BookmarkPlus,
-  Check,
+  Heart,
   Music2,
   Users,
   Eye,
@@ -15,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
+import { useAuth } from "@/context/AuthContext";
 import { Song } from "@/lib/db";
 
 interface Artist {
@@ -40,15 +40,14 @@ export default function ArtistView({
   channelId,
   artistName,
   onBack,
-  onSongSaved,
 }: ArtistViewProps) {
   const [artist, setArtist] = useState<Artist | null>(null);
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [isFollowing, setIsFollowing] = useState(false);
 
   const { currentSong, isPlaying, playSong, togglePlay } = usePlayer();
+  const { isFavorite, toggleFavorite } = useAuth();
 
   useEffect(() => {
     async function loadArtist() {
@@ -72,29 +71,6 @@ export default function ArtistView({
     }
     loadArtist();
   }, [channelId, artistName]);
-
-  const handleSaveSong = async (songItem: any) => {
-    try {
-      const res = await fetch("/api/songs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: songItem.title,
-          artist: songItem.artist,
-          audio_url: songItem.audio_url,
-          image_url: songItem.image_url,
-          duration: 0,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSavedIds((prev) => new Set(prev).add(songItem.videoId));
-        if (onSongSaved) onSongSaved(data.song);
-      }
-    } catch (err) {
-      console.error("Failed to save song:", err);
-    }
-  };
 
   if (loading) {
     return (
@@ -236,7 +212,7 @@ export default function ArtistView({
         <div className="flex flex-col gap-1">
           {songs.map((song, index) => {
             const isCurrent = currentSong?.id === song.id;
-            const isSaved = savedIds.has(song.videoId);
+            const favorited = isFavorite(song);
 
             return (
               <div
@@ -277,21 +253,20 @@ export default function ArtistView({
                   <p className="text-xs text-gray-400 truncate">{song.artist}</p>
                 </div>
 
-                {/* Save to library */}
+                {/* Favorite Heart Button */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSaveSong(song);
+                    toggleFavorite(song);
                   }}
-                  disabled={isSaved}
-                  title={isSaved ? "Đã lưu vào thư viện" : "Lưu vào Thư viện của bạn"}
+                  title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
                   className={`p-2 rounded-full transition ${
-                    isSaved
+                    favorited
                       ? "text-[#1db954]"
                       : "text-gray-400 hover:text-white opacity-0 group-hover:opacity-100"
                   }`}
                 >
-                  {isSaved ? <Check className="w-5 h-5" /> : <BookmarkPlus className="w-5 h-5" />}
+                  <Heart className={`w-5 h-5 ${favorited ? "fill-[#1db954] text-[#1db954]" : ""}`} />
                 </button>
               </div>
             );

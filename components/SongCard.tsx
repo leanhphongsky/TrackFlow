@@ -2,8 +2,9 @@
 
 import React from "react";
 import { Song } from "@/lib/db";
-import { Play, Pause, Music } from "lucide-react";
+import { Play, Pause, Music, Heart } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
+import { useAuth } from "@/context/AuthContext";
 
 interface SongCardProps {
   song: Song;
@@ -12,8 +13,10 @@ interface SongCardProps {
 
 export default function SongCard({ song, songsList }: SongCardProps) {
   const { currentSong, isPlaying, playSong, togglePlay } = usePlayer();
+  const { isFavorite, toggleFavorite } = useAuth();
 
   const isCurrent = currentSong?.id === song.id;
+  const favorited = isFavorite(song);
 
   const handlePlayClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -22,6 +25,11 @@ export default function SongCard({ song, songsList }: SongCardProps) {
     } else {
       playSong(song, songsList);
     }
+  };
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(song);
   };
 
   return (
@@ -44,6 +52,21 @@ export default function SongCard({ song, songsList }: SongCardProps) {
             <Music className="w-12 h-12 text-gray-500" />
           </div>
         )}
+
+        {/* Favorite Heart Button on Top-Right */}
+        <button
+          onClick={handleFavoriteClick}
+          className={`absolute top-2 right-2 p-1.5 rounded-full transition ${
+            favorited
+              ? "opacity-100 text-[#1db954]"
+              : "opacity-0 group-hover:opacity-100 text-white/70 hover:text-white bg-black/40 hover:bg-black/60"
+          }`}
+          title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+        >
+          <Heart
+            className={`w-4 h-4 ${favorited ? "fill-[#1db954] text-[#1db954]" : ""}`}
+          />
+        </button>
 
         {/* Floating Green Play Button on Hover / Active */}
         <button

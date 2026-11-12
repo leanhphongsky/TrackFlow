@@ -7,6 +7,7 @@ import UploadModal from "@/components/UploadModal";
 import SongCard from "@/components/SongCard";
 import ArtistView from "@/components/ArtistView";
 import NowPlayingPanel from "@/components/NowPlayingPanel";
+import AuthModal from "@/components/AuthModal";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -15,25 +16,27 @@ import {
   Sparkles,
   Loader2,
   Play,
-  BookmarkPlus,
-  Check,
+  Heart,
   UserCheck,
+  LogOut,
+  LogIn,
+  Disc3,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Home() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState("home"); // "home" | "search" | "favorites"
   const [searchQuery, setSearchQuery] = useState("");
 
   // YouTube Search state
   const [ytResults, setYtResults] = useState<any[]>([]);
   const [ytChannels, setYtChannels] = useState<any[]>([]);
   const [isSearchingYt, setIsSearchingYt] = useState(false);
-  const [savedYtIds, setSavedYtIds] = useState<Set<string>>(new Set());
 
   // Selected Artist Profile state
   const [selectedArtist, setSelectedArtist] = useState<{
@@ -42,14 +45,10 @@ export default function Home() {
   } | null>(null);
 
   // Right Now Playing / Lyrics Panel
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
   const { currentSong, playSong } = usePlayer();
-
-  const handlePlaySong = (song: any, queue?: any[]) => {
-    playSong(song, queue);
-    setIsRightPanelOpen(true);
-  };
+  const { user, openAuthModal, logout, favoriteSongs, isFavorite, toggleFavorite } = useAuth();
 
   const fetchSongs = async () => {
     try {
@@ -70,6 +69,11 @@ export default function Home() {
     fetchSongs();
   }, []);
 
+  const handlePlaySong = (song: any, queue?: any[]) => {
+    playSong(song, queue);
+    setIsRightPanelOpen(true);
+  };
+
   // Search YouTube
   const handleSearchSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -77,7 +81,7 @@ export default function Home() {
 
     try {
       setIsSearchingYt(true);
-      setSelectedArtist(null); // Reset artist view
+      setSelectedArtist(null);
       setActiveTab("search");
       const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(searchQuery)}`);
       if (res.ok) {
@@ -92,34 +96,8 @@ export default function Home() {
     }
   };
 
-  // Open Artist Profile
   const openArtist = (artistInfo: { channelId?: string; name?: string }) => {
     setSelectedArtist(artistInfo);
-  };
-
-  // Save YouTube song to Neon Database
-  const handleSaveToLibrary = async (item: any) => {
-    try {
-      const res = await fetch("/api/songs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: item.title,
-          artist: item.artist,
-          audio_url: item.audio_url,
-          image_url: item.image_url,
-          duration: item.duration || 0,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setSongs((prev) => [data.song, ...prev]);
-        setSavedYtIds((prev) => new Set(prev).add(item.videoId));
-      }
-    } catch (err) {
-      console.error("Error saving song:", err);
-    }
   };
 
   const handleSongUploaded = (newSong: Song) => {
@@ -133,8 +111,8 @@ export default function Home() {
   );
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-black text-white">
-      {/* Sidebar */}
+    <div className="flex h-screen w-screen overflow-hidden bg-black text-white font-sans">
+      {/* Left Sidebar */}
       <Sidebar
         onOpenUpload={() => setIsUploadOpen(true)}
         activeTab={selectedArtist ? "artist" : activeTab}
@@ -142,21 +120,22 @@ export default function Home() {
           setSelectedArtist(null);
           setActiveTab(tab);
         }}
+        onOpenArtist={(name) => openArtist({ name })}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#121212] m-2 ml-0 rounded-xl relative">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#121212] m-2 ml-0 mr-0 rounded-xl relative">
         {/* Top Navbar */}
-        <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-[#121212]/80 backdrop-blur-md sticky top-0 z-40">
+        <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-[#121212]/90 backdrop-blur-md sticky top-0 z-40">
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-4 flex-1 max-w-lg">
             <div className="relative w-full">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm bài hát, nghệ sĩ từ YouTube..."
-                className="w-full bg-[#242424] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-sm text-white placeholder-gray-400 pl-9 pr-24 py-2 rounded-full border border-transparent focus:border-white/20 focus:outline-none transition"
+                className="w-full bg-[#242424] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-sm text-white placeholder-gray-400 pl-10 pr-24 py-2 rounded-full border border-transparent focus:border-white/20 focus:outline-none transition"
               />
               <button
                 type="submit"
@@ -167,14 +146,45 @@ export default function Home() {
             </div>
           </form>
 
+          {/* User Profile / Auth Area */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsUploadOpen(true)}
-              className="bg-white hover:bg-gray-200 text-black text-xs font-bold py-2.5 px-4 rounded-full transition flex items-center gap-2 shadow-md hover:scale-105"
+              className="hidden sm:flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3.5 py-2 rounded-full hover:scale-105 transition shadow"
             >
               <Plus className="w-4 h-4" />
               <span>Đăng nhạc</span>
             </button>
+
+            {user ? (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-[#242424] px-3 py-1.5 rounded-full border border-white/5">
+                  <div className="w-6 h-6 rounded-full bg-[#1db954] text-black font-extrabold flex items-center justify-center text-xs">
+                    {user.display_name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-xs font-bold text-white max-w-[120px] truncate">
+                    {user.display_name}
+                  </span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+                  title="Đăng xuất"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => openAuthModal("login")}
+                  className="bg-[#1db954] hover:bg-[#1ed760] text-black text-xs font-extrabold px-4 py-2 rounded-full transition hover:scale-105 shadow flex items-center gap-1.5"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Đăng nhập</span>
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
@@ -188,8 +198,102 @@ export default function Home() {
               onBack={() => setSelectedArtist(null)}
               onSongSaved={(song) => setSongs((prev) => [song, ...prev])}
             />
+          ) : activeTab === "favorites" ? (
+            /* VIEW 2: FAVORITES / LIKED SONGS PAGE */
+            <div className="space-y-6">
+              {/* Liked Songs Hero Banner */}
+              <div className="rounded-2xl p-6 md:p-8 bg-gradient-to-r from-indigo-900/90 via-purple-900/70 to-[#121212] border border-white/10 relative overflow-hidden shadow-2xl flex flex-col md:flex-row items-center md:items-end gap-6">
+                <div className="w-36 h-36 md:w-44 md:h-44 rounded-xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-2xl flex-shrink-0">
+                  <Heart className="w-20 h-20 fill-white text-white drop-shadow-md" />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-purple-300">
+                    Danh sách phát
+                  </span>
+                  <h1 className="text-3xl md:text-5xl font-black text-white mt-1 mb-3">
+                    Bài hát đã thích
+                  </h1>
+                  <p className="text-xs text-gray-300 font-medium">
+                    <span className="text-white font-bold">{user?.display_name || "Bạn"}</span> •{" "}
+                    {favoriteSongs.length} bài hát
+                  </p>
+                </div>
+              </div>
+
+              {/* Action */}
+              {favoriteSongs.length > 0 && (
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => handlePlaySong(favoriteSongs[0], favoriteSongs)}
+                    className="w-12 h-12 rounded-full bg-[#1db954] hover:bg-[#1ed760] hover:scale-105 flex items-center justify-center text-black shadow-xl transition"
+                    title="Phát tất cả bài hát yêu thích"
+                  >
+                    <Play className="w-6 h-6 fill-black ml-0.5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Liked Songs List */}
+              {favoriteSongs.length === 0 ? (
+                <div className="text-center py-20 bg-[#181818]/60 border border-white/5 rounded-2xl">
+                  <Heart className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                  <h3 className="text-lg font-bold text-white mb-1">
+                    Chưa có bài hát yêu thích nào
+                  </h3>
+                  <p className="text-sm text-gray-400 max-w-sm mx-auto">
+                    Nhấn vào biểu tượng trái tim ở bất kỳ bài hát nào để lưu vào danh sách riêng của bạn!
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  {favoriteSongs.map((song, index) => {
+                    const isCurrent = currentSong?.id === song.id;
+                    return (
+                      <div
+                        key={song.id || index}
+                        onClick={() => handlePlaySong(song, favoriteSongs)}
+                        className={`group flex items-center gap-4 p-2.5 rounded-lg hover:bg-[#282828] transition cursor-pointer ${
+                          isCurrent ? "bg-[#242424]" : ""
+                        }`}
+                      >
+                        <div className="w-6 text-center text-sm font-semibold text-gray-400">
+                          {index + 1}
+                        </div>
+                        <div className="w-11 h-11 rounded-md overflow-hidden bg-black flex-shrink-0">
+                          {song.image_url ? (
+                            <img src={song.image_url} alt={song.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                              <Music2 className="w-5 h-5 text-gray-500" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-semibold truncate ${isCurrent ? "text-[#1db954]" : "text-white"}`}>
+                            {song.title}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">{song.artist}</p>
+                        </div>
+
+                        {/* Unlike Heart Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(song);
+                          }}
+                          title="Bỏ yêu thích"
+                          className="p-2 text-[#1db954] hover:scale-110 transition"
+                        >
+                          <Heart className="w-5 h-5 fill-[#1db954]" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           ) : activeTab === "search" ? (
-            /* VIEW 2: SEARCH RESULTS */
+            /* VIEW 3: SEARCH RESULTS */
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -207,11 +311,11 @@ export default function Home() {
               {isSearchingYt ? (
                 <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
                   <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
-                  <p className="text-sm">Đang tìm kiếm bài hát và nghệ sĩ từ YouTube...</p>
+                  <p className="text-sm">Đang tìm kiếm bài hát và nghệ sĩ...</p>
                 </div>
               ) : (
                 <>
-                  {/* ARTIST CHANNELS SECTION (If any found) */}
+                  {/* Channels / Artists matches */}
                   {ytChannels.length > 0 && (
                     <div className="mb-8">
                       <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
@@ -242,80 +346,75 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* YOUTUBE SONGS LIST */}
-                  {ytResults.length === 0 && ytChannels.length === 0 ? (
-                    <div className="text-center py-16 text-gray-400">
-                      <p>Nhập tên bài hát hoặc ca sĩ vào thanh tìm kiếm rồi nhấn Enter.</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                        <Music2 className="w-5 h-5 text-[#1db954]" />
-                        <span>Bài hát ({ytResults.length})</span>
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {ytResults.map((item) => {
-                          const isSaved = savedYtIds.has(item.videoId);
-                          return (
+                  {/* Songs list */}
+                  <div>
+                    <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                      <Music2 className="w-5 h-5 text-[#1db954]" />
+                      <span>Bài hát ({ytResults.length})</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {ytResults.map((item) => {
+                        const favorited = isFavorite(item);
+                        return (
+                          <div
+                            key={item.id}
+                            className="group flex items-center gap-3 p-3 bg-[#181818] hover:bg-[#242424] rounded-xl transition border border-white/5 hover:border-white/10"
+                          >
                             <div
-                              key={item.id}
-                              className="group flex items-center gap-3 p-3 bg-[#181818] hover:bg-[#242424] rounded-xl transition border border-white/5 hover:border-white/10"
+                              onClick={() => handlePlaySong(item, ytResults)}
+                              className="relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer bg-black shadow"
                             >
-                              {/* Thumbnail */}
-                              <div
-                                onClick={() => handlePlaySong(item, ytResults)}
-                                className="relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer bg-black shadow"
-                              >
-                                <img
-                                  src={item.image_url}
-                                  alt={item.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition"
-                                />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-                                  <Play className="w-6 h-6 fill-white text-white ml-0.5" />
-                                </div>
+                              <img
+                                src={item.image_url}
+                                alt={item.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition"
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                                <Play className="w-6 h-6 fill-white text-white ml-0.5" />
                               </div>
-
-                              {/* Info */}
-                              <div className="flex-1 min-w-0">
-                                <p
-                                  onClick={() => handlePlaySong(item, ytResults)}
-                                  className="text-sm font-semibold text-white line-clamp-1 group-hover:text-[#1db954] transition cursor-pointer"
-                                >
-                                  {item.title}
-                                </p>
-                                <p
-                                  onClick={() => openArtist({ name: item.artist, channelId: item.channelId })}
-                                  className="text-xs text-gray-400 hover:text-white hover:underline cursor-pointer truncate mt-0.5"
-                                >
-                                  {item.artist}
-                                </p>
-                              </div>
-
-                              {/* Save to Library Button */}
-                              <button
-                                onClick={() => handleSaveToLibrary(item)}
-                                disabled={isSaved}
-                                title={isSaved ? "Đã lưu vào thư viện" : "Lưu vào Thư viện của bạn"}
-                                className={`p-2 rounded-full transition flex-shrink-0 ${
-                                  isSaved
-                                    ? "text-[#1db954] bg-[#1db954]/10 cursor-default"
-                                    : "text-gray-400 hover:text-white hover:bg-white/10"
-                                }`}
-                              >
-                                {isSaved ? <Check className="w-5 h-5" /> : <BookmarkPlus className="w-5 h-5" />}
-                              </button>
                             </div>
-                          );
-                        })}
-                      </div>
+
+                            <div className="flex-1 min-w-0">
+                              <p
+                                onClick={() => handlePlaySong(item, ytResults)}
+                                className="text-sm font-semibold text-white line-clamp-1 group-hover:text-[#1db954] transition cursor-pointer"
+                              >
+                                {item.title}
+                              </p>
+                              <p
+                                onClick={() => openArtist({ name: item.artist, channelId: item.channelId })}
+                                className="text-xs text-gray-400 hover:text-white hover:underline cursor-pointer truncate mt-0.5"
+                              >
+                                {item.artist}
+                              </p>
+                            </div>
+
+                            {/* Heart Favorite Button */}
+                            <button
+                              onClick={() => toggleFavorite(item)}
+                              title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+                              className={`p-2 rounded-full transition flex-shrink-0 ${
+                                favorited
+                                  ? "text-[#1db954]"
+                                  : "text-gray-400 hover:text-white hover:bg-white/10"
+                              }`}
+                            >
+                              <Heart
+                                className={`w-5 h-5 transition ${
+                                  favorited ? "fill-[#1db954] text-[#1db954]" : ""
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
                 </>
               )}
             </div>
           ) : (
-            /* VIEW 3: HOME / SAVED LIBRARY */
+            /* VIEW 4: HOME / ALL SONGS */
             <div>
               {/* Welcome Banner */}
               <div className="rounded-2xl p-6 mb-8 bg-gradient-to-r from-emerald-900/60 via-green-950/40 to-[#121212] border border-white/10 relative overflow-hidden shadow-2xl">
@@ -328,7 +427,7 @@ export default function Home() {
                     Chào mừng đến với TrackFlow
                   </h1>
                   <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-                    Khám phá trang cá nhân nghệ sĩ, nghe toàn bộ bài hát từ YouTube hoặc đăng tải bài hát MP3 của riêng bạn.
+                    Khám phá trang cá nhân nghệ sĩ, nghe toàn bộ bài hát từ YouTube, lưu danh sách bài hát yêu thích riêng biệt cho từng người.
                   </p>
                   <div className="flex items-center gap-3">
                     {songs.length > 0 && (
@@ -435,6 +534,9 @@ export default function Home() {
         onClose={() => setIsUploadOpen(false)}
         onSongUploaded={handleSongUploaded}
       />
+
+      {/* Login & Register Modal */}
+      <AuthModal />
     </div>
   );
 }

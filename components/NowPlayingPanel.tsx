@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { usePlayer } from "@/context/PlayerContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   X,
-  CheckCircle2,
+  Heart,
   Maximize2,
   Minimize2,
   Music,
@@ -31,6 +32,8 @@ export default function NowPlayingPanel({
   onOpenArtist,
 }: NowPlayingPanelProps) {
   const { currentSong, currentTime } = usePlayer();
+  const { isFavorite, toggleFavorite } = useAuth();
+
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
   const [hasLyrics, setHasLyrics] = useState<boolean>(false);
   const [lyricsMessage, setLyricsMessage] = useState<string>("");
@@ -39,6 +42,8 @@ export default function NowPlayingPanel({
 
   const activeLineRef = useRef<HTMLParagraphElement | null>(null);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const favorited = currentSong ? isFavorite(currentSong) : false;
 
   useEffect(() => {
     if (!currentSong) {
@@ -141,7 +146,7 @@ export default function NowPlayingPanel({
             )}
           </div>
 
-          {/* Title & Artist with Verified Checkmark */}
+          {/* Title & Artist with Interactive Heart Button */}
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1 pr-2">
               <h2 className="text-xl font-extrabold text-white truncate hover:underline cursor-pointer">
@@ -154,7 +159,21 @@ export default function NowPlayingPanel({
                 {currentSong.artist}
               </p>
             </div>
-            <CheckCircle2 className="w-6 h-6 text-[#1db954] fill-black flex-shrink-0" />
+
+            {/* Favorite Heart Button */}
+            <button
+              onClick={() => toggleFavorite(currentSong)}
+              className="p-2 rounded-full hover:bg-white/5 transition flex-shrink-0"
+              title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+            >
+              <Heart
+                className={`w-6 h-6 transition ${
+                  favorited
+                    ? "fill-[#1db954] text-[#1db954]"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              />
+            </button>
           </div>
         </div>
 
