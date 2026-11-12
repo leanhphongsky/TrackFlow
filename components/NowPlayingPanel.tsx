@@ -205,15 +205,18 @@ export default function NowPlayingPanel({
                   </div>
                 </div>
 
-                {/* 3. Transparent Touch/Click Overlay */}
+                {/* 3. Transparent Touch/Click Overlay: Blocks all clicks when locked */}
                 {isCanvasMode && (
                   <div
-                    onClick={() => {
-                      if (isLocked) togglePlay();
+                    onClick={(e) => {
+                      if (isLocked) {
+                        e.stopPropagation();
+                        // Ở trạng thái khóa: chặn hoàn toàn mọi click, không làm gián đoạn Canvas
+                      }
                     }}
                     className={`absolute inset-0 z-10 ${
                       isLocked
-                        ? "cursor-pointer pointer-events-auto"
+                        ? "pointer-events-auto cursor-default"
                         : "pointer-events-none"
                     }`}
                   />
@@ -231,26 +234,26 @@ export default function NowPlayingPanel({
                         e.stopPropagation();
                         setIsLocked(!isLocked);
                       }}
-                      className={`backdrop-blur-md text-[10px] font-bold px-2.5 py-1 rounded-full border transition flex items-center gap-1 shadow-lg ${
+                      className={`backdrop-blur-md text-[10px] font-bold px-3 py-1 rounded-full border transition flex items-center gap-1.5 shadow-lg ${
                         isLocked
-                          ? "bg-black/60 hover:bg-black/80 text-white border-white/20"
+                          ? "bg-black/70 hover:bg-black/90 text-white border-white/20"
                           : "bg-amber-500/90 hover:bg-amber-500 text-black border-amber-400 font-extrabold"
                       }`}
                       title={
                         isLocked
-                          ? "Đang khóa tương tác (Bấm để mở tương tác trực tiếp với video)"
-                          : "Đang mở tương tác trực tiếp (Bấm để khóa lại chế độ Canvas)"
+                          ? "Đang khóa hoàn toàn (Không bị vướng click khi xem). Bấm để mở tương tác trực tiếp."
+                          : "Đã mở khóa (Có thể click thao tác trực tiếp với video). Bấm để khóa lại chế độ Canvas."
                       }
                     >
                       {isLocked ? (
                         <>
                           <Lock className="w-3 h-3 text-[#1db954]" />
-                          <span>Khóa</span>
+                          <span>Đang khóa</span>
                         </>
                       ) : (
                         <>
-                          <Unlock className="w-3 h-3" />
-                          <span>Mở</span>
+                          <Unlock className="w-3 h-3 text-black" />
+                          <span>Đã mở khóa</span>
                         </>
                       )}
                     </button>
