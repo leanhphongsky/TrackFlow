@@ -52,17 +52,6 @@ export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerP
 
   return (
     <>
-      {/* Single Persistent YouTube IFrame Container */}
-      <div
-        className={`fixed bottom-28 right-6 z-40 rounded-xl overflow-hidden shadow-2xl border border-white/10 transition-all duration-300 bg-black ${
-          isYouTube && showVideo
-            ? "w-80 h-48 opacity-100 pointer-events-auto"
-            : "w-1 h-1 opacity-0 pointer-events-none overflow-hidden"
-        }`}
-      >
-        <div id="youtube-player-frame" className="w-full h-full" />
-      </div>
-
       {/* Spotify Bottom Player Bar */}
       {currentSong && (
         <div className="fixed bottom-0 left-0 right-0 h-24 bg-[#181818] border-t border-[#282828] px-4 flex items-center justify-between z-50 text-white select-none">
@@ -172,11 +161,18 @@ export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerP
 
             {isYouTube && (
               <button
-                onClick={() => setShowVideo(!showVideo)}
+                onClick={() => {
+                  if (!isRightPanelOpen && onToggleRightPanel) {
+                    onToggleRightPanel();
+                  }
+                  setShowVideo(!showVideo);
+                }}
                 className={`p-2 rounded-full transition ${
-                  showVideo ? "text-[#1db954] bg-white/10" : "text-gray-400 hover:text-white"
+                  showVideo && isRightPanelOpen
+                    ? "text-[#1db954] bg-white/10"
+                    : "text-gray-400 hover:text-white"
                 }`}
-                title={showVideo ? "Ẩn Video MV" : "Hiện Video MV"}
+                title={showVideo && isRightPanelOpen ? "Tắt Canvas Video" : "Xem Spotify Canvas Video"}
               >
                 <Tv className="w-5 h-5" />
               </button>

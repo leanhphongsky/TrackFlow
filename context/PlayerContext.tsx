@@ -50,7 +50,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [isLooping, setIsLooping] = useState(false);
   const [queue, setQueue] = useState<Song[]>([]);
   const [isYouTube, setIsYouTube] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
+  const [showVideo, setShowVideo] = useState(true);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
@@ -170,6 +170,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             controls: 0,
             modestbranding: 1,
             rel: 0,
+            iv_load_policy: 3,
+            disablekb: 1,
+            fs: 0,
+            playsinline: 1,
           },
           events: {
             onReady: onPlayerReady,
@@ -187,6 +191,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             controls: 0,
             modestbranding: 1,
             rel: 0,
+            iv_load_policy: 3,
+            disablekb: 1,
+            fs: 0,
+            playsinline: 1,
           },
           events: {
             onReady: onPlayerReady,
