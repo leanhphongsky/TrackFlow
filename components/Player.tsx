@@ -14,6 +14,8 @@ import {
   Repeat,
   Music,
   Tv,
+  Mic2,
+  CheckCircle,
 } from "lucide-react";
 
 function formatTime(seconds: number) {
@@ -23,7 +25,12 @@ function formatTime(seconds: number) {
   return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
 }
 
-export default function Player() {
+interface PlayerProps {
+  onToggleRightPanel?: () => void;
+  isRightPanelOpen?: boolean;
+}
+
+export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerProps) {
   const {
     currentSong,
     isPlaying,
@@ -81,7 +88,7 @@ export default function Player() {
               )}
             </div>
 
-            <div className="overflow-hidden">
+            <div className="overflow-hidden flex-1">
               <p className="font-semibold text-sm text-white truncate hover:underline cursor-pointer">
                 {currentSong.title}
               </p>
@@ -89,6 +96,8 @@ export default function Player() {
                 {currentSong.artist}
               </p>
             </div>
+
+            <CheckCircle className="w-4 h-4 text-[#1db954] fill-black flex-shrink-0 hidden sm:block" />
           </div>
 
           {/* Center: Controls & Scrubber */}
@@ -148,8 +157,23 @@ export default function Player() {
             </div>
           </div>
 
-          {/* Right: Video Toggle & Volume */}
+          {/* Right: Lyrics toggle, Video Toggle & Volume */}
           <div className="flex items-center justify-end gap-3 w-1/4 min-w-[150px]">
+            {/* Lyrics Panel Toggle Button */}
+            {onToggleRightPanel && (
+              <button
+                onClick={onToggleRightPanel}
+                className={`p-2 rounded-full transition ${
+                  isRightPanelOpen
+                    ? "text-[#1db954] bg-white/10"
+                    : "text-gray-400 hover:text-white"
+                }`}
+                title="Lời bài hát (Lyrics)"
+              >
+                <Mic2 className="w-5 h-5" />
+              </button>
+            )}
+
             {isYouTube && (
               <button
                 onClick={() => setShowVideo(!showVideo)}
