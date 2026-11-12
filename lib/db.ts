@@ -7,11 +7,12 @@ if (!process.env.DATABASE_URL) {
 export const sql = neon(process.env.DATABASE_URL);
 
 export interface Song {
-  id: number;
+  id: number | string;
   title: string;
   artist: string;
   audio_url: string;
   image_url: string | null;
   duration: number;
-  created_at: string;
+  created_at?: string;
+  videoId?: string;
 }

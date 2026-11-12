@@ -6,7 +6,17 @@ import Player from "@/components/Player";
 import UploadModal from "@/components/UploadModal";
 import SongCard from "@/components/SongCard";
 import { Song } from "@/lib/db";
-import { Search, Plus, Music2, Sparkles, Loader2, Play } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Music2,
+  Sparkles,
+  Loader2,
+  Play,
+  BookmarkPlus,
+  Check,
+} from "lucide-react";
+import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
 
 export default function Home() {
@@ -15,6 +25,11 @@ export default function Home() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // YouTube Search state
+  const [ytResults, setYtResults] = useState<any[]>([]);
+  const [isSearchingYt, setIsSearchingYt] = useState(false);
+  const [savedYtIds, setSavedYtIds] = useState<Set<string>>(new Set());
 
   const { playSong } = usePlayer();
 
@@ -37,11 +52,56 @@ export default function Home() {
     fetchSongs();
   }, []);
 
+  // Search YouTube
+  const handleSearchSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    try {
+      setIsSearchingYt(true);
+      setActiveTab("search");
+      const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(searchQuery)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setYtResults(data.results || []);
+      }
+    } catch (err) {
+      console.error("YouTube search error:", err);
+    } finally {
+      setIsSearchingYt(false);
+    }
+  };
+
+  // Save YouTube song to Neon Database
+  const handleSaveToLibrary = async (item: any) => {
+    try {
+      const res = await fetch("/api/songs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: item.title,
+          artist: item.artist,
+          audio_url: item.audio_url,
+          image_url: item.image_url,
+          duration: item.duration,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSongs((prev) => [data.song, ...prev]);
+        setSavedYtIds((prev) => new Set(prev).add(item.videoId));
+      }
+    } catch (err) {
+      console.error("Error saving song:", err);
+    }
+  };
+
   const handleSongUploaded = (newSong: Song) => {
     setSongs((prev) => [newSong, ...prev]);
   };
 
-  const filteredSongs = songs.filter(
+  const localFilteredSongs = songs.filter(
     (s) =>
       s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.artist.toLowerCase().includes(searchQuery.toLowerCase())
@@ -60,28 +120,29 @@ export default function Home() {
       <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#121212] m-2 ml-0 rounded-xl relative">
         {/* Top Navbar */}
         <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-[#121212]/80 backdrop-blur-md sticky top-0 z-40">
-          <div className="flex items-center gap-4 flex-1 max-w-md">
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-4 flex-1 max-w-lg">
             <div className="relative w-full">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  if (activeTab !== "search" && e.target.value) {
-                    setActiveTab("search");
-                  }
-                }}
-                placeholder="Tìm kiếm bài hát, ca sĩ..."
-                className="w-full bg-[#242424] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-sm text-white placeholder-gray-400 pl-9 pr-4 py-2 rounded-full border border-transparent focus:border-white/20 focus:outline-none transition"
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm bài hát từ YouTube hoặc Thư viện..."
+                className="w-full bg-[#242424] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-sm text-white placeholder-gray-400 pl-9 pr-24 py-2 rounded-full border border-transparent focus:border-white/20 focus:outline-none transition"
               />
+              <button
+                type="submit"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[#1db954] hover:bg-[#1ed760] text-black text-xs font-bold px-3 py-1 rounded-full transition flex items-center gap-1 shadow"
+              >
+                {isSearchingYt ? <Loader2 className="w-3 h-3 animate-spin" /> : "Tìm kiếm"}
+              </button>
             </div>
-          </div>
+          </form>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsUploadOpen(true)}
-              className="bg-[#1db954] hover:bg-[#1ed760] text-black text-xs font-bold py-2.5 px-4 rounded-full transition flex items-center gap-2 shadow-md hover:scale-105"
+              className="bg-white hover:bg-gray-200 text-black text-xs font-bold py-2.5 px-4 rounded-full transition flex items-center gap-2 shadow-md hover:scale-105"
             >
               <Plus className="w-4 h-4" />
               <span>Đăng nhạc</span>
@@ -91,77 +152,159 @@ export default function Home() {
 
         {/* Scrollable View Area */}
         <div className="flex-1 overflow-y-auto px-6 py-6 pb-32">
-          {/* Welcome Banner */}
-          <div className="rounded-2xl p-6 mb-8 bg-gradient-to-r from-emerald-900/60 via-green-950/40 to-[#121212] border border-white/10 relative overflow-hidden shadow-2xl">
-            <div className="relative z-10 max-w-xl">
-              <div className="flex items-center gap-2 text-[#1db954] text-xs font-bold uppercase tracking-wider mb-2">
-                <Sparkles className="w-4 h-4" />
-                <span>Không quảng cáo 100%</span>
-              </div>
-              <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
-                Chào mừng đến với TrackFlow
-              </h1>
-              <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-                Nghe nhạc trực tuyến chất lượng cao không lo quảng cáo. Bạn và bạn bè có thể tự do tải lên và cùng thưởng thức bài hát yêu thích.
-              </p>
-              {songs.length > 0 && (
+          {/* Active Tab: SEARCH RESULTS */}
+          {activeTab === "search" ? (
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                  <YoutubeIcon className="w-7 h-7 text-red-500" />
+                  <span>Kết quả tìm kiếm YouTube cho: &quot;{searchQuery}&quot;</span>
+                </h2>
                 <button
-                  onClick={() => playSong(songs[0], songs)}
-                  className="bg-white hover:bg-gray-200 text-black font-bold text-xs py-2.5 px-6 rounded-full flex items-center gap-2 transition hover:scale-105 shadow-lg"
+                  onClick={() => setActiveTab("home")}
+                  className="text-xs text-gray-400 hover:text-white underline"
                 >
-                  <Play className="w-4 h-4 fill-black" />
-                  <span>Phát ngẫu nhiên tất cả</span>
+                  Quay lại Trang chủ
                 </button>
-              )}
-            </div>
-          </div>
-
-          {/* Song Section Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Music2 className="w-5 h-5 text-[#1db954]" />
-              {activeTab === "search" && searchQuery
-                ? `Kết quả tìm kiếm cho "${searchQuery}" (${filteredSongs.length})`
-                : `Danh sách bài hát (${songs.length})`}
-            </h2>
-          </div>
-
-          {/* Loading State */}
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
-              <p className="text-sm">Đang kết nối Neon Database...</p>
-            </div>
-          ) : filteredSongs.length === 0 ? (
-            /* Empty State */
-            <div className="text-center py-20 px-4 bg-[#181818]/60 border border-white/5 rounded-2xl flex flex-col items-center justify-center">
-              <div className="w-16 h-16 rounded-full bg-[#242424] flex items-center justify-center text-gray-500 mb-4">
-                <Music2 className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-1">
-                {searchQuery ? "Không tìm thấy bài hát nào" : "Chưa có bài hát nào"}
-              </h3>
-              <p className="text-sm text-gray-400 max-w-sm mb-6">
-                {searchQuery
-                  ? "Hãy thử tìm bằng từ khóa khác hoặc tên ca sĩ."
-                  : "Hãy là người đầu tiên tải lên bài hát yêu thích để bắt đầu nghe nhạc trên TrackFlow!"}
-              </p>
-              {!searchQuery && (
-                <button
-                  onClick={() => setIsUploadOpen(true)}
-                  className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-sm py-2.5 px-6 rounded-full transition shadow-lg hover:scale-105 flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Đăng bài hát đầu tiên</span>
-                </button>
+
+              {isSearchingYt ? (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
+                  <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
+                  <p className="text-sm">Đang tìm bài hát từ YouTube...</p>
+                </div>
+              ) : ytResults.length === 0 ? (
+                <div className="text-center py-16 text-gray-400">
+                  <p>Nhập tên bài hát hoặc ca sĩ vào thanh tìm kiếm rồi nhấn Enter.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {ytResults.map((item) => {
+                    const isSaved = savedYtIds.has(item.videoId);
+                    return (
+                      <div
+                        key={item.id}
+                        className="group flex items-center gap-3 p-3 bg-[#181818] hover:bg-[#242424] rounded-xl transition border border-white/5 hover:border-white/10"
+                      >
+                        {/* Thumbnail */}
+                        <div
+                          onClick={() => playSong(item, ytResults)}
+                          className="relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer bg-black shadow"
+                        >
+                          <img
+                            src={item.image_url}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                            <Play className="w-6 h-6 fill-white text-white ml-0.5" />
+                          </div>
+                          <span className="absolute bottom-1 right-1 bg-black/80 text-[10px] px-1 rounded text-white font-mono">
+                            {item.timestamp}
+                          </span>
+                        </div>
+
+                        {/* Info */}
+                        <div
+                          onClick={() => playSong(item, ytResults)}
+                          className="flex-1 min-w-0 cursor-pointer"
+                        >
+                          <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-[#1db954] transition">
+                            {item.title}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">{item.artist}</p>
+                        </div>
+
+                        {/* Save to Library Button */}
+                        <button
+                          onClick={() => handleSaveToLibrary(item)}
+                          disabled={isSaved}
+                          title={isSaved ? "Đã lưu vào thư viện" : "Lưu vào Thư viện của bạn"}
+                          className={`p-2 rounded-full transition flex-shrink-0 ${
+                            isSaved
+                              ? "text-[#1db954] bg-[#1db954]/10 cursor-default"
+                              : "text-gray-400 hover:text-white hover:bg-white/10"
+                          }`}
+                        >
+                          {isSaved ? <Check className="w-5 h-5" /> : <BookmarkPlus className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           ) : (
-            /* Song Grid */
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {filteredSongs.map((song) => (
-                <SongCard key={song.id} song={song} songsList={filteredSongs} />
-              ))}
+            /* Active Tab: HOME / LIBRARY */
+            <div>
+              {/* Welcome Banner */}
+              <div className="rounded-2xl p-6 mb-8 bg-gradient-to-r from-emerald-900/60 via-green-950/40 to-[#121212] border border-white/10 relative overflow-hidden shadow-2xl">
+                <div className="relative z-10 max-w-xl">
+                  <div className="flex items-center gap-2 text-[#1db954] text-xs font-bold uppercase tracking-wider mb-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Không quảng cáo 100% • Tích hợp YouTube & Cloudinary</span>
+                  </div>
+                  <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
+                    Chào mừng đến với TrackFlow
+                  </h1>
+                  <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+                    Tìm kiếm hàng triệu bài hát từ YouTube hoặc đăng bài hát MP3 từ máy của bạn. Nghe mượt mà không quảng cáo cùng nhóm bạn.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    {songs.length > 0 && (
+                      <button
+                        onClick={() => playSong(songs[0], songs)}
+                        className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2.5 px-6 rounded-full flex items-center gap-2 transition hover:scale-105 shadow-lg"
+                      >
+                        <Play className="w-4 h-4 fill-black" />
+                        <span>Phát tất cả</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Song Section Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Music2 className="w-5 h-5 text-[#1db954]" />
+                  <span>Thư viện bài hát ({songs.length})</span>
+                </h2>
+              </div>
+
+              {/* Loading State */}
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
+                  <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
+                  <p className="text-sm">Đang tải thư viện...</p>
+                </div>
+              ) : songs.length === 0 ? (
+                /* Empty State */
+                <div className="text-center py-20 px-4 bg-[#181818]/60 border border-white/5 rounded-2xl flex flex-col items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-[#242424] flex items-center justify-center text-gray-500 mb-4">
+                    <Music2 className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-1">Thư viện chưa có bài hát nào</h3>
+                  <p className="text-sm text-gray-400 max-w-md mb-6">
+                    Bạn có thể gõ tên bài hát vào ô tìm kiếm ở trên để nghe trực tiếp từ YouTube và lưu vào đây, hoặc nhấn Đăng nhạc để tải file MP3 lên!
+                  </p>
+                  <button
+                    onClick={() => setIsUploadOpen(true)}
+                    className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-sm py-2.5 px-6 rounded-full transition shadow-lg hover:scale-105 flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Đăng bài hát đầu tiên</span>
+                  </button>
+                </div>
+              ) : (
+                /* Song Grid */
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  {localFilteredSongs.map((song) => (
+                    <SongCard key={song.id} song={song} songsList={localFilteredSongs} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

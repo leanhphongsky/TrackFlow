@@ -10,16 +10,19 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
+    "cheerio": "^1.2.0",
     "cloudinary": "^2.5.1",
     "lucide-react": "^1.16.0",
     "next": "^14.2.23",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "yt-search": "^2.13.1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/yt-search": "^2.10.3",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
