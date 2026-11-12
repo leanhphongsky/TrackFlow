@@ -165,7 +165,13 @@ export default function NowPlayingPanel({
                 }}
               />
             )}
-            <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group select-none">
+            <div
+              className="relative aspect-square w-full rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group select-none"
+              style={{
+                WebkitMaskImage: "linear-gradient(to bottom, black 82%, rgba(0,0,0,0.4) 93%, transparent 100%)",
+                maskImage: "linear-gradient(to bottom, black 82%, rgba(0,0,0,0.4) 93%, transparent 100%)",
+              }}
+            >
               
               {/* 1. Static Album Cover Image (Always shown when paused or when Canvas is turned off) */}
               <div
@@ -227,8 +233,8 @@ export default function NowPlayingPanel({
                 />
               </div>
 
-              {/* 4. Bottom Transition Zone: Smooth Backdrop Blur & Gradient Fade into panel background */}
-              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#121212] via-[#121212]/60 to-transparent pointer-events-none z-10 backdrop-blur-[3px]" />
+              {/* 4. Bottom Smooth Gradient Vignette (Pure natural ease-out fade, no artificial grey haze) */}
+              <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#121212] via-[#121212]/40 to-transparent pointer-events-none z-10" />
 
               {/* 5. Top Subtle Vignette */}
               <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black/40 to-transparent pointer-events-none z-10" />
