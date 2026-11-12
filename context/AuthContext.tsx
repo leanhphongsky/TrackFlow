@@ -44,9 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
+        } else {
+          setUser(null);
+          // Tự động mở modal ở tab đăng nhập nếu chưa đăng nhập
+          openAuthModal("login");
         }
       } catch (err) {
         setUser(null);
+        openAuthModal("login");
       } finally {
         setLoading(false);
       }
@@ -134,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setFavoriteSongs([]);
       setFavoriteSongIds(new Set());
       setFavoriteAudioUrls(new Set());
+      openAuthModal("login");
     } catch (err) {
       console.error("Logout error:", err);
     }
