@@ -14,6 +14,7 @@ import {
   Repeat,
   Music,
   Tv,
+  Mic2,
 } from "lucide-react";
 
 function formatTime(seconds: number) {
@@ -23,7 +24,12 @@ function formatTime(seconds: number) {
   return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
 }
 
-export default function Player() {
+interface PlayerProps {
+  onToggleRightPanel?: () => void;
+  isRightPanelOpen?: boolean;
+}
+
+export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerProps) {
   const {
     currentSong,
     isPlaying,
@@ -148,8 +154,22 @@ export default function Player() {
             </div>
           </div>
 
-          {/* Right: Video Toggle & Volume */}
+          {/* Right: Lyrics, Video Toggle & Volume */}
           <div className="flex items-center justify-end gap-3 w-1/4 min-w-[150px]">
+            {onToggleRightPanel && (
+              <button
+                onClick={onToggleRightPanel}
+                className={`p-2 rounded-full transition ${
+                  isRightPanelOpen
+                    ? "text-[#1db954] bg-white/10"
+                    : "text-gray-400 hover:text-white"
+                }`}
+                title="Hiện thông tin & Lời bài hát"
+              >
+                <Mic2 className="w-5 h-5" />
+              </button>
+            )}
+
             {isYouTube && (
               <button
                 onClick={() => setShowVideo(!showVideo)}

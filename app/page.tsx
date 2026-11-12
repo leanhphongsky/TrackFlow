@@ -6,6 +6,7 @@ import Player from "@/components/Player";
 import UploadModal from "@/components/UploadModal";
 import SongCard from "@/components/SongCard";
 import ArtistView from "@/components/ArtistView";
+import NowPlayingPanel from "@/components/NowPlayingPanel";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -40,7 +41,15 @@ export default function Home() {
     name?: string;
   } | null>(null);
 
-  const { playSong } = usePlayer();
+  // Right Now Playing / Lyrics Panel
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+
+  const { currentSong, playSong } = usePlayer();
+
+  const handlePlaySong = (song: any, queue?: any[]) => {
+    playSong(song, queue);
+    setIsRightPanelOpen(true);
+  };
 
   const fetchSongs = async () => {
     try {
@@ -254,7 +263,7 @@ export default function Home() {
                             >
                               {/* Thumbnail */}
                               <div
-                                onClick={() => playSong(item, ytResults)}
+                                onClick={() => handlePlaySong(item, ytResults)}
                                 className="relative w-24 h-16 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer bg-black shadow"
                               >
                                 <img
@@ -270,7 +279,7 @@ export default function Home() {
                               {/* Info */}
                               <div className="flex-1 min-w-0">
                                 <p
-                                  onClick={() => playSong(item, ytResults)}
+                                  onClick={() => handlePlaySong(item, ytResults)}
                                   className="text-sm font-semibold text-white line-clamp-1 group-hover:text-[#1db954] transition cursor-pointer"
                                 >
                                   {item.title}
@@ -324,7 +333,7 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     {songs.length > 0 && (
                       <button
-                        onClick={() => playSong(songs[0], songs)}
+                        onClick={() => handlePlaySong(songs[0], songs)}
                         className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2.5 px-6 rounded-full flex items-center gap-2 transition hover:scale-105 shadow-lg"
                       >
                         <Play className="w-4 h-4 fill-black" />
@@ -407,8 +416,18 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Right Spotify Sidebar: Now Playing Artwork, Lyrics & About Artist */}
+      <NowPlayingPanel
+        isOpen={isRightPanelOpen && currentSong !== null}
+        onClose={() => setIsRightPanelOpen(false)}
+        onOpenArtist={(name) => openArtist({ name })}
+      />
+
       {/* Persistent Audio Player */}
-      <Player />
+      <Player
+        isRightPanelOpen={isRightPanelOpen}
+        onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
+      />
 
       {/* Upload Song Modal */}
       <UploadModal
