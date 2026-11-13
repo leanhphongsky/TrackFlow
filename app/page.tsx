@@ -10,6 +10,7 @@ import NowPlayingPanel from "@/components/NowPlayingPanel";
 import AuthModal from "@/components/AuthModal";
 import LoginPage from "@/components/LoginPage";
 import TermsView from "@/components/TermsView";
+import TrendingArtistsSection from "@/components/TrendingArtistsSection";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -469,32 +470,8 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Quick Artists Shortcuts */}
-              <div className="mb-8">
-                <h3 className="text-lg font-bold text-white mb-3">Nghệ sĩ thịnh hành</h3>
-                <div className="flex items-center gap-4 overflow-x-auto pb-2">
-                  {[
-                    { name: "Sơn Tùng M-TP", avatar: "https://yt3.ggpht.com/ru3SakOhxGBHZnrVeKPwmMndF81j1-gIrsPtmGSHV1YbX3Y6JoFVMR93UdlfpKp9_xIeh62t=s240-c-k-c0xffffffff-no-rj-mo" },
-                    { name: "Đen Vâu", avatar: "https://yt3.ggpht.com/EcTaxKaey8AYB8XH6FJlZHFxnScP35VpyuvlybH_feh9CZesfW6Lx9x6_gCzpwqdmQjI6Ok4Kg=s800-c-k-c0xffffffff-no-rj-mo" },
-                    { name: "Vũ.", avatar: "https://yt3.ggpht.com/styZTt-gGSXUE-CaK_R8fFvMlWZNigElEWSp-XROEJ8ea8jao6pjMNbdz13Hap-Z_7vsinT6VQ=s800-c-k-c0xffffffff-no-rj-mo" },
-                    { name: "Taylor Swift", avatar: "https://yt3.ggpht.com/M2RGEwo78CL0BVYi0czVt1p7x-iJLowHEfvovtfSLKjcSSt3YCHS7IkJ9fYJWwNTgHx-jL_u3w=s800-c-k-c0xffffffff-no-rj-mo" },
-                    { name: "Charlie Puth", avatar: "https://yt3.ggpht.com/CCdZMDe4Ta_XoUc1ecrSA9RHUNTc-e8o_o6FuitCGzX0-nLIF70b1AmKwVEHVpxSGnTCF0LUOR8=s800-c-k-c0xffffffff-no-rj-mo" },
-                  ].map((art) => (
-                    <button
-                      key={art.name}
-                      onClick={() => openArtist({ name: art.name })}
-                      className="group flex items-center gap-3 bg-[#181818] hover:bg-[#282828] border border-white/5 hover:border-white/10 px-4 py-2.5 rounded-full transition flex-shrink-0"
-                    >
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-black flex-shrink-0">
-                        <img src={art.avatar} alt={art.name} className="w-full h-full object-cover" />
-                      </div>
-                      <span className="text-sm font-semibold text-white group-hover:text-[#1db954] transition">
-                        {art.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Dynamic Trending Artists Section with Multi-Region Boards & Real-Time Data */}
+              <TrendingArtistsSection onOpenArtist={openArtist} />
 
               {/* Quick Liked Songs on Home if any */}
               {favoriteSongs.length > 0 && (
