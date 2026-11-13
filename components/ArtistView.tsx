@@ -131,40 +131,29 @@ export default function ArtistView({
       {/* 1. Ambient Diffuse Color Glow behind Hero Header */}
       {artist.avatar && (
         <div
-          className="absolute -top-6 inset-x-0 h-[440px] rounded-3xl opacity-25 blur-3xl pointer-events-none -z-10 transition-all duration-700"
+          className="absolute -top-6 inset-x-0 h-[360px] rounded-3xl opacity-20 blur-3xl pointer-events-none -z-10 transition-all duration-700"
           style={{
-            backgroundImage: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25), transparent 70%), url(${artist.avatar})`,
+            backgroundImage: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.2), transparent 70%), url(${artist.avatar})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         />
       )}
 
-      {/* 2. Artist Hero Header with Smooth Bottom Dissolve Mask & Blur Transition */}
-      <div
-        className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-[#2d282a] via-[#1a1617] to-[#121212] border-t border-x border-white/10 shadow-2xl transition-all"
-        style={{
-          WebkitMaskImage:
-            "linear-gradient(to bottom, black 65%, rgba(0,0,0,0.6) 84%, transparent 100%)",
-          maskImage:
-            "linear-gradient(to bottom, black 65%, rgba(0,0,0,0.6) 84%, transparent 100%)",
-        }}
-      >
+      {/* 2. Artist Hero Header (100% Crisp & Fully Legible) */}
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-b from-[#2a2426] via-[#1a1617] to-[#121212] mb-6 border border-white/10 shadow-2xl">
         {artist.banner && (
           <img
             src={artist.banner}
             alt={artist.name}
-            className="absolute inset-0 w-full h-full object-cover opacity-35 blur-sm scale-105"
+            className="absolute inset-0 w-full h-full object-cover opacity-25 blur-sm scale-105"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/40 to-transparent pointer-events-none" />
 
-        {/* Bottom Smooth Blur & Gradient Vignette */}
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#121212] via-[#121212]/70 to-transparent pointer-events-none z-10 backdrop-blur-[4px]" />
-
-        <div className="relative z-10 p-6 md:p-10 pb-16 md:pb-20 flex flex-col md:flex-row items-center md:items-end gap-6">
+        <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-center md:items-end gap-6">
           {/* Avatar */}
-          <div className="w-36 h-36 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl border-4 border-white/10 flex-shrink-0 bg-black">
+          <div className="w-32 h-32 md:w-44 md:h-44 rounded-full overflow-hidden shadow-2xl border-4 border-white/10 flex-shrink-0 bg-black">
             {artist.avatar ? (
               <img
                 src={artist.avatar}
@@ -179,15 +168,15 @@ export default function ArtistView({
           </div>
 
           {/* Details */}
-          <div className="flex-1 text-center md:text-left">
+          <div className="flex-1 text-center md:text-left min-w-0">
             <div className="flex items-center justify-center md:justify-start gap-1.5 text-xs text-sky-400 font-bold uppercase tracking-wider mb-2">
               <CheckCircle2 className="w-4 h-4 fill-sky-400 text-black" />
               <span>Nghệ sĩ đã xác minh trên YouTube</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black text-white mb-3 tracking-tight">
+            <h1 className="text-3xl md:text-5xl font-black text-white mb-2.5 tracking-tight truncate">
               {artist.name}
             </h1>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs text-gray-300 font-medium">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-gray-300 font-medium">
               <span className="flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-[#1db954]" />
                 {artist.subscribers} người đăng ký
@@ -208,52 +197,51 @@ export default function ArtistView({
         </div>
       </div>
 
-      {/* 3. Transitional Ambient Gradient & Action Area connecting smoothly to songs */}
-      <div className="relative -mt-12 pt-4 z-20">
-        {/* Soft Ambient Blur Bridge Layer */}
-        <div className="absolute -top-10 inset-x-0 h-44 bg-gradient-to-b from-transparent via-[#121212]/60 to-[#121212] pointer-events-none -z-10 backdrop-blur-[2px]" />
+      {/* 3. Action Row with Ambient Blur Transition into Songs */}
+      <div className="relative mb-8 py-2">
+        {/* Soft Ambient Blur Transition Bridge between Banner and Songs */}
+        <div className="absolute -top-4 inset-x-0 h-28 bg-gradient-to-b from-white/[0.03] via-transparent to-transparent blur-xl pointer-events-none -z-10" />
 
-        {/* Action Row */}
-        <div className="flex items-center gap-4 mb-8">
-        {songs.length > 0 && (
+        <div className="flex items-center gap-4">
+          {songs.length > 0 && (
+            <button
+              onClick={() => {
+                if (isCurrentArtistPlaying && isPlaying) {
+                  togglePlay();
+                } else {
+                  playSong(songs[0], songs, true);
+                }
+              }}
+              className="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] hover:scale-105 flex items-center justify-center text-black shadow-xl transition"
+              title="Phát tất cả"
+            >
+              {isCurrentArtistPlaying && isPlaying ? (
+                <Pause className="w-7 h-7 fill-black" />
+              ) : (
+                <Play className="w-7 h-7 fill-black ml-1" />
+              )}
+            </button>
+          )}
+
           <button
             onClick={() => {
-              if (isCurrentArtistPlaying && isPlaying) {
-                togglePlay();
-              } else {
-                playSong(songs[0], songs, true);
+              if (artist) {
+                toggleFollowArtist({
+                  name: artist.name,
+                  channelId: artist.id,
+                  avatar: artist.avatar,
+                });
               }
             }}
-            className="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] hover:scale-105 flex items-center justify-center text-black shadow-xl transition"
-            title="Phát tất cả"
+            className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider border transition ${
+              isFollowing
+                ? "border-[#1db954] text-[#1db954] bg-[#1db954]/10 shadow-[0_0_12px_rgba(29,185,84,0.2)]"
+                : "border-gray-500 text-white hover:border-white hover:scale-105"
+            }`}
           >
-            {isCurrentArtistPlaying && isPlaying ? (
-              <Pause className="w-7 h-7 fill-black" />
-            ) : (
-              <Play className="w-7 h-7 fill-black ml-1" />
-            )}
+            {isFollowing ? "Đang theo dõi" : "Theo dõi"}
           </button>
-        )}
-
-        <button
-          onClick={() => {
-            if (artist) {
-              toggleFollowArtist({
-                name: artist.name,
-                channelId: artist.id,
-                avatar: artist.avatar,
-              });
-            }
-          }}
-          className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider border transition ${
-            isFollowing
-              ? "border-[#1db954] text-[#1db954] bg-[#1db954]/10 shadow-[0_0_12px_rgba(29,185,84,0.2)]"
-              : "border-gray-500 text-white hover:border-white hover:scale-105"
-          }`}
-        >
-          {isFollowing ? "Đang theo dõi" : "Theo dõi"}
-        </button>
-      </div>
+        </div>
       </div>
 
       {/* Popular Songs Section */}
