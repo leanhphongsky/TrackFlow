@@ -23,6 +23,22 @@ function parseDuration(iso?: string): number {
   return hours * 3600 + minutes * 60 + seconds;
 }
 
+function formatViews(views?: number | string): string {
+  if (!views) return "";
+  const num = typeof views === "string" ? parseInt(views.replace(/[^0-9]/g, ""), 10) : Number(views);
+  if (isNaN(num) || num <= 0) return String(views);
+  if (num >= 1_000_000_000) {
+    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + " Tỷ lượt xem";
+  }
+  if (num >= 1_000_000) {
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + " Tr lượt xem";
+  }
+  if (num >= 1_000) {
+    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + " N lượt xem";
+  }
+  return num.toLocaleString("vi-VN") + " lượt xem";
+}
+
 // Regex to exclude non-music video titles (reactions, reviews, podcasts, gameplay, etc.)
 const NON_MUSIC_TITLE_REGEX =
   /\b(reaction|reacting|podcast|unboxing|gameplay|walkthrough|bình luận game|hài kịch|phim ngắn)\b/i;
@@ -80,6 +96,8 @@ export async function GET(req: Request) {
           audio_url: `https://www.youtube.com/watch?v=${v.videoId}`,
           image_url: v.thumbnail || v.image || `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`,
           duration: duration,
+          views: v.views || 0,
+          viewsFormatted: formatViews(v.views),
         });
 
         // Collect top matching artist channels
@@ -122,7 +140,7 @@ export async function GET(req: Request) {
 
             if (videoIds) {
               const detailUrl = new URL("https://www.googleapis.com/youtube/v3/videos");
-              detailUrl.searchParams.set("part", "snippet,contentDetails");
+              detailUrl.searchParams.set("part", "snippet,contentDetails,statistics");
               detailUrl.searchParams.set("id", videoIds);
               detailUrl.searchParams.set("key", apiKey);
 
@@ -134,6 +152,7 @@ export async function GET(req: Request) {
                   const snippet = item.snippet;
                   const duration = parseDuration(item.contentDetails?.duration);
                   const title = decodeHtmlEntities(snippet?.title || "");
+                  const rawViews = item.statistics?.viewCount ? parseInt(item.statistics.viewCount, 10) : 0;
 
                   if (!isMusicVideo(duration, title)) continue;
 
@@ -149,6 +168,8 @@ export async function GET(req: Request) {
                       snippet.thumbnails?.medium?.url ||
                       `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
                     duration: duration,
+                    views: rawViews,
+                    viewsFormatted: formatViews(rawViews),
                   });
                 }
               }

@@ -413,12 +413,19 @@ export default function Home() {
                               >
                                 {item.title}
                               </p>
-                              <p
-                                onClick={() => openArtist({ name: item.artist, channelId: item.channelId })}
-                                className="text-xs text-gray-400 hover:text-white hover:underline cursor-pointer truncate mt-0.5"
-                              >
-                                {item.artist}
-                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <p
+                                  onClick={() => openArtist({ name: item.artist, channelId: item.channelId })}
+                                  className="text-xs text-gray-400 hover:text-white hover:underline cursor-pointer truncate"
+                                >
+                                  {item.artist}
+                                </p>
+                                {item.viewsFormatted && (
+                                  <span className="text-[10px] text-gray-500 font-medium flex-shrink-0">
+                                    • {item.viewsFormatted}
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Heart Favorite Button */}

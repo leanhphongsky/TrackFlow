@@ -36,6 +36,22 @@ interface ArtistViewProps {
   onSongSaved?: (song: Song) => void;
 }
 
+function formatSongViews(views?: number | string): string {
+  if (!views) return "";
+  const num = typeof views === "string" ? parseInt(views.replace(/[^0-9]/g, ""), 10) : Number(views);
+  if (isNaN(num) || num <= 0) return String(views);
+  if (num >= 1_000_000_000) {
+    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + " Tỷ";
+  }
+  if (num >= 1_000_000) {
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + " Tr";
+  }
+  if (num >= 1_000) {
+    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + " N";
+  }
+  return num.toLocaleString("vi-VN");
+}
+
 export default function ArtistView({
   channelId,
   artistName,
@@ -251,16 +267,33 @@ export default function ArtistView({
                 </div>
 
                 {/* Title & Artist */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 pr-2">
                   <p
-                    className={`text-sm font-semibold truncate ${
-                      isCurrent ? "text-[#1db954]" : "text-white"
+                    className={`text-sm font-semibold truncate transition ${
+                      isCurrent ? "text-[#1db954]" : "text-white group-hover:text-[#1db954]"
                     }`}
                   >
                     {song.title}
                   </p>
                   <p className="text-xs text-gray-400 truncate">{song.artist}</p>
                 </div>
+
+                {/* View Count Display (Circled area before heart button) */}
+                {(song.views || song.viewsFormatted) && (
+                  <div
+                    className="flex items-center gap-1.5 text-xs text-gray-400 group-hover:text-gray-200 transition flex-shrink-0 mr-2 sm:mr-4 font-medium tabular-nums"
+                    title={
+                      typeof song.views === "number"
+                        ? `${song.views.toLocaleString("vi-VN")} lượt xem`
+                        : song.viewsFormatted || String(song.views)
+                    }
+                  >
+                    <Eye className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#1db954] transition" />
+                    <span>
+                      {song.viewsFormatted || `${formatSongViews(song.views)} lượt xem`}
+                    </span>
+                  </div>
+                )}
 
                 {/* Favorite Heart Button */}
                 <button
