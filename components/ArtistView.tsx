@@ -128,18 +128,41 @@ export default function ArtistView({
         </button>
       </div>
 
-      {/* Artist Hero Header */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-b from-[#333] to-[#121212] mb-8 border border-white/10 shadow-2xl">
+      {/* 1. Ambient Diffuse Color Glow behind Hero Header */}
+      {artist.avatar && (
+        <div
+          className="absolute -top-6 inset-x-0 h-[440px] rounded-3xl opacity-25 blur-3xl pointer-events-none -z-10 transition-all duration-700"
+          style={{
+            backgroundImage: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25), transparent 70%), url(${artist.avatar})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+      )}
+
+      {/* 2. Artist Hero Header with Smooth Bottom Dissolve Mask & Blur Transition */}
+      <div
+        className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-[#2d282a] via-[#1a1617] to-[#121212] border-t border-x border-white/10 shadow-2xl transition-all"
+        style={{
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black 65%, rgba(0,0,0,0.6) 84%, transparent 100%)",
+          maskImage:
+            "linear-gradient(to bottom, black 65%, rgba(0,0,0,0.6) 84%, transparent 100%)",
+        }}
+      >
         {artist.banner && (
           <img
             src={artist.banner}
             alt={artist.name}
-            className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm scale-105"
+            className="absolute inset-0 w-full h-full object-cover opacity-35 blur-sm scale-105"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/50 to-transparent" />
 
-        <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row items-center md:items-end gap-6">
+        {/* Bottom Smooth Blur & Gradient Vignette */}
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#121212] via-[#121212]/70 to-transparent pointer-events-none z-10 backdrop-blur-[4px]" />
+
+        <div className="relative z-10 p-6 md:p-10 pb-16 md:pb-20 flex flex-col md:flex-row items-center md:items-end gap-6">
           {/* Avatar */}
           <div className="w-36 h-36 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl border-4 border-white/10 flex-shrink-0 bg-black">
             {artist.avatar ? (
@@ -185,8 +208,13 @@ export default function ArtistView({
         </div>
       </div>
 
-      {/* Action Row */}
-      <div className="flex items-center gap-4 mb-8">
+      {/* 3. Transitional Ambient Gradient & Action Area connecting smoothly to songs */}
+      <div className="relative -mt-12 pt-4 z-20">
+        {/* Soft Ambient Blur Bridge Layer */}
+        <div className="absolute -top-10 inset-x-0 h-44 bg-gradient-to-b from-transparent via-[#121212]/60 to-[#121212] pointer-events-none -z-10 backdrop-blur-[2px]" />
+
+        {/* Action Row */}
+        <div className="flex items-center gap-4 mb-8">
         {songs.length > 0 && (
           <button
             onClick={() => {
@@ -225,6 +253,7 @@ export default function ArtistView({
         >
           {isFollowing ? "Đang theo dõi" : "Theo dõi"}
         </button>
+      </div>
       </div>
 
       {/* Popular Songs Section */}
