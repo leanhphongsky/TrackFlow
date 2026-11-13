@@ -11,6 +11,7 @@ import AuthModal from "@/components/AuthModal";
 import LoginPage from "@/components/LoginPage";
 import TermsView from "@/components/TermsView";
 import TrendingArtistsSection from "@/components/TrendingArtistsSection";
+import TrendingSongsSection from "@/components/TrendingSongsSection";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -472,6 +473,9 @@ export default function Home() {
 
               {/* Dynamic Trending Artists Section with Multi-Region Boards & Real-Time Data */}
               <TrendingArtistsSection onOpenArtist={openArtist} />
+
+              {/* Dynamic Trending Songs Section with Multi-Region Charts & YouTube Data */}
+              <TrendingSongsSection onPlaySong={handlePlaySong} onOpenArtist={openArtist} />
 
               {/* Quick Liked Songs on Home if any */}
               {favoriteSongs.length > 0 && (
