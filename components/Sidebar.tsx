@@ -12,6 +12,7 @@ import {
   Music,
   ListPlus,
   Upload,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
@@ -68,15 +69,31 @@ export default function Sidebar({
     <aside className="w-64 bg-black flex flex-col h-full p-2 gap-2 text-gray-300 select-none border-r border-[#242424] flex-shrink-0">
       {/* Top Section */}
       <div className="bg-[#121212] rounded-xl p-4 flex flex-col gap-4">
-        {/* Brand Logo */}
-        <div
-          onClick={() => setActiveTab("home")}
-          className="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight cursor-pointer"
-        >
-          <Disc3 className="w-7 h-7 text-[#1db954] animate-spin-slow" />
-          <span className="bg-gradient-to-r from-white via-gray-200 to-[#1db954] bg-clip-text text-transparent">
-            TrackFlow
-          </span>
+        {/* Brand Logo & Version Badge */}
+        <div className="flex items-center justify-between">
+          <div
+            onClick={() => setActiveTab("home")}
+            className="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight cursor-pointer group"
+          >
+            <Disc3 className="w-7 h-7 text-[#1db954] animate-spin-slow group-hover:scale-105 transition-transform" />
+            <span className="bg-gradient-to-r from-white via-gray-200 to-[#1db954] bg-clip-text text-transparent">
+              TrackFlow
+            </span>
+          </div>
+
+          {/* Version Badge (Clickable to open Changelog) */}
+          <button
+            onClick={() => setActiveTab("changelog")}
+            title="Xem nhật ký bản cập nhật v2.4"
+            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide transition border shadow-sm ${
+              activeTab === "changelog"
+                ? "bg-[#1db954] text-black border-[#1db954] shadow-[0_0_10px_rgba(29,185,84,0.4)]"
+                : "bg-[#1db954]/15 text-[#1db954] border-[#1db954]/30 hover:bg-[#1db954] hover:text-black hover:scale-105 active:scale-95"
+            }`}
+          >
+            <Sparkles className="w-2.5 h-2.5" />
+            <span>v2.4</span>
+          </button>
         </div>
 
         {/* Navigation */}
@@ -285,18 +302,32 @@ export default function Sidebar({
             <span>Đăng bài hát MP3</span>
           </button>
 
-          {/* Legal / Terms of Service Footer Link */}
-          <button
-            onClick={() => setActiveTab("terms")}
-            className={`w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium rounded transition ${
-              activeTab === "terms"
-                ? "text-[#1db954] bg-[#1db954]/10 font-semibold"
-                : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Điều khoản & Pháp lý</span>
-          </button>
+          {/* Footer Navigation Links: Changelog & Terms */}
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+            <button
+              onClick={() => setActiveTab("changelog")}
+              className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded transition truncate ${
+                activeTab === "changelog"
+                  ? "text-[#1db954] bg-[#1db954]/10 font-bold"
+                  : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+              }`}
+            >
+              <Sparkles className="w-3 h-3 text-[#1db954]" />
+              <span className="truncate">Bản cập nhật</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("terms")}
+              className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded transition truncate ${
+                activeTab === "terms"
+                  ? "text-[#1db954] bg-[#1db954]/10 font-bold"
+                  : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+              }`}
+            >
+              <ShieldCheck className="w-3 h-3" />
+              <span className="truncate">Pháp lý</span>
+            </button>
+          </div>
         </div>
       </div>
     </aside>

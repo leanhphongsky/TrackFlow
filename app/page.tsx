@@ -10,6 +10,7 @@ import NowPlayingPanel from "@/components/NowPlayingPanel";
 import AuthModal from "@/components/AuthModal";
 import LoginPage from "@/components/LoginPage";
 import TermsView from "@/components/TermsView";
+import ChangelogView from "@/components/ChangelogView";
 import TrendingArtistsSection from "@/components/TrendingArtistsSection";
 import TrendingSongsSection from "@/components/TrendingSongsSection";
 import PlaylistView from "@/components/PlaylistView";
@@ -234,6 +235,9 @@ export default function Home() {
           ) : activeTab === "terms" ? (
             /* VIEW: TERMS & LEGAL DISCLAIMER */
             <TermsView onBack={() => setActiveTab("home")} />
+          ) : activeTab === "changelog" ? (
+            /* VIEW: CHANGELOG & RELEASE NOTES */
+            <ChangelogView onBack={() => setActiveTab("home")} />
           ) : activeTab === "playlist" && selectedPlaylistId ? (
             /* VIEW: SPOTIFY PLAYLIST VIEW */
             <PlaylistView
