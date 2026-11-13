@@ -84,15 +84,15 @@ export default function Sidebar({
           {/* Version Badge (Clickable to open Changelog) */}
           <button
             onClick={() => setActiveTab("changelog")}
-            title="Xem nhật ký bản cập nhật v2.4"
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide transition border shadow-sm ${
+            title="Xem nhật ký bản cập nhật Beta v2.4"
+            className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide transition border shadow-sm ${
               activeTab === "changelog"
                 ? "bg-[#1db954] text-black border-[#1db954] shadow-[0_0_10px_rgba(29,185,84,0.4)]"
                 : "bg-[#1db954]/15 text-[#1db954] border-[#1db954]/30 hover:bg-[#1db954] hover:text-black hover:scale-105 active:scale-95"
             }`}
           >
             <Sparkles className="w-2.5 h-2.5" />
-            <span>v2.4</span>
+            <span>Beta v2.4</span>
           </button>
         </div>
 

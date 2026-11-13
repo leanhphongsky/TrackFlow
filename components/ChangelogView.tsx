@@ -42,14 +42,14 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
             <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#1db954] text-black shadow-md flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Phiên bản v2.4.0</span>
+              <span>Phiên bản Beta v2.4</span>
             </span>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-gray-300 flex items-center gap-1.5 border border-white/5">
               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
               <span>Cập nhật ngày 13/11/2026</span>
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              Bản cập nhật lớn (Major Update)
+              Đang trong giai đoạn phát triển (Active Development)
             </span>
           </div>
 
@@ -57,7 +57,7 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
             Nhật ký cập nhật hệ thống
           </h1>
           <p className="text-gray-300 text-sm max-w-2xl leading-relaxed">
-            Tổng hợp các tính năng mới, các nội dung đã được loại bỏ và toàn bộ cải tiến, sửa lỗi trong phiên bản TrackFlow v2.4.0.
+            Tổng hợp các tính năng mới, các nội dung đã được loại bỏ và toàn bộ cải tiến, sửa lỗi trong phiên bản TrackFlow Beta v2.4. Trang web đang trong quá trình phát triển tích cực để mang lại trải nghiệm âm nhạc tốt nhất.
           </p>
         </div>
       </div>
