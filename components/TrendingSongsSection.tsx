@@ -10,7 +10,8 @@ import {
   RefreshCw,
   Eye,
   Music2,
-  Sparkles,
+  Calendar,
+  Flame,
 } from "lucide-react";
 import { Song } from "@/lib/db";
 import { usePlayer } from "@/context/PlayerContext";
@@ -19,6 +20,10 @@ import { useAuth } from "@/context/AuthContext";
 interface TrendingSongItem extends Song {
   rank?: number;
   globalRank?: number;
+  views_gain_24h?: number;
+  viewsGain24hFormatted?: string;
+  total_views?: number;
+  totalViewsFormatted?: string;
   views?: string;
   viewCount?: number;
   region?: string;
@@ -48,6 +53,7 @@ export default function TrendingSongsSection({
   const [activeTab, setActiveTab] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [chartDate, setChartDate] = useState<string>("");
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
   const { currentSong, isPlaying, togglePlay } = usePlayer();
@@ -67,6 +73,9 @@ export default function TrendingSongsSection({
         const data = await res.json();
         setCategories(data.categories || []);
         setAllTracks(data.allTracks || []);
+        if (data.chartDate) {
+          setChartDate(data.chartDate);
+        }
         if (data.updatedAt) {
           const time = new Date(data.updatedAt);
           setLastUpdated(
@@ -110,16 +119,20 @@ export default function TrendingSongsSection({
           <div>
             <h3 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
               <span>Bảng xếp hạng bài hát thịnh hành</span>
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-[#1db954] bg-[#1db954]/10 px-2 py-0.5 rounded-full border border-[#1db954]/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#1db954] animate-pulse" />
-                YouTube Music Charts
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                <Flame className="w-3 h-3 text-emerald-400 fill-emerald-400" />
+                24h Velocity Growth
               </span>
             </h3>
             <p className="text-xs text-gray-400">
               {activeTab === "all"
-                ? "Top ca khúc xu hướng toàn cầu (V-Pop, K-Pop, US-UK, Châu Á) • Tự động xếp hạng theo lượt stream thật"
-                : currentCategory?.description || "Cập nhật bài hát thịnh hành trực tiếp"}
-              {lastUpdated && ` (${lastUpdated})`}
+                ? "Xếp hạng dựa trên số view tăng trưởng trong 24 giờ qua trên toàn cầu"
+                : currentCategory?.description || "Xếp hạng theo độ tăng trưởng lượt xem trong 24 giờ qua"}
+              {chartDate && (
+                <span className="text-gray-300 ml-1.5 font-medium inline-flex items-center gap-1">
+                  • <Calendar className="w-3 h-3 inline text-gray-400" /> Ngày {chartDate}
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -146,7 +159,7 @@ export default function TrendingSongsSection({
             <RefreshCw
               className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-[#1db954]" : ""}`}
             />
-            <span className="hidden sm:inline">Làm mới</span>
+            <span className="hidden sm:inline">Làm mới 24h</span>
           </button>
         </div>
       </div>
@@ -162,7 +175,7 @@ export default function TrendingSongsSection({
           }`}
         >
           <Globe className="w-3.5 h-3.5" />
-          <span>Tất cả (Top Toàn cầu)</span>
+          <span>Tất cả (Top 24h Toàn cầu)</span>
         </button>
 
         {categories.map((cat) => (
@@ -217,7 +230,7 @@ export default function TrendingSongsSection({
                   }`}
                 >
                   {/* Rank Number */}
-                  <div className="w-7 text-center flex-shrink-0">
+                  <div className="w-8 text-center flex-shrink-0">
                     {isCurrent && isPlaying ? (
                       <div className="flex items-center justify-center gap-0.5 h-4">
                         <span className="w-1 bg-[#1db954] h-3 animate-bounce rounded-full" />
@@ -290,11 +303,19 @@ export default function TrendingSongsSection({
                     </div>
                   </div>
 
-                  {/* Views Count */}
-                  {song.views && (
-                    <div className="hidden md:flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
-                      <Eye className="w-3.5 h-3.5 text-gray-500" />
-                      <span>{song.views} lượt xem</span>
+                  {/* 24-Hour View Gain Growth Badge (The Core Trending Definition) */}
+                  {(song.viewsGain24hFormatted || song.views_gain_24h) && (
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full font-bold flex-shrink-0 shadow-sm">
+                      <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>+{song.viewsGain24hFormatted || song.views_gain_24h} / 24h</span>
+                    </div>
+                  )}
+
+                  {/* Total Views Count (Secondary) */}
+                  {(song.totalViewsFormatted || song.views) && (
+                    <div className="hidden lg:flex items-center gap-1 text-[11px] text-gray-500 flex-shrink-0">
+                      <Eye className="w-3 h-3 text-gray-600" />
+                      <span>{song.totalViewsFormatted || song.views} tổng</span>
                     </div>
                   )}
 
