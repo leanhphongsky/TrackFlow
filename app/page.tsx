@@ -48,11 +48,15 @@ export default function Home() {
     name?: string;
   } | null>(null);
 
-  // Right Now Playing / Lyrics Panel
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
 
-  const { currentSong, playSong } = usePlayer();
+  const {
+    currentSong,
+    playSong,
+    isRightPanelOpen,
+    setIsRightPanelOpen,
+    toggleRightPanel,
+  } = usePlayer();
   const { user, loading: authLoading, openAuthModal, logout, favoriteSongs, isFavorite, toggleFavorite } = useAuth();
 
   const fetchSongs = async () => {

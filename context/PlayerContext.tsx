@@ -22,6 +22,9 @@ interface PlayerContextType {
   isPlaylist: boolean;
   showVideo: boolean;
   setShowVideo: (show: boolean) => void;
+  isRightPanelOpen: boolean;
+  setIsRightPanelOpen: (open: boolean) => void;
+  toggleRightPanel: () => void;
   playSong: (song: Song, newQueue?: Song[], isPlaylistContext?: boolean) => void;
   togglePlay: () => void;
   nextSong: () => Promise<void> | void;
@@ -74,6 +77,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [isPlaylist, setIsPlaylist] = useState(false);
   const [isYouTube, setIsYouTube] = useState(false);
   const [showVideo, setShowVideo] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+
+  const toggleRightPanel = () => setIsRightPanelOpen((prev) => !prev);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
@@ -412,6 +418,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const playSong = (song: Song, newQueue?: Song[], isPlaylistContext?: boolean) => {
     setCurrentSong(song);
     currentSongRef.current = song;
+    // Auto-open right panel (Spotify Now Playing Canvas) whenever a song is played
+    setIsRightPanelOpen(true);
 
     if (song.id !== undefined && song.id !== null) playedHistoryRef.current.push(String(song.id));
     if (song.audio_url) playedHistoryRef.current.push(song.audio_url);
@@ -573,6 +581,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         isPlaylist,
         showVideo,
         setShowVideo,
+        isRightPanelOpen,
+        setIsRightPanelOpen,
+        toggleRightPanel,
         playSong,
         togglePlay,
         nextSong,

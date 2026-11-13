@@ -12,6 +12,8 @@ import {
   Music2,
   Calendar,
   Flame,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Song } from "@/lib/db";
 import { usePlayer } from "@/context/PlayerContext";
@@ -53,6 +55,7 @@ export default function TrendingSongsSection({
   const [activeTab, setActiveTab] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [chartDate, setChartDate] = useState<string>("");
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
@@ -98,6 +101,9 @@ export default function TrendingSongsSection({
   const currentCategory = categories.find((c) => c.id === activeTab);
   const displayedTracks: TrendingSongItem[] =
     activeTab === "all" ? allTracks : currentCategory?.songs || [];
+  const visibleTracks: TrendingSongItem[] = isExpanded
+    ? displayedTracks
+    : displayedTracks.slice(0, 5);
 
   const handleTrackClick = (track: TrendingSongItem) => {
     const isCurrent = currentSong?.id === track.id || currentSong?.audio_url === track.audio_url;
@@ -215,7 +221,7 @@ export default function TrendingSongsSection({
         /* Trending Songs List */
         <div className="bg-[#181818]/60 border border-white/5 rounded-2xl overflow-hidden p-2 sm:p-3 shadow-xl">
           <div className="flex flex-col gap-1">
-            {displayedTracks.map((song, index) => {
+            {visibleTracks.map((song, index) => {
               const isCurrent =
                 currentSong?.id === song.id || currentSong?.audio_url === song.audio_url;
               const favorited = isFavorite(song);
@@ -338,6 +344,28 @@ export default function TrendingSongsSection({
               );
             })}
           </div>
+
+          {/* Toggle Expand / Collapse (Show Top 5 or Full List) */}
+          {displayedTracks.length > 5 && (
+            <div className="flex justify-center pt-3 pb-1 border-t border-white/5 mt-2">
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold text-gray-300 hover:text-white bg-[#202020] hover:bg-[#2a2a2a] border border-white/10 transition shadow-md hover:scale-105 active:scale-95"
+              >
+                {isExpanded ? (
+                  <>
+                    <span>Thu gọn bảng xếp hạng (Hiện Top 5)</span>
+                    <ChevronUp className="w-4 h-4 text-[#1db954]" />
+                  </>
+                ) : (
+                  <>
+                    <span>Xem toàn bộ bảng xếp hạng ({displayedTracks.length} bài hát)</span>
+                    <ChevronDown className="w-4 h-4 text-[#1db954]" />
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

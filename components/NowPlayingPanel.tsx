@@ -45,11 +45,13 @@ export default function NowPlayingPanel({
     isYouTube,
     showVideo,
     setShowVideo,
+    seekTo,
   } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
 
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
   const [hasLyrics, setHasLyrics] = useState<boolean>(false);
+  const [isSyncedLyrics, setIsSyncedLyrics] = useState<boolean>(false);
   const [lyricsMessage, setLyricsMessage] = useState<string>("");
   const [loadingLyrics, setLoadingLyrics] = useState<boolean>(false);
   const [isExpandedLyrics, setIsExpandedLyrics] = useState<boolean>(false);
@@ -65,41 +67,44 @@ export default function NowPlayingPanel({
     if (!currentSong) {
       setLyrics([]);
       setHasLyrics(false);
+      setIsSyncedLyrics(false);
       return;
     }
 
     const videoId =
       currentSong.videoId || extractYouTubeId(currentSong.audio_url);
 
-    if (!videoId) {
-      setHasLyrics(false);
-      setLyricsMessage("Hiện bài hát này chưa có lời");
-      setLyrics([]);
-      return;
-    }
-
     async function fetchLyrics() {
       try {
         setLoadingLyrics(true);
-        const res = await fetch(`/api/youtube/lyrics?videoId=${videoId}`);
+        const params = new URLSearchParams();
+        if (videoId) params.set("videoId", videoId);
+        if (currentSong?.title) params.set("title", currentSong.title);
+        if (currentSong?.artist) params.set("artist", currentSong.artist);
+
+        const res = await fetch(`/api/youtube/lyrics?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
           if (data.hasLyrics && data.lines?.length > 0) {
             setHasLyrics(true);
+            setIsSyncedLyrics(Boolean(data.isSynced));
             setLyrics(data.lines);
             setLyricsMessage("");
           } else {
             setHasLyrics(false);
+            setIsSyncedLyrics(false);
             setLyricsMessage(data.message || "Hiện bài hát này chưa có lời");
             setLyrics([]);
           }
         } else {
           setHasLyrics(false);
+          setIsSyncedLyrics(false);
           setLyricsMessage("Hiện bài hát này chưa có lời");
           setLyrics([]);
         }
       } catch (err) {
         setHasLyrics(false);
+        setIsSyncedLyrics(false);
         setLyricsMessage("Hiện bài hát này chưa có lời");
         setLyrics([]);
       } finally {
@@ -108,7 +113,7 @@ export default function NowPlayingPanel({
     }
 
     fetchLyrics();
-  }, [currentSong?.id, currentSong?.audio_url]);
+  }, [currentSong?.id, currentSong?.audio_url, currentSong?.title, currentSong?.artist]);
 
   // Auto-scroll lyrics
   useEffect(() => {
@@ -313,7 +318,14 @@ export default function NowPlayingPanel({
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="font-bold text-base text-white">Lyrics</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-base text-white">Lyrics</span>
+                {isSyncedLyrics && (
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    Đồng bộ thời gian thực
+                  </span>
+                )}
+              </div>
               <button
                 onClick={() => setIsExpandedLyrics(!isExpandedLyrics)}
                 className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
@@ -351,11 +363,19 @@ export default function NowPlayingPanel({
                     <p
                       key={idx}
                       ref={isActive ? activeLineRef : null}
+                      onClick={() => {
+                        if (isSyncedLyrics && typeof line.start === "number") {
+                          seekTo(line.start);
+                        }
+                      }}
                       className={`transition-all duration-200 leading-relaxed ${
+                        isSyncedLyrics ? "cursor-pointer" : ""
+                      } ${
                         isActive
-                          ? "text-white font-extrabold text-base drop-shadow"
-                          : "text-gray-500 font-semibold text-sm hover:text-gray-300 cursor-pointer"
+                          ? "text-white font-extrabold text-base drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] scale-[1.01] origin-left"
+                          : "text-gray-400 hover:text-white font-semibold text-sm hover:scale-[1.005] origin-left"
                       }`}
+                      title={isSyncedLyrics ? "Bấm để phát từ đoạn này" : undefined}
                     >
                       {line.text}
                     </p>

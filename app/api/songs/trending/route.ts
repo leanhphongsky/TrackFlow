@@ -88,6 +88,60 @@ function formatCount(numStr?: string | number): string {
   return num.toLocaleString("vi-VN");
 }
 
+const VN_DIACRITICS_REGEX = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i;
+const HANGUL_REGEX = /[\uac00-\ud7a3\u1100-\u11ff]/;
+const JAPANESE_KANA_REGEX = /[\u3040-\u30ff\u31f0-\u31ff]/;
+const CHINESE_REGEX = /[\u4e00-\u9fa5]/;
+
+const KPOP_KNOWN_NAMES = [
+  "hybe", "smtown", "jyp", "yg", "1thek", "stone music", "starship", "mnet", "bangtantv",
+  "blackpink", "newjeans", "ive", "aespa", "twice", "seventeen", "stray kids", "le sserafim",
+  "babymonster", "illit", "txt", "enhypen", "nct", "exo", "red velvet", "itzy", "ateez",
+  "treasure", "stayc", "nmixx", "boynextdoor", "tws", "zerobaseone", "riize", "kiss of life",
+  "qwer", "iu", "taeyeon", "rosé", "jennie", "lisa", "jisoo", "g-dragon", "bigbang", "taeyang",
+  "psy", "zico", "crush", "bts", "jungkook", "jimin", "v", "jin", "suga", "rm", "j-hope",
+  "isegye idol", "panda gomm"
+];
+
+const VN_KNOWN_NAMES = [
+  "sơn tùng", "den vau", "đen vâu", "hieuthuhai", "soobin", "vũ.", "wren evans",
+  "phan mạnh quỳnh", "mono", "amee", "min", "erik", "đức phúc", "hòa minzy",
+  "bích phương", "văn mai hương", "jack", "k-icm", "karik", "justatee", "rhymastic",
+  "mck", "tlinh", "grey d", "andiez", "quân a.p", "kay trần", "spacespeakers",
+  "đạt g", "b ray", "masew", "pháo", "double2t", "phương mỹ chi", "hoàng thùy linh",
+  "trúc nhân", "osad", "coolkid", "quang hùng masterd", "anh tú", "dương domic",
+  "rhyder", "captain boy", "hurrykng", "wean", "jsol", "lou hoàng", "ali hoàng dương",
+  "pháp kiều", "neko lê", "isaac", "jun phạm", "bb trần", "cường seven", "bằng kiều",
+  "quốc thiên", "hà anh tuấn", "trung quân", "vũ cát tường", "chi pu"
+];
+
+function isPureRegionSong(title: string, channelTitle: string, regionId: string): boolean {
+  const combined = (title + " " + channelTitle).toLowerCase();
+  const hasVn = VN_DIACRITICS_REGEX.test(combined) || VN_KNOWN_NAMES.some((n) => combined.includes(n));
+  const hasHangul = HANGUL_REGEX.test(combined);
+  const hasKpopName = KPOP_KNOWN_NAMES.some((n) => combined.includes(n));
+  const hasJapanese = JAPANESE_KANA_REGEX.test(combined);
+  const hasChinese = CHINESE_REGEX.test(combined);
+
+  if (regionId === "vpop") {
+    // Strictly Vietnamese music & artists, no Korean/Japanese
+    return hasVn && !hasHangul && !hasJapanese;
+  }
+  if (regionId === "kpop") {
+    // Strictly Korean music & K-Pop artists, no Vietnamese
+    return (hasHangul || hasKpopName) && !hasVn;
+  }
+  if (regionId === "usuk") {
+    // Strictly US-UK/Western music, no Vietnamese, no Korean, no Japanese, no Chinese
+    return !hasVn && !hasHangul && !hasJapanese && !hasChinese;
+  }
+  if (regionId === "asia") {
+    // Strictly Asian music (Japan, China, East Asia), no Vietnamese, no pure Western
+    return (hasJapanese || hasChinese || hasHangul) && !hasVn;
+  }
+  return true;
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -107,9 +161,17 @@ export async function GET(req: Request) {
         `;
 
         if (cachedChartRows && cachedChartRows.length > 0) {
-          // Reconstruct categories from database
+          // Reconstruct categories from database with strict regional validation
+          let allRegionsValid = true;
           const categories = SONG_REGIONS.map((reg) => {
-            const rowsForRegion = cachedChartRows.filter((r: any) => r.region === reg.id);
+            const rowsForRegion = cachedChartRows.filter(
+              (r: any) => r.region === reg.id && isPureRegionSong(r.title, r.artist, reg.id)
+            );
+
+            if (rowsForRegion.length < 5) {
+              allRegionsValid = false;
+            }
+
             const songs = rowsForRegion.map((r: any) => ({
               id: `yt_${r.video_id}`,
               videoId: r.video_id,
@@ -137,29 +199,31 @@ export async function GET(req: Request) {
             };
           });
 
-          // Build Global Mix (All-In-One Chart) sorted by highest 24h view growth
-          const allSongs: any[] = [];
-          categories.forEach((c) => allSongs.push(...c.songs));
-          // Sort by 24h view gain descending
-          allSongs.sort((a, b) => b.views_gain_24h - a.views_gain_24h);
-          const allTracks = allSongs.slice(0, 20).map((s, idx) => ({
-            ...s,
-            globalRank: idx + 1,
-          }));
+          if (allRegionsValid) {
+            // Build Global Mix (All-In-One Chart) sorted by highest 24h view growth
+            const allSongs: any[] = [];
+            categories.forEach((c) => allSongs.push(...c.songs));
+            // Sort by 24h view gain descending
+            allSongs.sort((a, b) => b.views_gain_24h - a.views_gain_24h);
+            const allTracks = allSongs.slice(0, 20).map((s, idx) => ({
+              ...s,
+              globalRank: idx + 1,
+            }));
 
-          const responseData = {
-            chartDate: today,
-            rankingCriterion: "Số lượt xem tăng trưởng trong 24 giờ qua (24h Velocity Gain)",
-            categories:
-              requestedCategory && requestedCategory !== "all"
-                ? categories.filter((c) => c.id === requestedCategory)
-                : categories,
-            allTracks,
-            updatedAt: new Date().toISOString(),
-            fromDatabase: true,
-          };
+            const responseData = {
+              chartDate: today,
+              rankingCriterion: "Số lượt xem tăng trưởng trong 24 giờ qua (24h Velocity Gain)",
+              categories:
+                requestedCategory && requestedCategory !== "all"
+                  ? categories.filter((c) => c.id === requestedCategory)
+                  : categories,
+              allTracks,
+              updatedAt: new Date().toISOString(),
+              fromDatabase: true,
+            };
 
-          return NextResponse.json(responseData);
+            return NextResponse.json(responseData);
+          }
         }
       } catch (dbReadErr) {
         console.warn("Could not read daily_trending_charts from DB, falling back to live compilation:", dbReadErr);
@@ -183,7 +247,7 @@ export async function GET(req: Request) {
         url.searchParams.set("chart", "mostPopular");
         url.searchParams.set("videoCategoryId", "10"); // Music category
         url.searchParams.set("regionCode", reg.regionCode);
-        url.searchParams.set("maxResults", "15");
+        url.searchParams.set("maxResults", "50");
         url.searchParams.set("key", apiKey);
 
         const res = await fetch(url.toString());
@@ -193,7 +257,67 @@ export async function GET(req: Request) {
         }
 
         const data = await res.json();
-        const candidateItems = data.items || [];
+        const rawItems = data.items || [];
+        
+        // Strictly filter candidate videos: ONLY songs matching the region's origin & language
+        const candidateItems = rawItems.filter((item: any) =>
+          isPureRegionSong(
+            item.snippet?.title || "",
+            item.snippet?.channelTitle || "",
+            reg.id
+          )
+        );
+
+        // Fallback: If less than 10 pure regional songs from mostPopular, fetch supplemental music videos for that genre
+        if (candidateItems.length < 10) {
+          try {
+            const queryMap: Record<string, string> = {
+              vpop: "VPOP official music video nhạc trẻ việt nam",
+              kpop: "KPOP official music video Korean",
+              usuk: "official music video Billboard Hot 100",
+              asia: "J-POP official music video Japan",
+            };
+            const sUrl = new URL("https://www.googleapis.com/youtube/v3/search");
+            sUrl.searchParams.set("part", "snippet");
+            sUrl.searchParams.set("type", "video");
+            sUrl.searchParams.set("videoCategoryId", "10");
+            sUrl.searchParams.set("regionCode", reg.regionCode);
+            sUrl.searchParams.set("q", queryMap[reg.id] || "music");
+            sUrl.searchParams.set("maxResults", "20");
+            sUrl.searchParams.set("key", apiKey);
+
+            const sRes = await fetch(sUrl.toString());
+            if (sRes.ok) {
+              const sData = await sRes.json();
+              const sVideoIds = (sData.items || [])
+                .map((i: any) => i.id?.videoId)
+                .filter(Boolean)
+                .join(",");
+
+              if (sVideoIds) {
+                const detailUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${sVideoIds}&key=${apiKey}`;
+                const detailRes = await fetch(detailUrl);
+                if (detailRes.ok) {
+                  const detailData = await detailRes.json();
+                  for (const dItem of detailData.items || []) {
+                    if (
+                      isPureRegionSong(
+                        dItem.snippet?.title || "",
+                        dItem.snippet?.channelTitle || "",
+                        reg.id
+                      ) &&
+                      !candidateItems.some((c: any) => c.id === dItem.id)
+                    ) {
+                      candidateItems.push(dItem);
+                    }
+                  }
+                }
+              }
+            }
+          } catch (supErr) {
+            console.warn(`Supplemental fetch error for ${reg.id}:`, supErr);
+          }
+        }
 
         // For each candidate video, calculate exact 24-hour view gain
         const computedSongs: any[] = [];
@@ -280,6 +404,13 @@ export async function GET(req: Request) {
           ...s,
           rank: idx + 1,
         }));
+
+        // Clean up previous daily entries for this region today before inserting pure ranked songs
+        try {
+          await sql`DELETE FROM daily_trending_charts WHERE region = ${reg.id} AND chart_date = ${today}`;
+        } catch (delErr) {
+          console.warn("Could not clean old daily rows:", delErr);
+        }
 
         // Persist compiled chart into daily_trending_charts table
         for (const s of rankedSongs) {
