@@ -12,9 +12,11 @@ import {
   Loader2,
   ArrowLeft,
   Sparkles,
+  Plus,
 } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
+import { usePlaylist } from "@/context/PlaylistContext";
 import { Song } from "@/lib/db";
 
 interface Artist {
@@ -63,6 +65,7 @@ export default function ArtistView({
 
   const { currentSong, isPlaying, playSong, togglePlay } = usePlayer();
   const { isFavorite, toggleFavorite, isFollowingArtist, toggleFollowArtist } = useAuth();
+  const { openAddToPlaylist } = usePlaylist();
   
   const isFollowing = artist ? isFollowingArtist(artist.name, artist.id) : false;
 
@@ -311,6 +314,18 @@ export default function ArtistView({
                     </span>
                   </div>
                 )}
+
+                {/* Add to Playlist Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openAddToPlaylist(song);
+                  }}
+                  title="Thêm vào danh sách phát"
+                  className="p-2 rounded-full text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 hover:bg-white/10 transition"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
 
                 {/* Favorite Heart Button */}
                 <button

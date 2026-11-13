@@ -11,7 +11,7 @@ export interface Song {
   videoId?: string;
   user_id?: number | null;
   source?: string;
-  views?: number | string;
+  views?: number | string | null;
   viewsFormatted?: string;
 }
 

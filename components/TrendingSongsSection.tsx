@@ -14,10 +14,12 @@ import {
   Flame,
   ChevronDown,
   ChevronUp,
+  Plus,
 } from "lucide-react";
 import { Song } from "@/lib/db";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
+import { usePlaylist } from "@/context/PlaylistContext";
 
 interface TrendingSongItem extends Song {
   rank?: number;
@@ -61,6 +63,7 @@ export default function TrendingSongsSection({
 
   const { currentSong, isPlaying, togglePlay } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
+  const { openAddToPlaylist } = usePlaylist();
 
   const fetchTrendingSongs = async (forceRefresh = false) => {
     try {
@@ -324,6 +327,18 @@ export default function TrendingSongsSection({
                       <span>{song.totalViewsFormatted || song.views} tổng</span>
                     </div>
                   )}
+
+                  {/* Add to Playlist Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openAddToPlaylist(song);
+                    }}
+                    className="p-2 rounded-full hover:bg-white/10 text-gray-500 hover:text-white transition flex-shrink-0 opacity-0 group-hover:opacity-100"
+                    title="Thêm vào danh sách phát"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
 
                   {/* Favorite Button */}
                   <button

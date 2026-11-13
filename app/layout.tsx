@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { PlaylistProvider } from "@/context/PlaylistContext";
 
 export const metadata: Metadata = {
   title: "TrackFlow - Trình Nghe Nhạc Không Quảng Cáo",
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="vi">
       <body className="bg-black text-white antialiased">
         <AuthProvider>
-          <PlayerProvider>{children}</PlayerProvider>
+          <PlaylistProvider>
+            <PlayerProvider>{children}</PlayerProvider>
+          </PlaylistProvider>
         </AuthProvider>
       </body>
     </html>

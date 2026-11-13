@@ -12,6 +12,8 @@ import LoginPage from "@/components/LoginPage";
 import TermsView from "@/components/TermsView";
 import TrendingArtistsSection from "@/components/TrendingArtistsSection";
 import TrendingSongsSection from "@/components/TrendingSongsSection";
+import PlaylistView from "@/components/PlaylistView";
+import AddToPlaylistModal from "@/components/AddToPlaylistModal";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -29,6 +31,7 @@ import {
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
+import { usePlaylist } from "@/context/PlaylistContext";
 
 export default function Home() {
   const [songs, setSongs] = useState<Song[]>([]);
@@ -58,6 +61,7 @@ export default function Home() {
     toggleRightPanel,
   } = usePlayer();
   const { user, loading: authLoading, openAuthModal, logout, favoriteSongs, isFavorite, toggleFavorite } = useAuth();
+  const { openAddToPlaylist, selectedPlaylistId, setSelectedPlaylistId } = usePlaylist();
 
   const fetchSongs = async () => {
     try {
@@ -230,6 +234,13 @@ export default function Home() {
           ) : activeTab === "terms" ? (
             /* VIEW: TERMS & LEGAL DISCLAIMER */
             <TermsView onBack={() => setActiveTab("home")} />
+          ) : activeTab === "playlist" && selectedPlaylistId ? (
+            /* VIEW: SPOTIFY PLAYLIST VIEW */
+            <PlaylistView
+              playlistId={selectedPlaylistId}
+              onBack={() => setActiveTab("home")}
+              onOpenArtist={(name) => openArtist({ name })}
+            />
           ) : activeTab === "favorites" ? (
             /* VIEW 2: FAVORITES / LIKED SONGS PAGE */
             <div className="space-y-6">
@@ -306,6 +317,18 @@ export default function Home() {
                           </p>
                           <p className="text-xs text-gray-400 truncate">{song.artist}</p>
                         </div>
+
+                        {/* Add to Playlist Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openAddToPlaylist(song);
+                          }}
+                          title="Thêm vào danh sách phát"
+                          className="p-2 rounded-full text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 hover:bg-white/10 transition"
+                        >
+                          <Plus className="w-5 h-5" />
+                        </button>
 
                         {/* Unlike Heart Button */}
                         <button
@@ -427,6 +450,15 @@ export default function Home() {
                                 )}
                               </div>
                             </div>
+
+                            {/* Add to Playlist Button */}
+                            <button
+                              onClick={() => openAddToPlaylist(item)}
+                              title="Thêm vào danh sách phát"
+                              className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition flex-shrink-0"
+                            >
+                              <Plus className="w-5 h-5" />
+                            </button>
 
                             {/* Heart Favorite Button */}
                             <button
@@ -599,6 +631,9 @@ export default function Home() {
 
       {/* Login & Register Modal */}
       <AuthModal />
+
+      {/* Spotify-style Add to Playlist Modal */}
+      <AddToPlaylistModal />
     </div>
   );
 }

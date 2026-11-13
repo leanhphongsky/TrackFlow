@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
+import { usePlaylist } from "@/context/PlaylistContext";
 import {
   X,
   Heart,
@@ -17,6 +18,7 @@ import {
   Sparkles,
   Play,
   Pause,
+  Plus,
 } from "lucide-react";
 import { extractYouTubeId } from "@/context/PlayerContext";
 
@@ -48,6 +50,7 @@ export default function NowPlayingPanel({
     seekTo,
   } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
+  const { openAddToPlaylist } = usePlaylist();
 
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
   const [hasLyrics, setHasLyrics] = useState<boolean>(false);
@@ -291,20 +294,29 @@ export default function NowPlayingPanel({
                   </p>
                 </div>
 
-                {/* Favorite Heart Button */}
-                <button
-                  onClick={() => toggleFavorite(currentSong)}
-                  className="p-2 rounded-full hover:bg-white/5 transition flex-shrink-0"
-                  title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
-                >
-                  <Heart
-                    className={`w-6 h-6 transition ${
-                      favorited
-                        ? "fill-[#1db954] text-[#1db954]"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  />
-                </button>
+                {/* Action Buttons: Add to Playlist & Favorite Heart */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => openAddToPlaylist(currentSong)}
+                    className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition"
+                    title="Thêm vào danh sách phát"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => toggleFavorite(currentSong)}
+                    className="p-2 rounded-full hover:bg-white/5 transition"
+                    title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+                  >
+                    <Heart
+                      className={`w-6 h-6 transition ${
+                        favorited
+                          ? "fill-[#1db954] text-[#1db954]"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             )}
           </div>

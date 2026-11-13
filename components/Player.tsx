@@ -2,6 +2,8 @@
 
 import React from "react";
 import { usePlayer } from "@/context/PlayerContext";
+import { useAuth } from "@/context/AuthContext";
+import { usePlaylist } from "@/context/PlaylistContext";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import {
   Play,
@@ -15,6 +17,8 @@ import {
   Music,
   Tv,
   Mic2,
+  Heart,
+  Plus,
 } from "lucide-react";
 
 function formatTime(seconds: number) {
@@ -49,6 +53,10 @@ export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerP
     toggleMute,
     toggleLoop,
   } = usePlayer();
+  const { isFavorite, toggleFavorite } = useAuth();
+  const { openAddToPlaylist } = usePlaylist();
+
+  const isCurrentFav = currentSong ? isFavorite(currentSong) : false;
 
   return (
     <>
@@ -76,13 +84,35 @@ export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerP
               )}
             </div>
 
-            <div className="overflow-hidden">
+            <div className="overflow-hidden min-w-0 flex-1">
               <p className="font-semibold text-sm text-white truncate hover:underline cursor-pointer">
                 {currentSong.title}
               </p>
               <p className="text-xs text-gray-400 truncate hover:underline cursor-pointer">
                 {currentSong.artist}
               </p>
+            </div>
+
+            {/* Quick Actions: Add to Playlist & Heart */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={() => openAddToPlaylist(currentSong)}
+                className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+                title="Thêm vào danh sách phát"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => toggleFavorite(currentSong)}
+                className={`p-1.5 rounded-full transition ${
+                  isCurrentFav
+                    ? "text-[#1db954]"
+                    : "text-gray-400 hover:text-white hover:bg-white/10"
+                }`}
+                title={isCurrentFav ? "Bỏ thích" : "Yêu thích"}
+              >
+                <Heart className={`w-4 h-4 ${isCurrentFav ? "fill-current" : ""}`} />
+              </button>
             </div>
           </div>
 

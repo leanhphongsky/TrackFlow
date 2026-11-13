@@ -2,9 +2,10 @@
 
 import React from "react";
 import { Song } from "@/lib/db";
-import { Play, Pause, Music, Heart } from "lucide-react";
+import { Play, Pause, Music, Heart, Plus } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
+import { usePlaylist } from "@/context/PlaylistContext";
 
 interface SongCardProps {
   song: Song;
@@ -14,6 +15,7 @@ interface SongCardProps {
 export default function SongCard({ song, songsList }: SongCardProps) {
   const { currentSong, isPlaying, playSong, togglePlay } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
+  const { openAddToPlaylist } = usePlaylist();
 
   const isCurrent = currentSong?.id === song.id;
   const favorited = isFavorite(song);
@@ -53,20 +55,33 @@ export default function SongCard({ song, songsList }: SongCardProps) {
           </div>
         )}
 
-        {/* Favorite Heart Button on Top-Right */}
-        <button
-          onClick={handleFavoriteClick}
-          className={`absolute top-2 right-2 p-1.5 rounded-full transition ${
-            favorited
-              ? "opacity-100 text-[#1db954]"
-              : "opacity-0 group-hover:opacity-100 text-white/70 hover:text-white bg-black/40 hover:bg-black/60"
-          }`}
-          title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
-        >
-          <Heart
-            className={`w-4 h-4 ${favorited ? "fill-[#1db954] text-[#1db954]" : ""}`}
-          />
-        </button>
+        {/* Actions on Top-Right: Add to Playlist & Favorite Heart */}
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openAddToPlaylist(song);
+            }}
+            className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 text-white/80 hover:text-white bg-black/50 hover:bg-black/70 transition"
+            title="Thêm vào danh sách phát"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={handleFavoriteClick}
+            className={`p-1.5 rounded-full transition ${
+              favorited
+                ? "opacity-100 text-[#1db954] bg-black/40"
+                : "opacity-0 group-hover:opacity-100 text-white/70 hover:text-white bg-black/40 hover:bg-black/60"
+            }`}
+            title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+          >
+            <Heart
+              className={`w-4 h-4 ${favorited ? "fill-[#1db954] text-[#1db954]" : ""}`}
+            />
+          </button>
+        </div>
 
         {/* Floating Green Play Button on Hover / Active */}
         <button
