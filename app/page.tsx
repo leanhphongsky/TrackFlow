@@ -15,6 +15,8 @@ import TrendingArtistsSection from "@/components/TrendingArtistsSection";
 import TrendingSongsSection from "@/components/TrendingSongsSection";
 import PlaylistView from "@/components/PlaylistView";
 import AddToPlaylistModal from "@/components/AddToPlaylistModal";
+import FollowedArtistsFeed from "@/components/FollowedArtistsFeed";
+import PodcastsSection from "@/components/PodcastsSection";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -28,6 +30,7 @@ import {
   LogOut,
   LogIn,
   Disc3,
+  Users,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
@@ -40,6 +43,11 @@ export default function Home() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("home"); // "home" | "search" | "favorites"
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Category navigation state: "all" | "music" | "podcasts"
+  const [homeCategory, setHomeCategory] = useState<"all" | "music" | "podcasts">("all");
+  const [musicSubFilter, setMusicSubFilter] = useState<"all" | "following">("all");
+  const [podcastSubFilter, setPodcastSubFilter] = useState<"all" | "following">("all");
 
   // YouTube Search state
   const [ytResults, setYtResults] = useState<any[]>([]);
@@ -507,123 +515,257 @@ export default function Home() {
               )}
             </div>
           ) : (
-            /* VIEW 4: HOME / ALL SONGS */
+            /* VIEW 4: HOME / ALL SONGS & CATEGORIES */
             <div>
-              {/* Welcome Banner */}
-              <div className="rounded-2xl p-6 mb-8 bg-gradient-to-r from-emerald-900/60 via-green-950/40 to-[#121212] border border-white/10 relative overflow-hidden shadow-2xl">
-                <div className="relative z-10 max-w-xl">
-                  <div className="flex items-center gap-2 text-[#1db954] text-xs font-bold uppercase tracking-wider mb-2">
-                    <Sparkles className="w-4 h-4" />
-                    <span>Không quảng cáo 100% • Tích hợp YouTube & Trang Nghệ Sĩ</span>
-                  </div>
-                  <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
-                    Chào mừng đến với TrackFlow
-                  </h1>
-                  <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-                    Khám phá trang cá nhân nghệ sĩ, nghe toàn bộ bài hát từ YouTube, lưu danh sách bài hát yêu thích riêng biệt cho từng người.
-                  </p>
-                  <div className="flex items-center gap-3">
-                    {songs.length > 0 && (
-                      <button
-                        onClick={() => handlePlaySong(songs[0], songs, songs.length > 1)}
-                        className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2.5 px-6 rounded-full flex items-center gap-2 transition hover:scale-105 shadow-lg"
-                      >
-                        <Play className="w-4 h-4 fill-black" />
-                        <span>Phát tất cả</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+              {/* Spotify-Style Category Filter Navigation Bar */}
+              <div className="sticky top-0 bg-[#121212]/95 backdrop-blur-md pt-0.5 pb-4 z-20 flex items-center gap-2 mb-6 overflow-x-auto scrollbar-none">
+                {/* 1. All */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHomeCategory("all");
+                    setMusicSubFilter("all");
+                    setPodcastSubFilter("all");
+                  }}
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
+                    homeCategory === "all"
+                      ? "bg-white text-black font-bold shadow-sm"
+                      : "bg-[#242424] text-white hover:bg-[#303030]"
+                  }`}
+                >
+                  Tất cả
+                </button>
 
-              {/* Dynamic Trending Artists Section with Multi-Region Boards & Real-Time Data */}
-              <TrendingArtistsSection onOpenArtist={openArtist} />
+                {/* 2. Music */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHomeCategory("music");
+                    if (homeCategory !== "music") {
+                      setMusicSubFilter("all");
+                    }
+                  }}
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
+                    homeCategory === "music" && musicSubFilter === "all"
+                      ? "bg-white text-black font-bold shadow-sm"
+                      : homeCategory === "music"
+                      ? "bg-white/20 text-white hover:bg-white/30"
+                      : "bg-[#242424] text-white hover:bg-[#303030]"
+                  }`}
+                >
+                  Âm nhạc
+                </button>
 
-              {/* Dynamic Trending Songs Section with Multi-Region Charts & YouTube Data */}
-              <TrendingSongsSection onPlaySong={handlePlaySong} onOpenArtist={openArtist} />
-
-              {/* Quick Liked Songs on Home if any */}
-              {favoriteSongs.length > 0 && (
-                <div className="mb-8">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      <Heart className="w-5 h-5 fill-[#1db954] text-[#1db954]" />
-                      <span>Bài hát bạn đã thích gần đây ({favoriteSongs.length})</span>
-                    </h3>
-                    <button
-                      onClick={() => setActiveTab("favorites")}
-                      className="text-xs text-gray-400 hover:text-white transition font-semibold"
-                    >
-                      Xem tất cả →
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    {favoriteSongs.slice(0, 6).map((item) => (
-                      <div
-                        key={item.id}
-                        onClick={() => handlePlaySong(item, favoriteSongs, true)}
-                        className="group p-3 bg-[#181818] hover:bg-[#282828] rounded-xl transition cursor-pointer border border-white/5 hover:border-white/10"
-                      >
-                        <div className="relative aspect-square rounded-lg overflow-hidden bg-black mb-2 shadow">
-                          {item.image_url ? (
-                            <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
-                              <Music2 className="w-6 h-6" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-                            <Play className="w-7 h-7 fill-[#1db954] text-[#1db954]" />
-                          </div>
-                        </div>
-                        <p className="text-xs font-bold text-white truncate group-hover:text-[#1db954] transition">
-                          {item.title}
-                        </p>
-                        <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.artist}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Song Section Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Music2 className="w-5 h-5 text-[#1db954]" />
-                  <span>Bài hát bạn đã tải lên ({songs.length})</span>
-                </h2>
-              </div>
-
-              {/* Loading State */}
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
-                  <p className="text-sm">Đang tải thư viện...</p>
-                </div>
-              ) : songs.length === 0 ? (
-                /* Empty State */
-                <div className="text-center py-20 px-4 bg-[#181818]/60 border border-white/5 rounded-2xl flex flex-col items-center justify-center">
-                  <div className="w-16 h-16 rounded-full bg-[#242424] flex items-center justify-center text-gray-500 mb-4">
-                    <Music2 className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-1">Bạn chưa tải lên bài hát nào</h3>
-                  <p className="text-sm text-gray-400 max-w-md mb-6">
-                    Bấm nút Đăng nhạc để tải file MP3 của riêng bạn lên thư viện cá nhân!
-                  </p>
+                {/* 2b. Music Following Sub-Pill */}
+                {homeCategory === "music" && (
                   <button
-                    onClick={() => setIsUploadOpen(true)}
-                    className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-sm py-2.5 px-6 rounded-full transition shadow-lg hover:scale-105 flex items-center gap-2"
+                    type="button"
+                    onClick={() => {
+                      setMusicSubFilter((prev) => (prev === "following" ? "all" : "following"));
+                    }}
+                    className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 flex-shrink-0 animate-fadeIn ${
+                      musicSubFilter === "following"
+                        ? "bg-[#1db954] text-black font-bold shadow-md"
+                        : "bg-[#282828] text-gray-200 hover:bg-[#353535] hover:text-white border border-white/10"
+                    }`}
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>Đăng bài hát MP3</span>
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Đang theo dõi</span>
                   </button>
+                )}
+
+                {/* 3. Podcasts */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHomeCategory("podcasts");
+                    if (homeCategory !== "podcasts") {
+                      setPodcastSubFilter("all");
+                    }
+                  }}
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
+                    homeCategory === "podcasts" && podcastSubFilter === "all"
+                      ? "bg-white text-black font-bold shadow-sm"
+                      : homeCategory === "podcasts"
+                      ? "bg-white/20 text-white hover:bg-white/30"
+                      : "bg-[#242424] text-white hover:bg-[#303030]"
+                  }`}
+                >
+                  Podcasts
+                </button>
+
+                {/* 3b. Podcasts Following Sub-Pill */}
+                {homeCategory === "podcasts" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPodcastSubFilter((prev) => (prev === "following" ? "all" : "following"));
+                    }}
+                    className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 flex-shrink-0 animate-fadeIn ${
+                      podcastSubFilter === "following"
+                        ? "bg-purple-500 text-white font-bold shadow-md"
+                        : "bg-[#282828] text-gray-200 hover:bg-[#353535] hover:text-white border border-white/10"
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Đang theo dõi</span>
+                  </button>
+                )}
+
+                {/* 4. Audiobooks (Disabled with Amber Badge) */}
+                <div className="relative group/audiobook flex items-center flex-shrink-0">
+                  <button
+                    type="button"
+                    disabled
+                    className="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-[#242424]/50 text-gray-400 border border-white/5 cursor-not-allowed opacity-60 flex items-center gap-2 select-none"
+                  >
+                    <span>Sách nói</span>
+                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md tracking-wider">
+                      Đang phát triển
+                    </span>
+                  </button>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 hidden group-hover/audiobook:block bg-[#1f1f1f] text-gray-200 text-[11px] px-2.5 py-1 rounded-md shadow-lg border border-white/10 whitespace-nowrap z-30 pointer-events-none">
+                    Tính năng Sách nói đang trong tiến trình phát triển và sẽ sớm ra mắt!
+                  </div>
                 </div>
+              </div>
+
+              {/* CONDITIONAL CONTENT BASED ON CATEGORY & SUB-FILTER */}
+              {homeCategory === "podcasts" ? (
+                /* PODCASTS VIEW */
+                <PodcastsSection
+                  subFilter={podcastSubFilter}
+                  onPlaySong={handlePlaySong}
+                  onOpenArtist={openArtist}
+                />
+              ) : homeCategory === "music" && musicSubFilter === "following" ? (
+                /* FOLLOWED ARTISTS MUSIC FEED */
+                <FollowedArtistsFeed
+                  onPlaySong={handlePlaySong}
+                  onOpenArtist={openArtist}
+                />
               ) : (
-                /* Song Grid */
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                  {localFilteredSongs.map((song) => (
-                    <SongCard key={song.id} song={song} songsList={localFilteredSongs} />
-                  ))}
+                /* STANDARD MUSIC / ALL CONTENT */
+                <div>
+                  {/* Welcome Banner (only on All) */}
+                  {homeCategory === "all" && (
+                    <div className="rounded-2xl p-6 mb-8 bg-gradient-to-r from-emerald-900/60 via-green-950/40 to-[#121212] border border-white/10 relative overflow-hidden shadow-2xl">
+                      <div className="relative z-10 max-w-xl">
+                        <div className="flex items-center gap-2 text-[#1db954] text-xs font-bold uppercase tracking-wider mb-2">
+                          <Sparkles className="w-4 h-4" />
+                          <span>Không quảng cáo 100% • Tích hợp YouTube & Trang Nghệ Sĩ</span>
+                        </div>
+                        <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
+                          Chào mừng đến với TrackFlow
+                        </h1>
+                        <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+                          Khám phá trang cá nhân nghệ sĩ, nghe toàn bộ bài hát từ YouTube, lưu danh sách bài hát yêu thích riêng biệt cho từng người.
+                        </p>
+                        <div className="flex items-center gap-3">
+                          {songs.length > 0 && (
+                            <button
+                              onClick={() => handlePlaySong(songs[0], songs, songs.length > 1)}
+                              className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2.5 px-6 rounded-full flex items-center gap-2 transition hover:scale-105 shadow-lg"
+                            >
+                              <Play className="w-4 h-4 fill-black" />
+                              <span>Phát tất cả</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dynamic Trending Artists Section with Multi-Region Boards & Real-Time Data */}
+                  <TrendingArtistsSection onOpenArtist={openArtist} />
+
+                  {/* Dynamic Trending Songs Section with Multi-Region Charts & YouTube Data */}
+                  <TrendingSongsSection onPlaySong={handlePlaySong} onOpenArtist={openArtist} />
+
+                  {/* Quick Liked Songs on Home if any */}
+                  {favoriteSongs.length > 0 && (
+                    <div className="mb-8">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                          <Heart className="w-5 h-5 fill-[#1db954] text-[#1db954]" />
+                          <span>Bài hát bạn đã thích gần đây ({favoriteSongs.length})</span>
+                        </h3>
+                        <button
+                          onClick={() => setActiveTab("favorites")}
+                          className="text-xs text-gray-400 hover:text-white transition font-semibold"
+                        >
+                          Xem tất cả →
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        {favoriteSongs.slice(0, 6).map((item) => (
+                          <div
+                            key={item.id}
+                            onClick={() => handlePlaySong(item, favoriteSongs, true)}
+                            className="group p-3 bg-[#181818] hover:bg-[#282828] rounded-xl transition cursor-pointer border border-white/5 hover:border-white/10"
+                          >
+                            <div className="relative aspect-square rounded-lg overflow-hidden bg-black mb-2 shadow">
+                              {item.image_url ? (
+                                <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-800 text-gray-500">
+                                  <Music2 className="w-6 h-6" />
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                                <Play className="w-7 h-7 fill-[#1db954] text-[#1db954]" />
+                              </div>
+                            </div>
+                            <p className="text-xs font-bold text-white truncate group-hover:text-[#1db954] transition">
+                              {item.title}
+                            </p>
+                            <p className="text-[11px] text-gray-400 truncate mt-0.5">{item.artist}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Song Section Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                      <Music2 className="w-5 h-5 text-[#1db954]" />
+                      <span>Bài hát bạn đã tải lên ({songs.length})</span>
+                    </h2>
+                  </div>
+
+                  {/* Loading State */}
+                  {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
+                      <p className="text-sm">Đang tải thư viện...</p>
+                    </div>
+                  ) : songs.length === 0 ? (
+                    /* Empty State */
+                    <div className="text-center py-20 px-4 bg-[#181818]/60 border border-white/5 rounded-2xl flex flex-col items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-[#242424] flex items-center justify-center text-gray-500 mb-4">
+                        <Music2 className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white mb-1">Bạn chưa tải lên bài hát nào</h3>
+                      <p className="text-sm text-gray-400 max-w-md mb-6">
+                        Bấm nút Đăng nhạc để tải file MP3 của riêng bạn lên thư viện cá nhân!
+                      </p>
+                      <button
+                        onClick={() => setIsUploadOpen(true)}
+                        className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-sm py-2.5 px-6 rounded-full transition shadow-lg hover:scale-105 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Đăng bài hát MP3</span>
+                      </button>
+                    </div>
+                  ) : (
+                    /* Song Grid */
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                      {localFilteredSongs.map((song) => (
+                        <SongCard key={song.id} song={song} songsList={localFilteredSongs} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

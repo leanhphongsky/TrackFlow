@@ -86,6 +86,26 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-[#202020] border border-white/5 space-y-1.5">
               <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Layers className="w-4 h-4 text-[#1db954]" />
+                <h3>Thanh điều hướng phân loại Spotify (Category Filter Bar)</h3>
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed pl-6">
+                Bổ sung thanh lọc danh mục chuẩn Spotify trên đầu trang: <strong>Tất cả</strong>, <strong>Âm nhạc</strong> (tự động xuất hiện nút phụ <strong>Đang theo dõi</strong> để hiển thị ca khúc của nghệ sĩ bạn follow), <strong>Podcasts</strong> (tự động hiển thị các show truyền cảm hứng và nút theo dõi), và danh mục <strong>Sách nói</strong> gắn nhãn &quot;Đang phát triển&quot;.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#202020] border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Disc3 className="w-4 h-4 text-[#1db954]" />
+                <h3>Ghi nhớ mốc thời gian &amp; bài hát khi tắt/tải lại trang (Playback Persistence)</h3>
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed pl-6">
+                Khi bạn đang nghe nhạc mà vô tình tắt tab hoặc reload lại trang web, TrackFlow tự động lưu trữ chính xác bài hát và mốc thời gian đang nghe dở (timestamp scrubber), phục hồi ngay lập tức để bạn tiếp tục thưởng thức mà không bị mất dấu.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#202020] border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
                 <ListPlus className="w-4 h-4 text-[#1db954]" />
                 <h3>Hệ thống tạo &amp; quản lý Playlist cá nhân chuẩn Spotify</h3>
               </div>

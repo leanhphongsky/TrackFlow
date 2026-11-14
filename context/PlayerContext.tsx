@@ -93,6 +93,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const isAutoplayingRef = useRef<boolean>(false);
   const playedHistoryRef = useRef<string[]>([]);
   const nextSongRef = useRef<() => void>(() => {});
+  const currentTimeRef = useRef<number>(currentTime);
+  const durationRef = useRef<number>(duration);
+  const isYouTubeRef = useRef<boolean>(isYouTube);
+  const lastSavedTimeRef = useRef<number>(0);
+  const hasRestoredRef = useRef<boolean>(false);
 
   useEffect(() => {
     currentSongRef.current = currentSong;
@@ -109,6 +114,65 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     isPlaylistRef.current = isPlaylist;
   }, [isPlaylist]);
+
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
+
+  useEffect(() => {
+    durationRef.current = duration;
+  }, [duration]);
+
+  useEffect(() => {
+    isYouTubeRef.current = isYouTube;
+  }, [isYouTube]);
+
+  // Helper to persist playback state to localStorage
+  const saveCurrentPlayerState = () => {
+    if (typeof window === "undefined") return;
+    const song = currentSongRef.current;
+    if (!song) return;
+
+    try {
+      const state = {
+        song,
+        queue: queueRef.current,
+        isPlaylist: isPlaylistRef.current,
+        currentTime: currentTimeRef.current,
+        duration: durationRef.current,
+        isYouTube: isYouTubeRef.current,
+        savedAt: Date.now(),
+      };
+      localStorage.setItem("trackflow_saved_player_state", JSON.stringify(state));
+    } catch (e) {
+      // Ignore quota errors
+    }
+  };
+
+  // Throttle saving state to localStorage during playback
+  useEffect(() => {
+    if (!currentSong) return;
+    const now = Date.now();
+    if (now - lastSavedTimeRef.current > 1500) {
+      lastSavedTimeRef.current = now;
+      saveCurrentPlayerState();
+    }
+  }, [currentTime, currentSong]);
+
+  // Save immediately before page unloads or reloads
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleBeforeUnload = () => {
+      saveCurrentPlayerState();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handleBeforeUnload);
+    };
+  }, []);
 
   // Autoplay function: fetches next track from the same artist, or trending hits
   const autoplayNextSong = async (song: Song) => {
@@ -265,6 +329,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
       const audio = audioRef.current;
 
+      if (currentSongRef.current && !isYouTubeRef.current && currentSongRef.current.audio_url) {
+        audio.src = currentSongRef.current.audio_url;
+        audio.currentTime = currentTimeRef.current || 0;
+      }
+
       const handleTimeUpdate = () => {
         if (!isYouTube) {
           setCurrentTime(audio.currentTime);
@@ -331,12 +400,24 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isYouTube, isPlaying]);
 
-  const initYouTubePlayer = (videoId: string) => {
+  const initYouTubePlayer = (
+    videoId: string,
+    startSeconds: number = 0,
+    autoPlay: boolean = true
+  ) => {
     const onPlayerReady = (event: any) => {
       event.target.setVolume(volume * 100);
       if (isMuted) event.target.mute();
-      event.target.playVideo();
-      setIsPlaying(true);
+      if (startSeconds > 0) {
+        event.target.seekTo(startSeconds, true);
+      }
+      if (autoPlay) {
+        event.target.playVideo();
+        setIsPlaying(true);
+      } else {
+        event.target.pauseVideo();
+        setIsPlaying(false);
+      }
     };
 
     const onPlayerStateChange = (event: any) => {
@@ -367,14 +448,25 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     if (window.YT && window.YT.Player) {
       if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === "function") {
-        ytPlayerRef.current.loadVideoById(videoId);
-        ytPlayerRef.current.playVideo();
-        setIsPlaying(true);
+        if (autoPlay) {
+          ytPlayerRef.current.loadVideoById({ videoId, startSeconds });
+          ytPlayerRef.current.playVideo();
+          setIsPlaying(true);
+        } else {
+          if (typeof ytPlayerRef.current.cueVideoById === "function") {
+            ytPlayerRef.current.cueVideoById({ videoId, startSeconds });
+          } else {
+            ytPlayerRef.current.loadVideoById({ videoId, startSeconds });
+            ytPlayerRef.current.pauseVideo();
+          }
+          setIsPlaying(false);
+        }
       } else {
         ytPlayerRef.current = new window.YT.Player("youtube-player-frame", {
           videoId: videoId,
           playerVars: {
-            autoplay: 1,
+            autoplay: autoPlay ? 1 : 0,
+            start: Math.floor(startSeconds),
             controls: 0,
             modestbranding: 1,
             rel: 0,
@@ -396,7 +488,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         ytPlayerRef.current = new window.YT.Player("youtube-player-frame", {
           videoId: videoId,
           playerVars: {
-            autoplay: 1,
+            autoplay: autoPlay ? 1 : 0,
+            start: Math.floor(startSeconds),
             controls: 0,
             modestbranding: 1,
             rel: 0,
@@ -414,6 +507,65 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       };
     }
   };
+
+  // Restore persisted player state on mount (reload/reopen)
+  useEffect(() => {
+    if (typeof window === "undefined" || hasRestoredRef.current) return;
+    hasRestoredRef.current = true;
+
+    try {
+      const savedStr = localStorage.getItem("trackflow_saved_player_state");
+      if (!savedStr) return;
+      const saved = JSON.parse(savedStr);
+      if (!saved || !saved.song) return;
+
+      const song: Song = saved.song;
+      setCurrentSong(song);
+      currentSongRef.current = song;
+
+      if (Array.isArray(saved.queue) && saved.queue.length > 0) {
+        setQueue(saved.queue);
+        queueRef.current = saved.queue;
+      }
+
+      const isPl = Boolean(saved.isPlaylist);
+      setIsPlaylist(isPl);
+      isPlaylistRef.current = isPl;
+
+      const savedTime =
+        typeof saved.currentTime === "number" && !isNaN(saved.currentTime)
+          ? saved.currentTime
+          : 0;
+      const savedDur =
+        typeof saved.duration === "number" && !isNaN(saved.duration)
+          ? saved.duration
+          : 0;
+
+      setCurrentTime(savedTime);
+      currentTimeRef.current = savedTime;
+      setDuration(savedDur);
+      durationRef.current = savedDur;
+
+      const ytId = song.videoId || extractYouTubeId(song.audio_url);
+      const isYT = Boolean(saved.isYouTube || ytId);
+      setIsYouTube(isYT);
+      isYouTubeRef.current = isYT;
+
+      // isPlaying stays false on mount to avoid violating browser autoplay policies
+      setIsPlaying(false);
+
+      if (isYT && ytId) {
+        initYouTubePlayer(ytId, savedTime, false);
+      } else if (song.audio_url) {
+        if (audioRef.current) {
+          audioRef.current.src = song.audio_url;
+          audioRef.current.currentTime = savedTime;
+        }
+      }
+    } catch (err) {
+      console.warn("Could not restore saved player state:", err);
+    }
+  }, []);
 
   const playSong = (song: Song, newQueue?: Song[], isPlaylistContext?: boolean) => {
     setCurrentSong(song);
@@ -445,13 +597,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     if (ytId) {
       // YouTube mode
       setIsYouTube(true);
+      isYouTubeRef.current = true;
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      initYouTubePlayer(ytId);
+      initYouTubePlayer(ytId, 0, true);
     } else {
       // Native audio file (Cloudinary)
       setIsYouTube(false);
+      isYouTubeRef.current = false;
       if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === "function") {
         ytPlayerRef.current.pauseVideo();
       }
@@ -467,16 +621,27 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           });
       }
     }
+
+    currentTimeRef.current = 0;
+    saveCurrentPlayerState();
   };
 
   const togglePlay = () => {
-    if (!currentSong) return;
+    const song = currentSongRef.current || currentSong;
+    if (!song) return;
 
     if (isYouTube) {
-      if (!ytPlayerRef.current) return;
+      if (!ytPlayerRef.current || typeof ytPlayerRef.current.playVideo !== "function") {
+        const ytId = song.videoId || extractYouTubeId(song.audio_url);
+        if (ytId) {
+          initYouTubePlayer(ytId, currentTimeRef.current, true);
+        }
+        return;
+      }
       if (isPlaying) {
         ytPlayerRef.current.pauseVideo();
         setIsPlaying(false);
+        saveCurrentPlayerState();
       } else {
         ytPlayerRef.current.playVideo();
         setIsPlaying(true);
@@ -486,6 +651,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
+        saveCurrentPlayerState();
       } else {
         audioRef.current
           .play()
@@ -515,6 +681,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   const seekTo = (time: number) => {
     setCurrentTime(time);
+    currentTimeRef.current = time;
     if (isYouTube) {
       if (ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === "function") {
         ytPlayerRef.current.seekTo(time, true);
@@ -524,6 +691,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         audioRef.current.currentTime = time;
       }
     }
+    saveCurrentPlayerState();
   };
 
   const setVolumeLevel = (vol: number) => {
