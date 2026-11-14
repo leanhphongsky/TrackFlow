@@ -156,21 +156,31 @@ export default function NowPlayingPanel({
 
               {/* 2. YouTube Canvas Video Container (Always Mounted in DOM) */}
               <div
-                className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-300 ${
-                  isCanvasMode ? "opacity-100" : "opacity-0 pointer-events-none"
-                }`}
+                className={
+                  isCanvasMode && isPanelVisible
+                    ? "absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-300 opacity-100 z-0"
+                    : "fixed -left-[9999px] top-0 w-[320px] h-[180px] overflow-hidden pointer-events-none opacity-100 z-[-100]"
+                }
               >
                 {/* 16:9 Oversized Crop: 160% height x 284% width permanently eliminates title, watermark, and black bars */}
                 <div className="w-full h-full relative overflow-hidden bg-black">
                   <div
-                    className="absolute flex items-center justify-center pointer-events-none select-none"
-                    style={{
-                      width: "284%",
-                      height: "160%",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                    }}
+                    className={
+                      isCanvasMode && isPanelVisible
+                        ? "absolute flex items-center justify-center pointer-events-none select-none"
+                        : "w-full h-full"
+                    }
+                    style={
+                      isCanvasMode && isPanelVisible
+                        ? {
+                            width: "284%",
+                            height: "160%",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                          }
+                        : undefined
+                    }
                   >
                     <div
                       id="youtube-player-frame"

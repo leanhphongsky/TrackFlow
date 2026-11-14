@@ -173,6 +173,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const bgResumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isUserInitiatedPauseRef = useRef<boolean>(false);
 
   // Fresh refs to prevent stale closure in YouTube and Audio callbacks
   const currentSongRef = useRef<Song | null>(currentSong);
@@ -383,6 +385,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   };
 
   const nextSong = async () => {
+    isUserInitiatedPauseRef.current = false;
     const song = currentSongRef.current;
     const currentQueue = queueRef.current;
     const isPlaylistMode = isPlaylistRef.current;
@@ -501,22 +504,45 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         event.target.seekTo(startSeconds, true);
       }
       if (autoPlay) {
+        isUserInitiatedPauseRef.current = false;
         event.target.playVideo();
         setIsPlaying(true);
       } else {
+        isUserInitiatedPauseRef.current = true;
         event.target.pauseVideo();
         setIsPlaying(false);
       }
     };
 
     const onPlayerStateChange = (event: any) => {
-      // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
+      // 1 = PLAYING, 2 = PAUSED, 0 = ENDED, 3 = BUFFERING
       if (event.data === 1) {
+        isUserInitiatedPauseRef.current = false;
+        if (bgResumeTimeoutRef.current) {
+          clearTimeout(bgResumeTimeoutRef.current);
+          bgResumeTimeoutRef.current = null;
+        }
         setIsPlaying(true);
         if (event.target.getDuration) {
           setDuration(event.target.getDuration());
         }
       } else if (event.data === 2) {
+        // Check if the pause was explicitly requested by user
+        if (!isUserInitiatedPauseRef.current) {
+          // Pause was triggered externally by window blur, app switching, or OS occlusion!
+          // Auto-resume immediately so music never stops in the background
+          if (bgResumeTimeoutRef.current) clearTimeout(bgResumeTimeoutRef.current);
+          bgResumeTimeoutRef.current = setTimeout(() => {
+            if (!isUserInitiatedPauseRef.current && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === "function") {
+              try {
+                ytPlayerRef.current.playVideo();
+              } catch (e) {
+                console.warn("[TrackFlow] Failed to auto-resume background playback:", e);
+              }
+            }
+          }, 80);
+          return;
+        }
         setIsPlaying(false);
       } else if (event.data === 0) {
         if (isLoopingRef.current) {
@@ -535,13 +561,29 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       }, 1000);
     };
 
+    const playerVars = {
+      autoplay: autoPlay ? 1 : 0,
+      start: Math.floor(startSeconds),
+      controls: 0,
+      modestbranding: 1,
+      rel: 0,
+      iv_load_policy: 3,
+      disablekb: 1,
+      fs: 0,
+      playsinline: 1,
+      enablejsapi: 1,
+      origin: typeof window !== "undefined" ? window.location.origin : undefined,
+    };
+
     if (window.YT && window.YT.Player) {
       if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === "function") {
         if (autoPlay) {
+          isUserInitiatedPauseRef.current = false;
           ytPlayerRef.current.loadVideoById({ videoId, startSeconds });
           ytPlayerRef.current.playVideo();
           setIsPlaying(true);
         } else {
+          isUserInitiatedPauseRef.current = true;
           if (typeof ytPlayerRef.current.cueVideoById === "function") {
             ytPlayerRef.current.cueVideoById({ videoId, startSeconds });
           } else {
@@ -553,17 +595,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       } else {
         ytPlayerRef.current = new window.YT.Player("youtube-player-frame", {
           videoId: videoId,
-          playerVars: {
-            autoplay: autoPlay ? 1 : 0,
-            start: Math.floor(startSeconds),
-            controls: 0,
-            modestbranding: 1,
-            rel: 0,
-            iv_load_policy: 3,
-            disablekb: 1,
-            fs: 0,
-            playsinline: 1,
-          },
+          playerVars,
           events: {
             onReady: onPlayerReady,
             onStateChange: onPlayerStateChange,
@@ -576,17 +608,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       window.onYouTubeIframeAPIReady = () => {
         ytPlayerRef.current = new window.YT.Player("youtube-player-frame", {
           videoId: videoId,
-          playerVars: {
-            autoplay: autoPlay ? 1 : 0,
-            start: Math.floor(startSeconds),
-            controls: 0,
-            modestbranding: 1,
-            rel: 0,
-            iv_load_policy: 3,
-            disablekb: 1,
-            fs: 0,
-            playsinline: 1,
-          },
+          playerVars,
           events: {
             onReady: onPlayerReady,
             onStateChange: onPlayerStateChange,
@@ -657,6 +679,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const playSong = (song: Song, newQueue?: Song[], isPlaylistContext?: boolean) => {
+    isUserInitiatedPauseRef.current = false;
     setCurrentSong(song);
     currentSongRef.current = song;
     // Auto-open right panel (Spotify Now Playing Canvas) whenever a song is played
@@ -696,6 +719,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       setIsYouTube(false);
       isYouTubeRef.current = false;
       if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === "function") {
+        isUserInitiatedPauseRef.current = true;
         ytPlayerRef.current.pauseVideo();
       }
       if (audioRef.current) {
@@ -723,25 +747,30 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       if (!ytPlayerRef.current || typeof ytPlayerRef.current.playVideo !== "function") {
         const ytId = song.videoId || extractYouTubeId(song.audio_url);
         if (ytId) {
+          isUserInitiatedPauseRef.current = false;
           initYouTubePlayer(ytId, currentTimeRef.current, true);
         }
         return;
       }
       if (isPlaying) {
+        isUserInitiatedPauseRef.current = true;
         ytPlayerRef.current.pauseVideo();
         setIsPlaying(false);
         saveCurrentPlayerState();
       } else {
+        isUserInitiatedPauseRef.current = false;
         ytPlayerRef.current.playVideo();
         setIsPlaying(true);
       }
     } else {
       if (!audioRef.current) return;
       if (isPlaying) {
+        isUserInitiatedPauseRef.current = true;
         audioRef.current.pause();
         setIsPlaying(false);
         saveCurrentPlayerState();
       } else {
+        isUserInitiatedPauseRef.current = false;
         audioRef.current
           .play()
           .then(() => setIsPlaying(true))
@@ -751,6 +780,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   };
 
   const prevSong = () => {
+    isUserInitiatedPauseRef.current = false;
     const song = currentSongRef.current;
     const currentQueue = queueRef.current;
     if (!song || currentQueue.length === 0) return;
@@ -822,6 +852,57 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const toggleLoop = () => {
     setIsLooping((prev) => !prev);
   };
+
+  // Register MediaSession for native OS media integration, lockscreen, media keys & background priority
+  useEffect(() => {
+    if (typeof window === "undefined" || !("mediaSession" in navigator)) return;
+
+    if (currentSong) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentSong.title,
+          artist: currentSong.artist,
+          album: "TrackFlow",
+          artwork: currentSong.image_url
+            ? [
+                { src: currentSong.image_url, sizes: "96x96", type: "image/jpeg" },
+                { src: currentSong.image_url, sizes: "128x128", type: "image/jpeg" },
+                { src: currentSong.image_url, sizes: "256x256", type: "image/jpeg" },
+                { src: currentSong.image_url, sizes: "512x512", type: "image/jpeg" },
+              ]
+            : [],
+        });
+        navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+      } catch (e) {
+        // Ignore metadata errors
+      }
+    } else {
+      navigator.mediaSession.metadata = null;
+      navigator.mediaSession.playbackState = "none";
+    }
+
+    try {
+      navigator.mediaSession.setActionHandler("play", () => {
+        if (!isPlaying) togglePlay();
+      });
+      navigator.mediaSession.setActionHandler("pause", () => {
+        if (isPlaying) togglePlay();
+      });
+      navigator.mediaSession.setActionHandler("previoustrack", () => {
+        prevSong();
+      });
+      navigator.mediaSession.setActionHandler("nexttrack", () => {
+        nextSong();
+      });
+      navigator.mediaSession.setActionHandler("seekto", (details) => {
+        if (typeof details.seekTime === "number" && !isNaN(details.seekTime)) {
+          seekTo(details.seekTime);
+        }
+      });
+    } catch (e) {
+      // Ignore unsupported action handlers
+    }
+  }, [currentSong?.id, currentSong?.title, currentSong?.artist, currentSong?.image_url, isPlaying]);
 
   return (
     <PlayerContext.Provider
