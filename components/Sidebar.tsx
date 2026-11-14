@@ -15,6 +15,7 @@ import {
   Sparkles,
   Waves,
   X,
+  Download,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
@@ -43,6 +44,7 @@ export default function Sidebar({
     createPlaylist,
     selectedPlaylistId,
     setSelectedPlaylistId,
+    openImportModal,
   } = usePlaylist();
   const { currentSong } = usePlayer();
 
@@ -226,6 +228,16 @@ export default function Sidebar({
                   <button
                     onClick={() => {
                       setIsMenuOpen(false);
+                      openImportModal();
+                    }}
+                    className="w-full text-left px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10 flex items-center gap-2.5 transition"
+                  >
+                    <Download className="w-4 h-4 text-emerald-400" />
+                    <span>Nhập từ Spotify / YouTube</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
                       onOpenUpload();
                     }}
                     className="w-full text-left px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10 flex items-center gap-2.5 transition"
@@ -343,16 +355,25 @@ export default function Sidebar({
           )}
 
           {playlists.length === 0 && followedArtists.length === 0 && (
-            <div className="px-2 py-4 text-center">
-              <p className="text-[11px] text-gray-500 leading-relaxed mb-3">
-                Bấm dấu &quot;+&quot; ở trên để tạo playlist đầu tiên của bạn!
+            <div className="px-2 py-4 text-center space-y-2">
+              <p className="text-[11px] text-gray-500 leading-relaxed mb-1">
+                Bấm dấu &quot;+&quot; ở trên để tạo playlist hoặc nhập kho nhạc của bạn!
               </p>
-              <button
-                onClick={handleCreatePlaylistClick}
-                className="text-xs text-[#1db954] hover:underline font-semibold"
-              >
-                + Tạo danh sách phát
-              </button>
+              <div className="flex flex-col gap-2 pt-1">
+                <button
+                  onClick={handleCreatePlaylistClick}
+                  className="text-xs text-[#1db954] hover:underline font-semibold"
+                >
+                  + Tạo danh sách phát
+                </button>
+                <button
+                  onClick={() => openImportModal()}
+                  className="text-xs text-gray-300 hover:text-white transition flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Nhập từ Spotify / YouTube</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -15,6 +15,7 @@ import TrendingArtistsSection from "@/components/TrendingArtistsSection";
 import TrendingSongsSection from "@/components/TrendingSongsSection";
 import PlaylistView from "@/components/PlaylistView";
 import AddToPlaylistModal from "@/components/AddToPlaylistModal";
+import ImportPlaylistModal from "@/components/ImportPlaylistModal";
 import FollowedArtistsFeed from "@/components/FollowedArtistsFeed";
 import PodcastsSection from "@/components/PodcastsSection";
 import FullscreenLyricsView from "@/components/FullscreenLyricsView";
@@ -851,6 +852,14 @@ export default function Home() {
 
       {/* Spotify-style Add to Playlist Modal */}
       <AddToPlaylistModal />
+
+      {/* 1-Click Import Playlist Modal (Spotify, YouTube, Text) */}
+      <ImportPlaylistModal
+        onSuccess={(plId) => {
+          setSelectedPlaylistId(plId);
+          setActiveTab("playlist");
+        }}
+      />
 
       {/* Fullscreen Apple Music / Spotify Style Karaoke Lyrics Experience */}
       {isLyricsFullscreen && currentSong && (

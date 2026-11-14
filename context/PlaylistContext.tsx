@@ -49,6 +49,11 @@ interface PlaylistContextType {
   songForPlaylist: any | null;
   openAddToPlaylist: (song: any) => void;
   closeAddToPlaylist: () => void;
+
+  // Import Playlist Modal
+  isImportModalOpen: boolean;
+  openImportModal: () => void;
+  closeImportModal: () => void;
 }
 
 const PlaylistContext = createContext<PlaylistContextType | undefined>(undefined);
@@ -62,6 +67,21 @@ export function PlaylistProvider({ children }: { children: React.ReactNode }) {
   // Add to Playlist modal state
   const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = useState(false);
   const [songForPlaylist, setSongForPlaylist] = useState<any | null>(null);
+
+  // Import Playlist modal state
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const openImportModal = () => {
+    if (!user) {
+      openAuthModal("login");
+      return;
+    }
+    setIsImportModalOpen(true);
+  };
+
+  const closeImportModal = () => {
+    setIsImportModalOpen(false);
+  };
 
   const refreshPlaylists = useCallback(async () => {
     if (!user) {
@@ -262,6 +282,9 @@ export function PlaylistProvider({ children }: { children: React.ReactNode }) {
         songForPlaylist,
         openAddToPlaylist,
         closeAddToPlaylist,
+        isImportModalOpen,
+        openImportModal,
+        closeImportModal,
       }}
     >
       {children}

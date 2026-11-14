@@ -16,6 +16,7 @@ import {
   Check,
   X,
   Sparkles,
+  Download,
 } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
@@ -44,7 +45,7 @@ export default function PlaylistView({
 
   const { currentSong, isPlaying, playSong, togglePlay, setIsRightPanelOpen } = usePlayer();
   const { user, isFavorite, toggleFavorite } = useAuth();
-  const { updatePlaylist, deletePlaylist, removeSongFromPlaylist, openAddToPlaylist } = usePlaylist();
+  const { updatePlaylist, deletePlaylist, removeSongFromPlaylist, openAddToPlaylist, openImportModal } = usePlaylist();
 
   const fetchPlaylistData = async () => {
     try {
@@ -335,6 +336,16 @@ export default function PlaylistView({
 
         {user?.id === playlist.user_id && (
           <button
+            onClick={() => openImportModal()}
+            className="p-2.5 rounded-full text-gray-400 hover:text-emerald-400 hover:bg-white/10 transition"
+            title="Nhập thêm bài hát từ Spotify hoặc YouTube"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+        )}
+
+        {user?.id === playlist.user_id && (
+          <button
             onClick={handleDeletePlaylist}
             disabled={isDeleting}
             className="p-2.5 rounded-full text-gray-400 hover:text-rose-500 hover:bg-white/10 transition"
@@ -358,15 +369,24 @@ export default function PlaylistView({
           <h3 className="text-base font-bold text-white mb-1">
             Danh sách phát này đang trống
           </h3>
-          <p className="text-xs text-gray-400 max-w-sm mx-auto mb-4 leading-relaxed">
-            Hãy tìm kiếm các bài hát bạn yêu thích hoặc vào mục Bảng xếp hạng thịnh hành và bấm dấu &quot;+&quot; để thêm vào playlist này!
+          <p className="text-xs text-gray-400 max-w-sm mx-auto mb-5 leading-relaxed">
+            Bạn có thể tìm kiếm bài hát mới, hoặc chuyển toàn bộ playlist yêu thích từ Spotify hay YouTube vào đây chỉ với 1 click!
           </p>
-          <button
-            onClick={onBack}
-            className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2 px-5 rounded-full transition"
-          >
-            Khám phá bài hát ngay
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={onBack}
+              className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2 px-5 rounded-full transition shadow"
+            >
+              Khám phá bài hát
+            </button>
+            <button
+              onClick={() => openImportModal()}
+              className="bg-white/10 hover:bg-white/15 text-white font-bold text-xs py-2 px-5 rounded-full transition flex items-center gap-2 border border-white/10 shadow"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Nhập từ Spotify / YouTube</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="bg-[#121212]/80 border border-white/5 rounded-2xl overflow-hidden shadow-lg">
