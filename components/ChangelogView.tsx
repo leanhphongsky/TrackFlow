@@ -17,6 +17,9 @@ import {
   ListPlus,
   Tv,
   Waves,
+  Download,
+  Smartphone,
+  Radio,
 } from "lucide-react";
 
 interface ChangelogViewProps {
@@ -43,11 +46,11 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
             <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#1db954] text-black shadow-md flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Phiên bản Beta v2.4</span>
+              <span>Phiên bản Beta v3.0</span>
             </span>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-gray-300 flex items-center gap-1.5 border border-white/5">
               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Cập nhật ngày 13/11/2026</span>
+              <span>Cập nhật ngày 14/11/2026</span>
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
               Đang trong giai đoạn phát triển (Active Development)
@@ -55,10 +58,10 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">
-            Nhật ký cập nhật hệ thống
+            Nhật ký cập nhật hệ thống — Beta v3.0
           </h1>
           <p className="text-gray-300 text-sm max-w-2xl leading-relaxed">
-            Tổng hợp các tính năng mới, các nội dung đã được loại bỏ và toàn bộ cải tiến, sửa lỗi trong phiên bản TrackFlow Beta v2.4. Trang web đang trong quá trình phát triển tích cực để mang lại trải nghiệm âm nhạc tốt nhất.
+            Tổng hợp các tính năng mới, các cải tiến và toàn bộ sửa lỗi trong phiên bản TrackFlow Beta v3.0: Tính năng Nhập Playlist 1-chạm từ Spotify &amp; YouTube, cơ chế phát nhạc nền liên tục khi chuyển cửa sổ, tối ưu hóa giao diện di động và nâng cấp toàn diện chế độ Chill.
           </p>
         </div>
       </div>
@@ -75,16 +78,48 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
             </div>
             <div>
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <span>Tính năng mới bổ sung</span>
+                <span>Tính năng mới bổ sung (Beta v3.0)</span>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                  + Mới
+                  + Mới v3.0
                 </span>
               </h2>
-              <p className="text-xs text-gray-400">Các chức năng được phát triển mới hoàn toàn trong phiên bản này</p>
+              <p className="text-xs text-gray-400">Các chức năng đột phá vừa được phát triển trong phiên bản 3.0</p>
             </div>
           </div>
 
           <div className="space-y-4">
+            {/* V3.0 Feature 1: Playlist Importer */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 to-[#202020] border border-emerald-500/30 space-y-1.5 shadow-md">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Download className="w-4 h-4 text-[#1db954]" />
+                <h3 className="text-emerald-400">1-Click Playlist Importer (Nhập Playlist Tự Động từ Spotify &amp; YouTube)</h3>
+              </div>
+              <p className="text-xs text-gray-200 leading-relaxed pl-6">
+                Chuyển nhà sang TrackFlow cực nhanh mà không phải tạo lại danh sách bài hát từ đầu! Hỗ trợ dán đường link playlist công khai từ <strong>Spotify</strong> (Playlist &amp; Album), <strong>YouTube &amp; YouTube Music</strong>, hoặc dán danh sách văn bản bất kỳ (Batch Text: <code>Tên bài - Ca sĩ</code>). Thuật toán Smart Matcher tự động quét, tìm bản audio chuẩn nhất trên YouTube và lưu thẳng vào tài khoản của bạn.
+              </p>
+            </div>
+
+            {/* V3.0 Feature 2: Background Playback & MediaSession */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 to-[#202020] border border-emerald-500/30 space-y-1.5 shadow-md">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Radio className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-emerald-400">Phát nhạc nền liên tục khi chuyển App &amp; Tích hợp Media Session</h3>
+              </div>
+              <p className="text-xs text-gray-200 leading-relaxed pl-6">
+                Khắc phục triệt để hiện tượng nhạc tự động tạm dừng khi click sang ứng dụng khác (Word, VS Code, Discord, v.v.) do cơ chế Native Window Occlusion của Chromium. Đồng thời tích hợp chuẩn <code>navigator.mediaSession</code> cấp hệ điều hành (hỗ trợ điều khiển bằng phím media trên bàn phím, widget âm lượng Windows và hiển thị ảnh bìa, tên ca khúc chuẩn xác).
+              </p>
+            </div>
+
+            {/* V3.0 Feature 3: Mobile Bottom Navigation & Mini Player */}
+            <div className="p-4 rounded-xl bg-[#202020] border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Smartphone className="w-4 h-4 text-sky-400" />
+                <h3>Giao diện di động chuyên dụng: Bottom Navigation &amp; Floating Mini Player</h3>
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed pl-6">
+                Thiết kế lại toàn bộ trải nghiệm cho người dùng di động và màn hình cảm ứng: Thanh điều hướng đáy (Bottom Navigation Bar) cố định thuận tiện một tay, thanh Mini Player dạng viên thuốc nổi (Floating Pill) chuẩn Spotify, menu ngăn kéo trượt (Mobile Drawer) và tối ưu cuộn cho màn hình đăng ký/đăng nhập.
+              </p>
+            </div>
             <div className="p-4 rounded-xl bg-[#202020] border border-white/5 space-y-1.5">
               <div className="flex items-center gap-2 text-sm font-bold text-white">
                 <Waves className="w-4 h-4 text-purple-400" />

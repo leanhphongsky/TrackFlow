@@ -88,7 +88,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
               TrackFlow
             </span>
             <span className="ml-2 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#1db954]/15 text-[#1db954] border border-[#1db954]/30">
-              Beta v2.4
+              Beta v3.0
             </span>
           </div>
 
@@ -167,7 +167,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                   TrackFlow
                 </span>
                 <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#1db954]/15 text-[#1db954] border border-[#1db954]/30">
-                  Beta v2.4
+                  Beta v3.0
                 </span>
               </div>
             </div>

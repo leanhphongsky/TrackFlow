@@ -122,7 +122,7 @@ export default function Sidebar({
               {/* Version Badge (Clickable to open Changelog) */}
               <button
                 onClick={() => handleNav(() => setActiveTab("changelog"))}
-                title="Xem nhật ký bản cập nhật Beta v2.4"
+                title="Xem nhật ký bản cập nhật Beta v3.0"
                 className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide transition border shadow-sm flex-shrink-0 whitespace-nowrap ${
                   activeTab === "changelog"
                     ? "bg-[#1db954] text-black border-[#1db954] shadow-[0_0_10px_rgba(29,185,84,0.4)]"
@@ -130,7 +130,7 @@ export default function Sidebar({
                 }`}
               >
                 <Sparkles className="w-2.5 h-2.5 flex-shrink-0" />
-                <span>Beta v2.4</span>
+                <span>Beta v3.0</span>
               </button>
 
               {/* Close Drawer Button on Mobile */}
