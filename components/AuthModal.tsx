@@ -57,8 +57,8 @@ export default function AuthModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 select-none">
-      <div className="bg-[#181818] w-full max-w-md rounded-2xl p-6 shadow-2xl border border-white/10 relative text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-[#181818] w-full max-w-md rounded-2xl p-6 shadow-2xl border border-white/10 relative text-white my-auto max-h-[95vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={closeAuthModal}

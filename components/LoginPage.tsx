@@ -65,17 +65,17 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-[#0a0a0a] text-white p-4 sm:p-6 relative overflow-hidden select-none">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0a0a0a] text-white p-3 sm:p-6 flex flex-col items-center justify-start lg:justify-center">
       {/* Ambient background glows */}
-      <div className="absolute top-[-15%] left-[-10%] w-[550px] h-[550px] bg-emerald-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-[-15%] right-[-10%] w-[550px] h-[550px] bg-purple-600/15 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-[40%] right-[30%] w-[350px] h-[350px] bg-[#1db954]/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed top-[-15%] left-[-10%] w-[550px] h-[550px] bg-emerald-600/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="fixed bottom-[-15%] right-[-10%] w-[550px] h-[550px] bg-purple-600/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="fixed top-[40%] right-[30%] w-[350px] h-[350px] bg-[#1db954]/10 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Main Container Card */}
-      <div className="w-full max-w-5xl bg-[#141414]/90 border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10">
+      <div className="w-full max-w-5xl my-auto bg-[#141414]/95 border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 my-3 lg:my-auto">
         
-        {/* LEFT COLUMN: Visual Showcase & Brand Story */}
-        <div className="lg:col-span-6 p-8 sm:p-12 bg-gradient-to-br from-[#181818] via-[#121212] to-black flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/10 relative overflow-hidden">
+        {/* LEFT COLUMN: Visual Showcase & Brand Story (Appears below form on mobile, side-by-side on desktop) */}
+        <div className="order-2 lg:order-1 lg:col-span-6 p-6 sm:p-10 lg:p-12 bg-gradient-to-br from-[#181818] via-[#121212] to-black flex flex-col justify-between border-t lg:border-t-0 lg:border-r border-white/10 relative overflow-hidden">
           {/* Subtle decoration pattern */}
           <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-emerald-500/10 via-transparent to-transparent rounded-full pointer-events-none" />
 
@@ -88,7 +88,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
               TrackFlow
             </span>
             <span className="ml-2 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#1db954]/15 text-[#1db954] border border-[#1db954]/30">
-              v2.0 Pro
+              Beta v2.4
             </span>
           </div>
 
@@ -99,14 +99,14 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
               <span>Chuẩn giao diện Spotify • 100% Không quảng cáo</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
               Dòng chảy âm nhạc{" "}
               <span className="bg-gradient-to-r from-[#1db954] to-emerald-300 bg-clip-text text-transparent">
                 cho riêng bạn.
               </span>
             </h1>
 
-            <p className="text-sm text-gray-400 leading-relaxed max-w-md">
+            <p className="text-xs sm:text-sm text-gray-400 leading-relaxed max-w-md">
               Tìm kiếm và phát nhạc trực tiếp từ YouTube, khám phá trang cá nhân của mọi nghệ sĩ yêu thích và tự do lưu trữ bài hát theo tài khoản cá nhân.
             </p>
 
@@ -154,9 +154,23 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Modern Form */}
-        <div className="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-center bg-[#161616]/70">
+        {/* RIGHT COLUMN: Modern Form (Ordered first on mobile so user sees inputs immediately!) */}
+        <div className="order-1 lg:order-2 lg:col-span-6 p-6 sm:p-10 lg:p-12 flex flex-col justify-center bg-[#161616]/80">
           <div className="max-w-md w-full mx-auto">
+            {/* Mobile Brand Header */}
+            <div className="flex items-center justify-between mb-6 lg:hidden">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-black border border-white/10 flex items-center justify-center shadow-lg">
+                  <Disc3 className="w-5 h-5 text-[#1db954] animate-spin-slow" />
+                </div>
+                <span className="text-xl font-black tracking-tight text-white">
+                  TrackFlow
+                </span>
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#1db954]/15 text-[#1db954] border border-[#1db954]/30">
+                  Beta v2.4
+                </span>
+              </div>
+            </div>
             
             {/* Pill Tab Switcher */}
             <div className="flex items-center justify-between mb-8">
