@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { usePlayer } from "@/context/PlayerContext";
+import { usePlayer, LyricLine } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
 import {
@@ -24,6 +24,8 @@ import {
   Music,
   Waves,
   Check,
+  Mic2,
+  AlignLeft,
 } from "lucide-react";
 
 interface ChillViewProps {
@@ -257,6 +259,13 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
     toggleMute,
     isLooping,
     toggleLoop,
+    lyrics,
+    hasLyrics,
+    isSyncedLyrics,
+    loadingLyrics,
+    lyricsOffset,
+    setLyricsOffset,
+    lyricsMessage,
   } = usePlayer();
 
   const { isFavorite, toggleFavorite } = useAuth();
@@ -270,6 +279,45 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
   const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
   const [isBrowserFullscreen, setIsBrowserFullscreen] = useState(false);
   const [wallClock, setWallClock] = useState("");
+
+  // Lyrics States & Auto-Scroll
+  const [showLyricsSubtitle, setShowLyricsSubtitle] = useState<boolean>(true);
+  const [showLyricsStream, setShowLyricsStream] = useState<boolean>(false);
+  const lyricsScrollRef = useRef<HTMLDivElement | null>(null);
+  const activeStreamLineRef = useRef<HTMLDivElement | null>(null);
+  const isUserScrollingLyrics = useRef<boolean>(false);
+  const userScrollTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const effectiveCurrentTime = currentTime + (lyricsOffset || 0);
+
+  // Active line calculation for synchronized lyrics
+  const activeIndex = lyrics.findIndex(
+    (line, idx) =>
+      effectiveCurrentTime >= line.start &&
+      (idx === lyrics.length - 1 || effectiveCurrentTime < lyrics[idx + 1].start)
+  );
+
+  const activeLyric = activeIndex >= 0 && lyrics[activeIndex] ? lyrics[activeIndex] : null;
+  const nextLyric = activeIndex >= 0 && activeIndex + 1 < lyrics.length ? lyrics[activeIndex + 1] : null;
+
+  // Auto-scroll lyrics drawer to active line
+  useEffect(() => {
+    if (isUserScrollingLyrics.current) return;
+    if (activeStreamLineRef.current && lyricsScrollRef.current) {
+      activeStreamLineRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [activeIndex, showLyricsStream]);
+
+  const handleLyricsUserScroll = () => {
+    isUserScrollingLyrics.current = true;
+    if (userScrollTimeout.current) clearTimeout(userScrollTimeout.current);
+    userScrollTimeout.current = setTimeout(() => {
+      isUserScrollingLyrics.current = false;
+    }, 3500);
+  };
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const diskRef = useRef<HTMLDivElement | null>(null);
@@ -583,6 +631,17 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         .animate-vinyl-continuous {
           animation: chillVinylSpin 20s linear infinite;
         }
+        @keyframes lyricGlowPulse {
+          0%, 100% {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+          }
+          50% {
+            text-shadow: 0 0 25px rgba(255, 255, 255, 0.95), 0 0 35px rgba(251, 191, 36, 0.6);
+          }
+        }
+        .active-lyric-glow {
+          animation: lyricGlowPulse 2.8s ease-in-out infinite;
+        }
       `}</style>
 
       {/* 1. Background Wallpaper Layer */}
@@ -792,6 +851,23 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
             </span>
           </button>
 
+          {/* Lyrics Stream Drawer Toggle */}
+          <button
+            onClick={() => setShowLyricsStream((prev) => !prev)}
+            className={`p-2 rounded-full transition shadow backdrop-blur-md flex items-center gap-1.5 text-xs font-bold ${
+              showLyricsStream
+                ? "bg-amber-500/30 text-amber-300 border border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.25)]"
+                : "bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white"
+            }`}
+            title={showLyricsStream ? "Đóng danh sách lời bài hát" : "Xem toàn bộ lời bài hát đồng bộ"}
+          >
+            <Mic2 className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">Lời bài hát</span>
+            {hasLyrics && (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+            )}
+          </button>
+
           {/* Browser Fullscreen */}
           <button
             onClick={toggleFullscreen}
@@ -863,6 +939,60 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
             <div className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-black/85 border-2 border-white/40 backdrop-blur-sm pointer-events-none shadow-inner" />
           </div>
         </div>
+
+        {/* 4.5. Floating Active Lyric Subtitle (Live Karaoke Chill Ticker) */}
+        {showLyricsSubtitle && (
+          <div
+            onClick={() => setShowLyricsStream((prev) => !prev)}
+            className={`absolute bottom-40 sm:bottom-44 z-25 w-[92%] max-w-xl mx-auto text-center pointer-events-auto cursor-pointer group transition-all duration-300 ${
+              showLyricsStream ? "hidden md:block opacity-60 hover:opacity-100" : ""
+            }`}
+            title="Nhấn để xem toàn bộ lời bài hát"
+          >
+            <div className="px-5 py-3 rounded-2xl bg-black/55 hover:bg-black/75 border border-white/15 hover:border-amber-400/40 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.65)] transition-all duration-300 group-hover:scale-[1.02]">
+              {loadingLyrics ? (
+                <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-300 animate-pulse">
+                  <Mic2 className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
+                  <span>Đang tải lời bài hát...</span>
+                </div>
+              ) : activeLyric ? (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-300/90">
+                      {isSyncedLyrics ? "Lời bài hát đồng bộ" : "Lời bài hát"}
+                    </span>
+                    <span className="text-[10px] text-gray-400 group-hover:text-white transition flex items-center gap-0.5 ml-1">
+                      • Nhấn để mở rộng
+                    </span>
+                  </div>
+                  <p className="text-base sm:text-lg md:text-xl font-extrabold text-white tracking-wide active-lyric-glow leading-snug drop-shadow-[0_2px_15px_rgba(255,255,255,0.7)]">
+                    {activeLyric.text}
+                  </p>
+                  {nextLyric && (
+                    <p className="text-[11px] sm:text-xs text-gray-400/80 font-medium truncate mt-0.5">
+                      {nextLyric.text}
+                    </p>
+                  )}
+                </div>
+              ) : lyrics.length > 0 ? (
+                <div className="space-y-1">
+                  <p className="text-sm sm:text-base font-bold text-white/90">
+                    {lyrics[0].text}
+                  </p>
+                  <p className="text-[11px] text-gray-400">
+                    Nhấn để xem đầy đủ lời bài hát
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2 text-xs font-medium text-gray-300">
+                  <Music className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{lyricsMessage || "Giai điệu thư giãn • Thả lỏng tâm trí"}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* 5. Center Floating Mini-Player Bar (3 Rows Restored, Frosted Glass, Positioned Nicely Lower Down) */}
         <div className="absolute bottom-3 sm:bottom-4 z-30 w-[92%] max-w-md bg-black/60 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3.5 sm:p-4 shadow-[0_16px_40px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col gap-2.5 pointer-events-auto animate-fadeIn overflow-hidden">
@@ -995,6 +1125,124 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
             </button>
           </div>
         </div>
+
+        {/* 6. Synced Lyrics Stream Drawer (Apple Music / Spotify Sing Style) */}
+        {showLyricsStream && (
+          <div
+            className="fixed md:absolute right-3 md:right-8 top-20 bottom-36 md:bottom-24 w-auto inset-x-3 md:inset-x-auto md:w-[420px] lg:w-[480px] z-40 bg-black/85 border border-white/20 backdrop-blur-3xl rounded-3xl p-5 sm:p-6 flex flex-col shadow-[0_25px_60px_rgba(0,0,0,0.85)] animate-fadeIn select-none pointer-events-auto"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/10 flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-purple-600 flex items-center justify-center shadow-md">
+                  <Mic2 className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-white tracking-wide flex items-center gap-2">
+                    Lời bài hát
+                    {isSyncedLyrics && (
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+                        Đồng bộ
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-[11px] text-gray-400 truncate max-w-[200px]">
+                    {currentSong?.title || ""}
+                  </p>
+                </div>
+              </div>
+
+              {/* Offset Tuner & Close */}
+              <div className="flex items-center gap-1.5">
+                {isSyncedLyrics && (
+                  <div className="flex items-center bg-white/10 rounded-lg p-0.5 text-[10px] font-mono mr-1">
+                    <button
+                      onClick={() => setLyricsOffset((prev) => Math.round((prev - 0.5) * 10) / 10)}
+                      className="px-1.5 py-0.5 hover:bg-white/15 rounded text-gray-300 hover:text-white"
+                      title="Chỉnh lời nhanh hơn (-0.5s)"
+                    >
+                      -0.5s
+                    </button>
+                    <span className="px-1 text-amber-300 font-bold">
+                      {lyricsOffset > 0 ? `+${lyricsOffset}s` : `${lyricsOffset}s`}
+                    </span>
+                    <button
+                      onClick={() => setLyricsOffset((prev) => Math.round((prev + 0.5) * 10) / 10)}
+                      className="px-1.5 py-0.5 hover:bg-white/15 rounded text-gray-300 hover:text-white"
+                      title="Chỉnh lời chậm lại (+0.5s)"
+                    >
+                      +0.5s
+                    </button>
+                  </div>
+                )}
+                <button
+                  onClick={() => setShowLyricsStream(false)}
+                  className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition"
+                  title="Đóng bảng lời bài hát"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Lyrics Scrollable Body */}
+            <div
+              ref={lyricsScrollRef}
+              onScroll={handleLyricsUserScroll}
+              className="flex-1 overflow-y-auto py-6 space-y-4 pr-1 scrollbar-thin scrollbar-thumb-white/20"
+              style={{
+                maskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)",
+              }}
+            >
+              {loadingLyrics ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
+                  <div className="w-10 h-10 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+                  <p className="text-sm font-semibold text-gray-300">
+                    Đang tìm và đồng bộ lời bài hát...
+                  </p>
+                </div>
+              ) : lyrics.length > 0 ? (
+                lyrics.map((line, idx) => {
+                  const isActive = idx === activeIndex;
+                  return (
+                    <div
+                      key={idx}
+                      ref={isActive ? activeStreamLineRef : null}
+                      onClick={() => seekTo(line.start)}
+                      className={`cursor-pointer transition-all duration-300 rounded-xl px-3 py-2 flex items-start gap-2.5 group ${
+                        isActive
+                          ? "text-white font-extrabold text-lg sm:text-xl md:text-2xl scale-[1.02] origin-left bg-white/10 drop-shadow-[0_0_20px_rgba(255,255,255,0.7)]"
+                          : "text-white/40 hover:text-white/80 hover:bg-white/5 text-sm sm:text-base md:text-lg font-semibold"
+                      }`}
+                    >
+                      {isActive && (
+                        <span className="w-2 h-2 mt-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+                      )}
+                      <p className="leading-relaxed">{line.text}</p>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-2 text-gray-400">
+                  <Music className="w-10 h-10 text-gray-500 mb-1" />
+                  <p className="text-sm font-bold text-gray-300">
+                    {lyricsMessage || "Chưa có lời bài hát cho bài này"}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Tận hưởng giai điệu thư giãn và không gian chill
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Tip */}
+            <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-gray-400 flex-shrink-0">
+              <span>Chạm dòng chữ để nhảy đến đoạn nhạc</span>
+              <span className="text-amber-400/90 font-medium">TrackFlow Sing</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
