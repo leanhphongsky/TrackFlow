@@ -73,9 +73,11 @@ export async function GET(req: Request) {
     // METHOD 1: High-Performance, Zero-Quota Search via yt-search
     // (Eliminates YouTube Data API 429 quota exhaustion and finds 100% of music tracks across all categories)
     try {
-      const searchResult = await ytSearch(trimmedQuery);
+      const [searchResult, directChannelResult] = await Promise.all([
+        ytSearch(trimmedQuery),
+        (ytSearch as any)({ query: trimmedQuery, type: "channel" }).catch(() => null),
+      ]);
       const rawVideos = searchResult?.videos || [];
-      const channelMap = new Map<string, any>();
 
       for (const v of rawVideos) {
         const title = decodeHtmlEntities(v.title || "");
@@ -99,19 +101,55 @@ export async function GET(req: Request) {
           views: v.views || 0,
           viewsFormatted: formatViews(v.views),
         });
+      }
 
-        // Collect top matching artist channels
-        if (artistName && !channelMap.has(artistName) && channelMap.size < 3) {
-          channelMap.set(artistName, {
-            channelId: channelId,
-            title: artistName,
-            avatar: v.thumbnail || v.image,
-            description: `Kênh nghệ sĩ: ${artistName}`,
-          });
+      // Collect authentic artist channels with their REAL channel avatars (not video thumbnails)
+      let candidateChannels: any[] = [];
+      if (directChannelResult?.channels && directChannelResult.channels.length > 0) {
+        candidateChannels.push(...directChannelResult.channels);
+      }
+
+      // If user searched for a song title (e.g. "Nơi này có anh"), directChannelResult may be empty
+      // Lookup the actual artist from the top music video so the matching artist is shown with real avatar
+      const topVideo = musicVideos[0] || rawVideos[0];
+      if (topVideo) {
+        const primaryArtistName = topVideo.artist || topVideo.author?.name;
+        if (primaryArtistName) {
+          const alreadyIncluded = candidateChannels.some(
+            (c) => c.name?.toLowerCase() === primaryArtistName.toLowerCase()
+          );
+          if (!alreadyIncluded) {
+            const artistCh = await (ytSearch as any)({ query: primaryArtistName, type: "channel" }).catch(() => null);
+            if (artistCh?.channels?.[0]) {
+              candidateChannels.unshift(artistCh.channels[0]);
+            }
+          }
         }
       }
 
-      channels = Array.from(channelMap.values());
+      // Deduplicate and filter out junk uploaders, lyric channels, and non-artist channels
+      const seenNames = new Set<string>();
+      for (const ch of candidateChannels) {
+        const name = ch.name || ch.title;
+        if (!name || seenNames.has(name.toLowerCase())) continue;
+        seenNames.add(name.toLowerCase());
+
+        // Skip non-official reupload / karaoke / subbing channels unless verified
+        if (/\b(subtify|lyrics|karaoke|vietsub|fanpage|remix|topic|clip)\b/i.test(name) && !ch.verified) {
+          continue;
+        }
+
+        channels.push({
+          channelId: ch.id || (ch.url ? ch.url.split("/channel/")[1] || "" : ""),
+          title: name,
+          avatar: ch.image || ch.thumbnail, // REAL round channel profile picture from yt3.ggpht.com
+          description: ch.about || `Kênh nghệ sĩ: ${name}`,
+          subscribers: ch.subCountLabel ? `${ch.subCountLabel} người đăng ký` : "",
+          verified: Boolean(ch.verified),
+        });
+
+        if (channels.length >= 3) break;
+      }
     } catch (ytSearchErr) {
       console.warn("yt-search lookup failed, falling back to YouTube Data API:", ytSearchErr);
     }

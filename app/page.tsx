@@ -392,12 +392,24 @@ export default function Home() {
                               <img src={ch.avatar} alt={ch.title} className="w-full h-full object-cover" />
                             </div>
                             <div className="overflow-hidden flex-1">
-                              <p className="font-bold text-white text-base group-hover:text-[#1db954] transition truncate">
-                                {ch.title}
+                              <p className="font-bold text-white text-base group-hover:text-[#1db954] transition truncate flex items-center gap-1.5">
+                                <span>{ch.title}</span>
+                                {ch.verified && (
+                                  <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0" title="Nghệ sĩ đã xác minh">
+                                    ✓
+                                  </span>
+                                )}
                               </p>
-                              <span className="text-xs text-gray-400 bg-white/10 px-2 py-0.5 rounded-full inline-block mt-1">
-                                Trang nghệ sĩ
-                              </span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-gray-400 bg-white/10 px-2 py-0.5 rounded-full inline-block">
+                                  Nghệ sĩ
+                                </span>
+                                {ch.subscribers && (
+                                  <span className="text-xs text-gray-400 truncate">
+                                    {ch.subscribers}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}

@@ -192,16 +192,21 @@ export async function GET(req: Request) {
 
       if (!artistData) {
         const totalViews = targetVideos.reduce((acc, v) => acc + (v.views || 0), 0);
+        // Lookup the real YouTube channel to get the genuine profile avatar & subscriber count
+        const channelSearch = await (ytSearch as any)({ query: fallbackArtistName, type: "channel" }).catch(() => null);
+        const realChannel = channelSearch?.channels?.[0];
+
         artistData = {
-          id: channelId || (topVideo?.author?.url ? topVideo.author.url.split("/channel/")[1] || "" : ""),
-          name: decodeHtmlEntities(fallbackArtistName),
-          customUrl: "",
-          description: `Kênh nghệ sĩ chính thức: ${fallbackArtistName}`,
-          avatar: (topVideo?.author as any)?.avatar || topVideo?.thumbnail || `https://i.ytimg.com/vi/${topVideo?.videoId}/hqdefault.jpg`,
+          id: realChannel?.id || channelId || (topVideo?.author?.url ? topVideo.author.url.split("/channel/")[1] || "" : ""),
+          name: decodeHtmlEntities(realChannel?.name || fallbackArtistName),
+          customUrl: realChannel?.baseUrl || "",
+          description: realChannel?.about || `Kênh nghệ sĩ chính thức: ${fallbackArtistName}`,
+          avatar: realChannel?.image || realChannel?.thumbnail || `https://i.ytimg.com/vi/${topVideo?.videoId}/hqdefault.jpg`,
           banner: null,
-          subscribers: "N/A",
+          subscribers: realChannel?.subCountLabel ? `${realChannel.subCountLabel} người đăng ký` : "Nghệ sĩ chính thức",
           views: formatViews(totalViews),
-          videoCount: targetVideos.length,
+          videoCount: realChannel?.videoCount && realChannel.videoCount > 0 ? realChannel.videoCount : targetVideos.length,
+          verified: Boolean(realChannel?.verified),
         };
       }
 
