@@ -38,3 +38,12 @@ body {
 input[type="range"] {
   accent-color: #1db954;
 }
+
+/* Utility to hide scrollbars completely */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

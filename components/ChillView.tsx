@@ -663,6 +663,204 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
   const activeTheme =
     BACKGROUND_THEMES.find((t) => t.id === currentTheme) || BACKGROUND_THEMES[0];
 
+  // Helper to render the Rotating Vinyl Album Disk (Always tied to diskRef for 360° Halo Waveform)
+  const renderVinylDisk = (sizeClass = "w-48 h-48 sm:w-56 sm:h-56 md:w-60 md:h-60") => (
+    <div
+      className="flex flex-col items-center justify-center pointer-events-auto transition-all duration-500 flex-shrink-0"
+      style={{
+        transform: `scale(${bassScaleRef.current})`,
+      }}
+    >
+      <div
+        ref={diskRef}
+        className={`${sizeClass} rounded-full overflow-hidden border-4 border-black/85 shadow-[0_0_40px_rgba(249,115,22,0.35)] relative bg-black flex items-center justify-center group select-none flex-shrink-0 transition-all duration-300`}
+      >
+        {/* Smoothly Rotating Vinyl Image (100% Continuous, Non-Stuttering) */}
+        <div
+          className="w-full h-full rounded-full overflow-hidden animate-vinyl-continuous flex items-center justify-center"
+          style={{
+            animationPlayState: isPlaying ? "running" : "paused",
+          }}
+        >
+          {currentSong?.image_url ? (
+            <img
+              src={currentSong.image_url}
+              alt={currentSong.title}
+              className="w-full h-full object-cover scale-[1.4] select-none pointer-events-none"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-tr from-neutral-900 to-neutral-800 flex items-center justify-center">
+              <Music className="w-16 h-16 text-amber-400/80" />
+            </div>
+          )}
+        </div>
+
+        {/* Subtle Vinyl Grooves Radial Highlight */}
+        <div className="absolute inset-0 rounded-full pointer-events-none bg-[radial-gradient(circle_at_50%_50%,transparent_35%,rgba(0,0,0,0.35)_60%,rgba(255,255,255,0.08)_75%,transparent_90%)]" />
+
+        {/* Inner Center Hole Vinyl Ring */}
+        <div className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-black/85 border-2 border-white/40 backdrop-blur-sm pointer-events-none shadow-inner" />
+      </div>
+    </div>
+  );
+
+  // Helper to render the Frosted Glass 3-Row Mini-Player Bar
+  const renderMiniPlayer = (extraClass = "") => (
+    <div
+      className={`bg-black/60 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3.5 sm:p-4 shadow-[0_16px_40px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col gap-2.5 pointer-events-auto animate-fadeIn overflow-hidden transition-all duration-300 ${extraClass}`}
+    >
+      {/* Row 1: Artwork Thumbnail, Title, Artist, and Favorite/Playlist Buttons */}
+      <div className="flex items-center gap-3 relative z-10">
+        <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 border border-white/20 flex-shrink-0 shadow-md">
+          {currentSong?.image_url ? (
+            <img
+              src={currentSong.image_url}
+              alt={currentSong.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <Music className="w-5 h-5" />
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-extrabold text-white truncate hover:underline cursor-pointer drop-shadow-sm">
+            {currentSong?.title || "Chưa phát bài hát nào"}
+          </p>
+          <p
+            onClick={() => currentSong?.artist && onOpenArtist?.(currentSong.artist)}
+            className="text-[11px] text-gray-300 truncate hover:text-white hover:underline cursor-pointer mt-0.5"
+          >
+            {currentSong?.artist || "TrackFlow"}
+          </p>
+        </div>
+
+        {/* Actions: Lyrics toggle, Add to Playlist and Heart Favorite */}
+        {currentSong && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={() =>
+                handleSelectLyricsMode(
+                  lyricsMode === "off" ? "subtitle" : lyricsMode === "subtitle" ? "panel" : "off"
+                )
+              }
+              className={`p-1.5 rounded-full transition backdrop-blur-sm ${
+                lyricsMode !== "off"
+                  ? "text-amber-400 bg-white/15"
+                  : "text-gray-300 hover:text-white hover:bg-white/15"
+              }`}
+              title={`Lời bài hát: ${
+                lyricsMode === "subtitle"
+                  ? "Đang bật Phụ đề (Nhấn để mở Bảng lời)"
+                  : lyricsMode === "panel"
+                  ? "Đang mở Bảng lời (Nhấn để tắt)"
+                  : "Đang tắt (Nhấn để bật Phụ đề)"
+              }`}
+            >
+              <Mic2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => openAddToPlaylist(currentSong)}
+              className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
+              title="Thêm vào danh sách phát"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => toggleFavorite(currentSong)}
+              className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
+              title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+            >
+              <Heart
+                className={`w-4 h-4 transition ${
+                  favorited ? "fill-[#1db954] text-[#1db954]" : ""
+                }`}
+              />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Row 2: Scrubber Progress Bar */}
+      <div className="flex items-center gap-2 text-[10px] text-gray-300 font-mono relative z-10">
+        <span className="w-8 text-right drop-shadow">{formatTime(currentTime)}</span>
+        <div className="relative flex-1 flex items-center cursor-pointer">
+          <input
+            type="range"
+            min="0"
+            max={duration || 100}
+            value={currentTime}
+            onChange={(e) => seekTo(Number(e.target.value))}
+            className="w-full h-1 bg-white/20 hover:bg-white/30 rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none transition"
+          />
+        </div>
+        <span className="w-8 drop-shadow">{formatTime(duration)}</span>
+      </div>
+
+      {/* Row 3: Playback Controls & Volume */}
+      <div className="flex items-center justify-between pt-1 border-t border-white/10 relative z-10">
+        {/* Left: Loop button */}
+        <button
+          onClick={toggleLoop}
+          className={`p-1.5 rounded-full transition ${
+            isLooping ? "text-[#1db954]" : "text-gray-300 hover:text-white hover:bg-white/10"
+          }`}
+          title="Lặp lại"
+        >
+          <Repeat className="w-3.5 h-3.5" />
+        </button>
+
+        {/* Center: Prev, Play/Pause, Next */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={prevSong}
+            className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
+            title="Bài trước"
+          >
+            <SkipBack className="w-4 h-4 fill-current" />
+          </button>
+
+          <button
+            onClick={togglePlay}
+            className="w-9 h-9 rounded-full bg-white hover:scale-105 active:scale-95 flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.45)] transition"
+            title={isPlaying ? "Tạm dừng" : "Phát"}
+          >
+            {isPlaying ? (
+              <Pause className="w-4 h-4 fill-black" />
+            ) : (
+              <Play className="w-4 h-4 fill-black ml-0.5" />
+            )}
+          </button>
+
+          <button
+            onClick={nextSong}
+            className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
+            title="Bài tiếp theo"
+          >
+            <SkipForward className="w-4 h-4 fill-current" />
+          </button>
+        </div>
+
+        {/* Right: Mute toggle */}
+        <button
+          onClick={toggleMute}
+          className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition"
+          title={isMuted ? "Bật âm thanh" : "Tắt tiếng"}
+        >
+          {isMuted || volume === 0 ? (
+            <VolumeX className="w-3.5 h-3.5" />
+          ) : volume < 0.5 ? (
+            <Volume1 className="w-3.5 h-3.5" />
+          ) : (
+            <Volume2 className="w-3.5 h-3.5" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-[60] bg-[#0a070e] text-white flex flex-col overflow-hidden select-none animate-fadeIn">
       {/* CSS Pure Keyframe for Butter-Smooth GPU Vinyl Rotation */}
@@ -998,445 +1196,263 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         />
 
         {/* Dynamic Stage Layout: Centered or Split when Lyrics Panel is open */}
-        <div
-          className={`relative z-20 w-full h-full flex ${
-            lyricsMode === "panel"
-              ? "flex-col md:flex-row items-center justify-center md:justify-around gap-6"
-              : "flex-col items-center justify-center"
-          }`}
-        >
-          {/* Left Column (or Center when panel closed): Disk */}
-          <div
-            className={`flex flex-col items-center justify-center pointer-events-auto transition-all duration-500 flex-shrink-0 ${
-              lyricsMode === "panel"
-                ? "translate-y-[-10px] md:translate-y-[-18px]"
-                : "translate-y-[-28px]"
-            }`}
-            style={{
-              transform: `scale(${bassScaleRef.current})`,
-            }}
-          >
-            {/* Inner Album Art Circle with Outer Ring Accent */}
-            <div
-              ref={diskRef}
-              className={`${
-                lyricsMode === "panel"
-                  ? "w-40 h-40 sm:w-48 sm:h-48 md:w-52 md:h-52"
-                  : "w-44 h-44 sm:w-56 sm:h-56 md:w-60 md:h-60"
-              } rounded-full overflow-hidden border-4 border-black/85 shadow-[0_0_40px_rgba(249,115,22,0.35)] relative bg-black flex items-center justify-center group select-none flex-shrink-0 transition-all duration-300`}
-            >
-              {/* Smoothly Rotating Vinyl Image (100% Continuous, Non-Stuttering) */}
-              <div
-                className="w-full h-full rounded-full overflow-hidden animate-vinyl-continuous flex items-center justify-center"
-                style={{
-                  animationPlayState: isPlaying ? "running" : "paused",
-                }}
-              >
-                {currentSong?.image_url ? (
-                  <img
-                    src={currentSong.image_url}
-                    alt={currentSong.title}
-                    className="w-full h-full object-cover scale-[1.4] select-none pointer-events-none"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-tr from-neutral-900 to-neutral-800 flex items-center justify-center">
-                    <Music className="w-16 h-16 text-amber-400/80" />
-                  </div>
-                )}
+        {lyricsMode === "panel" ? (
+          <div className="relative z-20 w-full h-full flex flex-col md:flex-row items-center justify-center md:justify-around gap-6">
+            {/* Left Column: Vinyl Disk + Mini-Player (Vertically stacked & perfectly centered together) */}
+            <div className="w-full md:w-1/2 lg:w-5/12 h-full flex flex-col items-center justify-center gap-5 sm:gap-6 relative z-20">
+              {renderVinylDisk("w-40 h-40 sm:w-48 sm:h-48 md:w-52 md:h-52 lg:w-56 lg:h-56")}
+              <div className="w-[92%] max-w-sm sm:max-w-md">
+                {renderMiniPlayer("w-full")}
               </div>
+            </div>
 
-              {/* Subtle Vinyl Grooves Radial Highlight */}
-              <div className="absolute inset-0 rounded-full pointer-events-none bg-[radial-gradient(circle_at_50%_50%,transparent_35%,rgba(0,0,0,0.35)_60%,rgba(255,255,255,0.08)_75%,transparent_90%)]" />
+            {/* Right Column: Apple Music Style Full Lyrics Stream */}
+            <div className="fixed inset-x-3 bottom-3 top-16 z-40 md:relative md:inset-auto md:w-1/2 lg:w-7/12 md:h-full flex flex-col items-center justify-center p-2 sm:p-4 lg:p-6">
+              <div className="w-full max-w-xl h-full md:h-[76vh] md:max-h-[660px] rounded-3xl bg-black/60 md:bg-black/45 border border-white/15 backdrop-blur-2xl p-4 sm:p-6 lg:p-7 shadow-[0_24px_60px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col relative animate-fadeIn overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between pb-3.5 border-b border-white/10 flex-shrink-0 relative z-10">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-amber-400 shadow-sm backdrop-blur-sm">
+                      <Mic2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-wide">
+                        Lời bài hát đồng bộ
+                      </h3>
+                      <p className="text-[10px] text-gray-400 font-medium">
+                        {isSyncedLyrics ? "Khớp chuẩn từng nhịp nhạc" : "Văn bản lời bài hát"}
+                      </p>
+                    </div>
+                  </div>
 
-              {/* Inner Center Hole Vinyl Ring */}
-              <div className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-black/85 border-2 border-white/40 backdrop-blur-sm pointer-events-none shadow-inner" />
+                  <div className="flex items-center gap-2">
+                    {/* Lyrics Offset tuning */}
+                    {isSyncedLyrics && (
+                      <div className="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 px-2.5 py-1 rounded-full text-[11px] font-mono text-gray-200 transition backdrop-blur-sm border border-white/10">
+                        <button
+                          onClick={() => setLyricsOffset((prev) => prev - 0.5)}
+                          className="hover:text-amber-300 px-1 font-bold transition active:scale-90"
+                          title="Chậm lại 0.5s"
+                        >
+                          -0.5s
+                        </button>
+                        <span className="text-white/60">|</span>
+                        <span className="font-semibold">{lyricsOffset > 0 ? `+${lyricsOffset}s` : `${lyricsOffset}s`}</span>
+                        <span className="text-white/60">|</span>
+                        <button
+                          onClick={() => setLyricsOffset((prev) => prev + 0.5)}
+                          className="hover:text-amber-300 px-1 font-bold transition active:scale-90"
+                          title="Nhanh hơn 0.5s"
+                        >
+                          +0.5s
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Switch to Subtitle mode button */}
+                    <button
+                      onClick={() => handleSelectLyricsMode("subtitle")}
+                      className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition shadow-sm active:scale-95"
+                      title="Thu nhỏ thành phụ đề dạ quang"
+                    >
+                      <Minimize className="w-4 h-4" />
+                    </button>
+
+                    {/* Close Lyrics button */}
+                    <button
+                      onClick={() => handleSelectLyricsMode("off")}
+                      className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition shadow-sm active:scale-95"
+                      title="Tắt lời bài hát"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Scrolling Masked Lyrics Stream */}
+                <div
+                  ref={panelScrollContainerRef}
+                  onScroll={handlePanelScroll}
+                  className="flex-1 overflow-y-auto no-scrollbar pt-28 pb-36 select-none relative z-10 space-y-6 sm:space-y-8"
+                  style={{
+                    maskImage: "linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)",
+                    WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)",
+                  }}
+                >
+                  {loadingLyrics ? (
+                    <div className="h-full min-h-[240px] flex flex-col items-center justify-center gap-3 text-gray-400">
+                      <span className="w-3.5 h-3.5 rounded-full bg-amber-400 animate-ping" />
+                      <p className="text-xs sm:text-sm font-semibold text-gray-300">Đang tải lời bài hát từ hệ thống...</p>
+                    </div>
+                  ) : lyrics.length === 0 ? (
+                    <div className="h-full min-h-[240px] flex flex-col items-center justify-center gap-2.5 text-center text-gray-400 px-4">
+                      <Music className="w-9 h-9 text-amber-400/70 mb-1" />
+                      <p className="text-sm sm:text-base font-bold text-gray-200">
+                        {lyricsMessage || "Hiện bài hát này chưa có lời đồng bộ"}
+                      </p>
+                      <p className="text-xs text-gray-400">Hãy thả lỏng và tận hưởng giai điệu tuyệt vời này nhé</p>
+                    </div>
+                  ) : (
+                    lyrics.map((line, idx) => {
+                      const isActive = idx === activeIndex;
+                      const isPast = activeIndex !== -1 && idx < activeIndex;
+
+                      return (
+                        <div
+                          key={idx}
+                          ref={isActive ? panelActiveLineRef : null}
+                          onClick={() => {
+                            if (isSyncedLyrics && typeof line.start === "number") {
+                              seekTo(line.start);
+                            }
+                          }}
+                          className={`transition-all duration-300 cursor-pointer ${
+                            isActive
+                              ? "scale-[1.04] origin-left"
+                              : "hover:scale-[1.02] origin-left"
+                          }`}
+                        >
+                          <p
+                            className={`font-sans tracking-tight leading-snug transition-all duration-300 ${
+                              isActive
+                                ? "text-2xl sm:text-3xl lg:text-4xl font-black text-white drop-shadow-md"
+                                : isPast
+                                ? "text-lg sm:text-xl lg:text-2xl font-bold text-white/40 hover:text-white/80"
+                                : "text-lg sm:text-xl lg:text-2xl font-bold text-white/25 hover:text-white/70"
+                            }`}
+                            style={
+                              isActive
+                                ? {
+                                    textShadow: `0 0 24px ${activeWaveColor.edgeColors.top}`,
+                                  }
+                                : undefined
+                            }
+                          >
+                            {line.text}
+                          </p>
+
+                          {/* Dynamic Karaoke Sentence Progress Bar */}
+                          {isActive && isSyncedLyrics && (
+                            <div className="h-1.5 w-full max-w-md bg-white/15 rounded-full overflow-hidden mt-3 shadow-inner">
+                              <div
+                                className="h-full rounded-full transition-all duration-100 ease-linear shadow-sm"
+                                style={{
+                                  width: `${progressRatio * 100}%`,
+                                  background: activeWaveColor.gradientPreview,
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Right Column: Full Synced Lyrics Panel (Shown when lyricsMode === 'panel') */}
-          {lyricsMode === "panel" && (
-            <div className="w-full md:w-[420px] lg:w-[480px] xl:w-[540px] h-[52vh] md:h-[72vh] max-h-[620px] rounded-3xl bg-black/60 border border-white/20 backdrop-blur-2xl p-4 sm:p-5 shadow-[0_24px_60px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col pointer-events-auto animate-fadeIn relative z-30 flex-shrink-0">
-              {/* Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 flex-shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-amber-400">
-                    <Mic2 className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs sm:text-sm font-extrabold text-white">Lời bài hát đồng bộ</h3>
-                    <p className="text-[10px] text-gray-400">
-                      {isSyncedLyrics ? "Khớp chuẩn từng nhịp nhạc" : "Văn bản lời bài hát"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  {/* Lyrics Offset tuning */}
-                  {isSyncedLyrics && (
-                    <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full text-[10px] font-mono text-gray-300">
-                      <button
-                        onClick={() => setLyricsOffset((prev) => prev - 0.5)}
-                        className="hover:text-white px-1 font-bold"
-                        title="Chậm lại 0.5s"
-                      >
-                        -0.5s
-                      </button>
-                      <span>{lyricsOffset > 0 ? `+${lyricsOffset}s` : `${lyricsOffset}s`}</span>
-                      <button
-                        onClick={() => setLyricsOffset((prev) => prev + 0.5)}
-                        className="hover:text-white px-1 font-bold"
-                        title="Nhanh hơn 0.5s"
-                      >
-                        +0.5s
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Switch to Subtitle mode button */}
-                  <button
-                    onClick={() => handleSelectLyricsMode("subtitle")}
-                    className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition"
-                    title="Thu nhỏ thành phụ đề dạ quang"
-                  >
-                    <Minimize className="w-3.5 h-3.5" />
-                  </button>
-
-                  {/* Close Lyrics button */}
-                  <button
-                    onClick={() => handleSelectLyricsMode("off")}
-                    className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition"
-                    title="Tắt lời bài hát"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Scrolling Lyrics Stream */}
-              <div
-                ref={panelScrollContainerRef}
-                onScroll={handlePanelScroll}
-                className="flex-1 overflow-y-auto py-6 space-y-6 sm:space-y-7 pr-2 scrollbar-thin scrollbar-thumb-white/20 select-none"
-              >
-                {loadingLyrics ? (
-                  <div className="h-full flex flex-col items-center justify-center gap-3 text-gray-400">
-                    <span className="w-3 h-3 rounded-full bg-amber-400 animate-ping" />
-                    <p className="text-xs font-semibold">Đang tải lời bài hát từ hệ thống...</p>
-                  </div>
-                ) : lyrics.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center gap-2 text-center text-gray-400 px-4">
-                    <Music className="w-8 h-8 text-amber-400/60 mb-2" />
-                    <p className="text-xs sm:text-sm font-bold text-gray-300">
-                      {lyricsMessage || "Hiện bài hát này chưa có lời đồng bộ"}
-                    </p>
-                    <p className="text-[11px] text-gray-500">Hãy thả lỏng và tận hưởng giai điệu tuyệt vời này nhé</p>
-                  </div>
-                ) : (
-                  lyrics.map((line, idx) => {
-                    const isActive = idx === activeIndex;
-                    const isPast = activeIndex !== -1 && idx < activeIndex;
-
-                    return (
-                      <div
-                        key={idx}
-                        ref={isActive ? panelActiveLineRef : null}
-                        onClick={() => {
-                          if (isSyncedLyrics && typeof line.start === "number") {
-                            seekTo(line.start);
-                          }
-                        }}
-                        className={`transition-all duration-300 cursor-pointer ${
-                          isActive
-                            ? "scale-105 origin-left"
-                            : "hover:scale-[1.02] origin-left"
-                        }`}
-                      >
-                        <p
-                          className={`font-sans tracking-tight transition-all duration-300 ${
-                            isActive
-                              ? "text-xl sm:text-2xl font-black text-white"
-                              : isPast
-                              ? "text-sm sm:text-base font-bold text-white/35 hover:text-white/70"
-                              : "text-sm sm:text-base font-bold text-white/25 hover:text-white/60"
-                          }`}
-                          style={
-                            isActive
-                              ? {
-                                  textShadow: `0 0 20px ${activeWaveColor.edgeColors.top}`,
-                                }
-                              : undefined
-                          }
-                        >
-                          {line.text}
-                        </p>
-
-                        {/* Sentence progress bar under active line */}
-                        {isActive && isSyncedLyrics && (
-                          <div className="h-1 w-full bg-white/15 rounded-full overflow-hidden mt-2 shadow-inner">
-                            <div
-                              className="h-full rounded-full transition-all duration-100 ease-linear"
-                              style={{
-                                width: `${progressRatio * 100}%`,
-                                background: activeWaveColor.gradientPreview,
-                              }}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+        ) : (
+          /* Single Stage Layout: Centered Disk + Subtitle (if enabled) + Bottom Mini-Player */
+          <div className="relative z-20 w-full h-full flex flex-col items-center justify-center">
+            {/* Centered Vinyl Disk with subtle vertical lift */}
+            <div className="translate-y-[-24px] sm:translate-y-[-32px]">
+              {renderVinylDisk("w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64")}
             </div>
-          )}
-        </div>
 
-        {/* Floating Karaoke Subtitle Pill (Shown when lyricsMode === 'subtitle') */}
-        {lyricsMode === "subtitle" && (
-          <div
-            onClick={() => handleSelectLyricsMode("panel")}
-            className="absolute bottom-[140px] sm:bottom-[150px] z-30 w-[92%] max-w-lg cursor-pointer group pointer-events-auto transition-all duration-300 hover:scale-[1.02] left-1/2 -translate-x-1/2"
-            title="Nhấn để mở toàn bộ bảng lời bài hát"
-          >
-            <div className="relative overflow-hidden rounded-2xl bg-black/60 border border-white/15 backdrop-blur-2xl p-3 sm:p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.15)] flex flex-col items-center justify-center text-center">
-              {/* Subtle ambient glow behind text based on current wave theme */}
+            {/* Floating Karaoke Subtitle Pill (Shown when lyricsMode === 'subtitle') */}
+            {lyricsMode === "subtitle" && (
               <div
-                className="absolute inset-0 pointer-events-none opacity-20 blur-xl transition-all duration-500"
-                style={{ background: activeWaveColor.gradientPreview }}
-              />
+                onClick={() => handleSelectLyricsMode("panel")}
+                className="absolute bottom-[165px] sm:bottom-[180px] z-30 w-[92%] max-w-xl cursor-pointer group pointer-events-auto transition-all duration-300 hover:scale-[1.02] left-1/2 -translate-x-1/2"
+                title="Nhấn để mở toàn bộ bảng lời bài hát"
+              >
+                <div className="relative rounded-3xl bg-black/65 border border-white/20 backdrop-blur-2xl py-3.5 sm:py-4 px-6 sm:px-8 shadow-[0_20px_50px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col items-center justify-center text-center">
+                  {/* Subtle ambient glow behind text based on current wave theme */}
+                  <div
+                    className="absolute inset-0 pointer-events-none opacity-25 blur-xl transition-all duration-500 rounded-3xl"
+                    style={{ background: activeWaveColor.gradientPreview }}
+                  />
 
-              {loadingLyrics ? (
-                <div className="flex items-center gap-2 text-xs font-semibold text-gray-300 py-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                  <span>Đang tải lời bài hát...</span>
-                </div>
-              ) : isIntro && nextLine ? (
-                <div className="relative z-10 w-full flex flex-col items-center animate-fadeIn py-0.5">
-                  <div className="flex items-center gap-2 text-amber-300 text-xs sm:text-sm font-bold">
-                    <Music className="w-3.5 h-3.5 animate-pulse" />
-                    <span>Đoạn dạo đầu • Chuẩn bị {introCountdown > 0 ? `(${introCountdown}s)` : ""}</span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-white/80 font-semibold truncate max-w-[90%] mt-1 italic">
-                    Sắp hát: &ldquo;{nextLine.text}&rdquo;
-                  </p>
-                </div>
-              ) : isInstrumentalBreak && nextLine ? (
-                <div className="relative z-10 w-full flex flex-col items-center animate-fadeIn py-0.5">
-                  <div className="flex items-center gap-2 text-amber-300 text-xs sm:text-sm font-bold">
-                    <Music className="w-3.5 h-3.5 animate-pulse" />
-                    <span>Khúc dạo nhạc</span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-white/80 font-semibold truncate max-w-[90%] mt-1 italic">
-                    Sắp tới: &ldquo;{nextLine.text}&rdquo;
-                  </p>
-                </div>
-              ) : currentLine ? (
-                <div className="relative z-10 w-full flex flex-col items-center">
-                  {/* Active Line with glowing typography */}
-                  <p
-                    key={currentLine.text}
-                    className="text-sm sm:text-base md:text-lg font-black text-white tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] animate-fadeIn leading-snug max-w-[95%] truncate"
-                    style={{
-                      textShadow: `0 0 16px ${activeWaveColor.edgeColors.top}`,
-                    }}
-                  >
-                    {currentLine.text}
-                  </p>
-
-                  {/* Karaoke Progress Bar across the line */}
-                  {isSyncedLyrics && (
-                    <div className="w-48 sm:w-64 h-1 bg-white/15 rounded-full overflow-hidden mt-2 shadow-inner">
-                      <div
-                        className="h-full rounded-full transition-all duration-100 ease-linear shadow-sm"
+                  {loadingLyrics ? (
+                    <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-300 py-1 relative z-10">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+                      <span>Đang tải lời bài hát...</span>
+                    </div>
+                  ) : isIntro && nextLine ? (
+                    <div className="relative z-10 w-full flex flex-col items-center animate-fadeIn py-0.5">
+                      <div className="flex items-center gap-2 text-amber-300 text-xs sm:text-sm font-bold">
+                        <Music className="w-4 h-4 animate-pulse" />
+                        <span>Đoạn dạo đầu • Chuẩn bị {introCountdown > 0 ? `(${introCountdown}s)` : ""}</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-white/80 font-semibold truncate max-w-full mt-1.5 italic">
+                        Sắp hát: &ldquo;{nextLine.text}&rdquo;
+                      </p>
+                    </div>
+                  ) : isInstrumentalBreak && nextLine ? (
+                    <div className="relative z-10 w-full flex flex-col items-center animate-fadeIn py-0.5">
+                      <div className="flex items-center gap-2 text-amber-300 text-xs sm:text-sm font-bold">
+                        <Music className="w-4 h-4 animate-pulse" />
+                        <span>Khúc dạo nhạc</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-white/80 font-semibold truncate max-w-full mt-1.5 italic">
+                        Sắp tới: &ldquo;{nextLine.text}&rdquo;
+                      </p>
+                    </div>
+                  ) : currentLine ? (
+                    <div className="relative z-10 w-full flex flex-col items-center">
+                      {/* Active Line with glowing typography */}
+                      <p
+                        key={currentLine.text}
+                        className="text-base sm:text-lg md:text-xl font-black text-white tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] animate-fadeIn leading-snug max-w-full text-center"
                         style={{
-                          width: `${progressRatio * 100}%`,
-                          background: activeWaveColor.gradientPreview,
+                          textShadow: `0 0 16px ${activeWaveColor.edgeColors.top}`,
                         }}
-                      />
+                      >
+                        {currentLine.text}
+                      </p>
+
+                      {/* Karaoke Progress Bar across the line */}
+                      {isSyncedLyrics && (
+                        <div className="w-56 sm:w-72 h-1.5 bg-white/15 rounded-full overflow-hidden my-2.5 shadow-inner">
+                          <div
+                            className="h-full rounded-full transition-all duration-100 ease-linear shadow-sm"
+                            style={{
+                              width: `${progressRatio * 100}%`,
+                              background: activeWaveColor.gradientPreview,
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Next upcoming line hint - fully visible, not clipped! */}
+                      {nextLine && (
+                        <p className="text-xs sm:text-sm text-white/70 font-semibold italic truncate max-w-full text-center block mt-0.5 group-hover:text-white transition">
+                          {nextLine.text}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-300 py-1 relative z-10">
+                      <Music className="w-4 h-4 text-amber-400/80 animate-pulse" />
+                      <span>{lyricsMessage || "Thả mình vào giai điệu chill..."}</span>
                     </div>
                   )}
 
-                  {/* Next upcoming line hint */}
-                  {nextLine && (
-                    <p className="text-[11px] sm:text-xs text-white/40 font-medium italic truncate max-w-[85%] mt-1.5 opacity-75 group-hover:opacity-100 transition">
-                      {nextLine.text}
-                    </p>
-                  )}
+                  {/* Mini hint badge in corner */}
+                  <div className="absolute top-2 right-3 text-[10px] font-bold text-white/40 group-hover:text-white/90 transition flex items-center gap-1">
+                    <span>Bảng lời</span>
+                    <ChevronRight className="w-3 h-3" />
+                  </div>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2 text-xs text-gray-400 py-0.5">
-                  <Music className="w-3.5 h-3.5 text-amber-400/80 animate-pulse" />
-                  <span>{lyricsMessage || "Thả mình vào giai điệu chill..."}</span>
-                </div>
-              )}
-
-              {/* Mini hint badge in corner */}
-              <div className="absolute top-1.5 right-2 text-[9px] font-bold text-white/30 group-hover:text-white/80 transition flex items-center gap-0.5">
-                <span>Toàn bộ</span>
-                <ChevronRight className="w-2.5 h-2.5" />
               </div>
+            )}
+
+            {/* Bottom Floating Mini-Player Bar */}
+            <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 w-[92%] max-w-md">
+              {renderMiniPlayer("w-full")}
             </div>
           </div>
         )}
-
-        {/* 5. Center Floating Mini-Player Bar (3 Rows Restored, Frosted Glass, Positioned Nicely Lower Down) */}
-        <div
-          className={`absolute bottom-3 sm:bottom-4 z-30 w-[92%] max-w-md ${
-            lyricsMode === "panel"
-              ? "left-1/2 -translate-x-1/2 md:left-12 md:translate-x-0"
-              : "left-1/2 -translate-x-1/2"
-          } bg-black/60 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3.5 sm:p-4 shadow-[0_16px_40px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col gap-2.5 pointer-events-auto animate-fadeIn overflow-hidden transition-all duration-500`}
-        >
-          {/* Row 1: Artwork Thumbnail, Title, Artist, and Favorite/Playlist Buttons */}
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 border border-white/20 flex-shrink-0 shadow-md">
-              {currentSong?.image_url ? (
-                <img
-                  src={currentSong.image_url}
-                  alt={currentSong.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <Music className="w-5 h-5" />
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-extrabold text-white truncate hover:underline cursor-pointer drop-shadow-sm">
-                {currentSong?.title || "Chưa phát bài hát nào"}
-              </p>
-              <p
-                onClick={() => currentSong?.artist && onOpenArtist?.(currentSong.artist)}
-                className="text-[11px] text-gray-300 truncate hover:text-white hover:underline cursor-pointer mt-0.5"
-              >
-                {currentSong?.artist || "TrackFlow"}
-              </p>
-            </div>
-
-            {/* Actions: Lyrics toggle, Add to Playlist and Heart Favorite */}
-            {currentSong && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={() =>
-                    handleSelectLyricsMode(
-                      lyricsMode === "off" ? "subtitle" : lyricsMode === "subtitle" ? "panel" : "off"
-                    )
-                  }
-                  className={`p-1.5 rounded-full transition backdrop-blur-sm ${
-                    lyricsMode !== "off"
-                      ? "text-amber-400 bg-white/15"
-                      : "text-gray-300 hover:text-white hover:bg-white/15"
-                  }`}
-                  title={`Lời bài hát: ${
-                    lyricsMode === "subtitle"
-                      ? "Đang bật Phụ đề (Nhấn để mở Bảng lời)"
-                      : lyricsMode === "panel"
-                      ? "Đang mở Bảng lời (Nhấn để tắt)"
-                      : "Đang tắt (Nhấn để bật Phụ đề)"
-                  }`}
-                >
-                  <Mic2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => openAddToPlaylist(currentSong)}
-                  className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
-                  title="Thêm vào danh sách phát"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => toggleFavorite(currentSong)}
-                  className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
-                  title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
-                >
-                  <Heart
-                    className={`w-4 h-4 transition ${
-                      favorited ? "fill-[#1db954] text-[#1db954]" : ""
-                    }`}
-                  />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Row 2: Scrubber Progress Bar */}
-          <div className="flex items-center gap-2 text-[10px] text-gray-300 font-mono relative z-10">
-            <span className="w-8 text-right drop-shadow">{formatTime(currentTime)}</span>
-            <div className="relative flex-1 flex items-center cursor-pointer">
-              <input
-                type="range"
-                min="0"
-                max={duration || 100}
-                value={currentTime}
-                onChange={(e) => seekTo(Number(e.target.value))}
-                className="w-full h-1 bg-white/20 hover:bg-white/30 rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none transition"
-              />
-            </div>
-            <span className="w-8 drop-shadow">{formatTime(duration)}</span>
-          </div>
-
-          {/* Row 3: Playback Controls & Volume */}
-          <div className="flex items-center justify-between pt-1 border-t border-white/10 relative z-10">
-            {/* Left: Loop button */}
-            <button
-              onClick={toggleLoop}
-              className={`p-1.5 rounded-full transition ${
-                isLooping ? "text-[#1db954]" : "text-gray-300 hover:text-white hover:bg-white/10"
-              }`}
-              title="Lặp lại"
-            >
-              <Repeat className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Center: Prev, Play/Pause, Next */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={prevSong}
-                className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
-                title="Bài trước"
-              >
-                <SkipBack className="w-4 h-4 fill-current" />
-              </button>
-
-              <button
-                onClick={togglePlay}
-                className="w-9 h-9 rounded-full bg-white hover:scale-105 active:scale-95 flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.45)] transition"
-                title={isPlaying ? "Tạm dừng" : "Phát"}
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 fill-black" />
-                ) : (
-                  <Play className="w-4 h-4 fill-black ml-0.5" />
-                )}
-              </button>
-
-              <button
-                onClick={nextSong}
-                className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
-                title="Bài tiếp theo"
-              >
-                <SkipForward className="w-4 h-4 fill-current" />
-              </button>
-            </div>
-
-            {/* Right: Mute toggle */}
-            <button
-              onClick={toggleMute}
-              className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition"
-              title={isMuted ? "Bật âm thanh" : "Tắt tiếng"}
-            >
-              {isMuted || volume === 0 ? (
-                <VolumeX className="w-3.5 h-3.5" />
-              ) : volume < 0.5 ? (
-                <Volume1 className="w-3.5 h-3.5" />
-              ) : (
-                <Volume2 className="w-3.5 h-3.5" />
-              )}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
