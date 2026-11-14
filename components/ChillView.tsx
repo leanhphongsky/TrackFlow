@@ -72,12 +72,12 @@ const BACKGROUND_THEMES = [
   },
 ];
 
-// Wave Color Presets with True Halo Spectrum Gradient & 4-Edge Reactive Glow
+// Wave Color Presets with 360° Circular Spectrum Gradient & 4-Edge Reactive Glow
 export interface WaveColorPreset {
   id: string;
   name: string;
   gradientPreview: string; // CSS gradient for preview
-  getBarColor: (t: number) => string; // t from 0 (top) to 1 (bottom)
+  getBarColor: (angleNorm: number) => string; // angleNorm from 0 (top) -> 0.25 (right) -> 0.5 (bottom) -> 0.75 (left) -> 1.0
   edgeColors: {
     top: string;
     bottom: string;
@@ -91,131 +91,141 @@ const WAVE_COLOR_PRESETS: WaveColorPreset[] = [
     id: "sunset",
     name: "Hoàng Hôn (Sunset Glow)",
     gradientPreview: "linear-gradient(135deg, #fbbf24, #f97316, #ec4899, #a855f7)",
-    getBarColor: (t: number) => {
-      // Top: Golden Yellow (45°) -> Mid: Vibrant Orange (24°) -> Hot Pink (330°) -> Bottom: Violet (275°)
-      if (t < 0.33) {
-        const f = t / 0.33;
+    getBarColor: (u: number) => {
+      // 0 (top): Golden Yellow (46°) -> 0.25 (right): Orange (24°) -> 0.5 (bottom): Hot Pink (330°) -> 0.75 (left): Violet (275°) -> 1 (top)
+      const norm = ((u % 1) + 1) % 1;
+      if (norm < 0.25) {
+        const f = norm / 0.25;
         const hue = 46 - f * 22; // 46 -> 24
         return `hsl(${hue}, 98%, ${60 - f * 2}%)`;
-      } else if (t < 0.68) {
-        const f = (t - 0.33) / 0.35;
+      } else if (norm < 0.5) {
+        const f = (norm - 0.25) / 0.25;
         const hue = (384 - f * 54) % 360; // 24 -> 330
         return `hsl(${hue}, 95%, ${58 + f * 3}%)`;
-      } else {
-        const f = (t - 0.68) / 0.32;
+      } else if (norm < 0.75) {
+        const f = (norm - 0.5) / 0.25;
         const hue = 330 - f * 55; // 330 -> 275
         return `hsl(${hue}, 92%, ${61 + f * 3}%)`;
+      } else {
+        const f = (norm - 0.75) / 0.25;
+        const hue = 275 + f * 131; // 275 -> 406 (46)
+        return `hsl(${hue % 360}, 96%, ${64 - f * 4}%)`;
       }
     },
     edgeColors: {
-      top: "rgba(251, 191, 36, 0.75)",
-      bottom: "rgba(168, 85, 247, 0.85)",
-      left: "rgba(249, 115, 22, 0.75)",
-      right: "rgba(236, 72, 153, 0.75)",
+      top: "rgba(251, 191, 36, 0.8)",
+      bottom: "rgba(168, 85, 247, 0.9)",
+      left: "rgba(249, 115, 22, 0.8)",
+      right: "rgba(236, 72, 153, 0.8)",
     },
   },
   {
     id: "rainbow",
     name: "Cầu Vồng (Neon Rainbow)",
     gradientPreview: "linear-gradient(135deg, #ef4444, #eab308, #22c55e, #06b6d4, #a855f7)",
-    getBarColor: (t: number) => {
-      const hue = (t * 360) % 360;
+    getBarColor: (u: number) => {
+      const hue = (((u % 1) + 1) % 1) * 360;
       return `hsl(${hue}, 96%, 60%)`;
     },
     edgeColors: {
-      top: "rgba(239, 68, 68, 0.75)",
-      bottom: "rgba(168, 85, 247, 0.8)",
-      left: "rgba(234, 179, 8, 0.75)",
-      right: "rgba(6, 182, 212, 0.75)",
+      top: "rgba(239, 68, 68, 0.8)",
+      bottom: "rgba(168, 85, 247, 0.85)",
+      left: "rgba(234, 179, 8, 0.8)",
+      right: "rgba(6, 182, 212, 0.8)",
     },
   },
   {
     id: "cyberpunk",
     name: "Cyberpunk (Cyan & Hồng)",
     gradientPreview: "linear-gradient(135deg, #06b6d4, #ec4899, #8b5cf6)",
-    getBarColor: (t: number) => {
-      if (t < 0.5) {
-        const f = t / 0.5;
+    getBarColor: (u: number) => {
+      const norm = ((u % 1) + 1) % 1;
+      if (norm < 0.5) {
+        const f = norm / 0.5;
         const hue = 185 + f * 140; // 185 (cyan) -> 325 (pink)
         return `hsl(${hue}, 96%, 60%)`;
       } else {
-        const f = (t - 0.5) / 0.5;
-        const hue = 325 - f * 60; // 325 (pink) -> 265 (purple)
-        return `hsl(${hue}, 95%, 65%)`;
+        const f = (norm - 0.5) / 0.5;
+        const hue = 325 - f * 140; // 325 (pink) -> 185 (cyan)
+        return `hsl(${hue}, 95%, 62%)`;
       }
     },
     edgeColors: {
-      top: "rgba(6, 182, 212, 0.75)",
-      bottom: "rgba(139, 92, 246, 0.85)",
-      left: "rgba(236, 72, 153, 0.8)",
-      right: "rgba(6, 182, 212, 0.8)",
+      top: "rgba(6, 182, 212, 0.8)",
+      bottom: "rgba(139, 92, 246, 0.9)",
+      left: "rgba(236, 72, 153, 0.85)",
+      right: "rgba(6, 182, 212, 0.85)",
     },
   },
   {
     id: "spotify-emerald",
     name: "Spotify Emerald (Xanh Lục)",
     gradientPreview: "linear-gradient(135deg, #1db954, #34d399, #10b981, #065f46)",
-    getBarColor: (t: number) => {
-      const hue = 138 + t * 25; // 138 (spotify green) -> 163 (teal/emerald)
-      return `hsl(${hue}, 88%, ${55 - t * 8}%)`;
+    getBarColor: (u: number) => {
+      const norm = ((u % 1) + 1) % 1;
+      const hue = 138 + Math.sin(norm * Math.PI * 2) * 20; // 138 (spotify green) <-> 158 (teal)
+      return `hsl(${hue}, 90%, 54%)`;
     },
     edgeColors: {
-      top: "rgba(29, 185, 84, 0.8)",
-      bottom: "rgba(5, 150, 105, 0.85)",
-      left: "rgba(52, 211, 153, 0.75)",
-      right: "rgba(29, 185, 84, 0.75)",
+      top: "rgba(29, 185, 84, 0.85)",
+      bottom: "rgba(5, 150, 105, 0.9)",
+      left: "rgba(52, 211, 153, 0.8)",
+      right: "rgba(29, 185, 84, 0.8)",
     },
   },
   {
     id: "fire-ice",
     name: "Lửa & Băng (Fire & Ice)",
     gradientPreview: "linear-gradient(135deg, #38bdf8, #2563eb, #f97316, #ef4444)",
-    getBarColor: (t: number) => {
-      if (t < 0.5) {
-        const f = t / 0.5;
-        const hue = 196 + f * 20; // Ice Blue
+    getBarColor: (u: number) => {
+      const norm = ((u % 1) + 1) % 1;
+      if (norm < 0.5) {
+        const f = norm / 0.5;
+        const hue = 196 + f * 24; // Ice Blue
         return `hsl(${hue}, 95%, 62%)`;
       } else {
-        const f = (t - 0.5) / 0.5;
+        const f = (norm - 0.5) / 0.5;
         const hue = 22 - f * 24; // 22 (orange) -> 358 (crimson)
         return `hsl(${(hue + 360) % 360}, 96%, 58%)`;
       }
     },
     edgeColors: {
-      top: "rgba(56, 189, 248, 0.8)",
-      bottom: "rgba(239, 68, 68, 0.85)",
-      left: "rgba(56, 189, 248, 0.75)",
-      right: "rgba(249, 115, 22, 0.75)",
+      top: "rgba(56, 189, 248, 0.85)",
+      bottom: "rgba(239, 68, 68, 0.9)",
+      left: "rgba(56, 189, 248, 0.8)",
+      right: "rgba(249, 115, 22, 0.8)",
     },
   },
   {
     id: "luxury-gold",
     name: "Vàng Hoàng Gia (Luxury Gold)",
     gradientPreview: "linear-gradient(135deg, #fef08a, #eab308, #d97706, #78350f)",
-    getBarColor: (t: number) => {
-      const hue = 48 - t * 16; // 48 (champagne) -> 32 (bronze)
-      return `hsl(${hue}, 98%, ${65 - t * 16}%)`;
+    getBarColor: (u: number) => {
+      const norm = ((u % 1) + 1) % 1;
+      const hue = 46 + Math.sin(norm * Math.PI * 2) * 12; // 46 <-> 34
+      return `hsl(${hue}, 98%, 60%)`;
     },
     edgeColors: {
-      top: "rgba(254, 240, 138, 0.75)",
-      bottom: "rgba(217, 119, 6, 0.85)",
-      left: "rgba(234, 179, 8, 0.8)",
-      right: "rgba(245, 158, 11, 0.8)",
+      top: "rgba(254, 240, 138, 0.8)",
+      bottom: "rgba(217, 119, 6, 0.9)",
+      left: "rgba(234, 179, 8, 0.85)",
+      right: "rgba(245, 158, 11, 0.85)",
     },
   },
   {
     id: "electric-violet",
     name: "Tím Điện Tử (Electric Violet)",
     gradientPreview: "linear-gradient(135deg, #c084fc, #a855f7, #7c3aed, #4f46e5)",
-    getBarColor: (t: number) => {
-      const hue = 282 - t * 32; // 282 (lavender) -> 250 (indigo)
-      return `hsl(${hue}, 94%, ${68 - t * 10}%)`;
+    getBarColor: (u: number) => {
+      const norm = ((u % 1) + 1) % 1;
+      const hue = 275 + Math.sin(norm * Math.PI * 2) * 25; // 250 <-> 300
+      return `hsl(${hue}, 95%, 65%)`;
     },
     edgeColors: {
-      top: "rgba(192, 132, 252, 0.8)",
-      bottom: "rgba(79, 70, 229, 0.85)",
-      left: "rgba(168, 85, 247, 0.8)",
-      right: "rgba(124, 58, 237, 0.8)",
+      top: "rgba(192, 132, 252, 0.85)",
+      bottom: "rgba(79, 70, 229, 0.9)",
+      left: "rgba(168, 85, 247, 0.85)",
+      right: "rgba(124, 58, 237, 0.85)",
     },
   },
   {
@@ -224,10 +234,10 @@ const WAVE_COLOR_PRESETS: WaveColorPreset[] = [
     gradientPreview: "linear-gradient(135deg, #ffffff, #e2e8f0, #94a3b8)",
     getBarColor: () => "hsl(0, 0%, 98%)",
     edgeColors: {
-      top: "rgba(255, 255, 255, 0.65)",
-      bottom: "rgba(255, 255, 255, 0.75)",
-      left: "rgba(255, 255, 255, 0.65)",
-      right: "rgba(255, 255, 255, 0.65)",
+      top: "rgba(255, 255, 255, 0.7)",
+      bottom: "rgba(255, 255, 255, 0.8)",
+      left: "rgba(255, 255, 255, 0.7)",
+      right: "rgba(255, 255, 255, 0.7)",
     },
   },
 ];
@@ -262,6 +272,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
   const [wallClock, setWallClock] = useState("");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const diskRef = useRef<HTMLDivElement | null>(null);
   const animFrameIdRef = useRef<number | null>(null);
   const bassScaleRef = useRef<number>(1);
   const edgeGlowEnergyRef = useRef<number>(0);
@@ -272,10 +283,9 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
   const leftEdgeRef = useRef<HTMLDivElement | null>(null);
   const rightEdgeRef = useRef<HTMLDivElement | null>(null);
 
-  // 60 Symmetrical Frequency Bands for the 120-Bar Halo Waveform
-  const numHalfBands = 60;
-  const numTotalBars = numHalfBands * 2; // 120 radial bars
-  const barHeightsRef = useRef<number[]>(new Array(numHalfBands).fill(4));
+  // 128 Independent, Non-Symmetric Radial Frequency Bands for Full 360° Halo Waveform
+  const numTotalBars = 128;
+  const barHeightsRef = useRef<number[]>(new Array(numTotalBars).fill(6));
 
   const favorited = currentSong ? isFavorite(currentSong) : false;
 
@@ -382,42 +392,47 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
       const effectiveVol = isMuted ? 0 : volume;
       const now = performance.now() / 1000;
 
-      // 1. SIMULATE AUTHENTIC MULTI-BAND AUDIO SPECTRUM (BASS, MIDS, TREBLE)
-      // Tempo ~126 BPM -> beat period ~0.476s
-      const beatFreq = 2.1;
+      // 1. SIMULATE RICH MULTI-BAND AUDIO SPECTRUM (BASS, LOW-MIDS, VOCAL, HIGHS)
+      const beatFreq = 2.15; // ~129 BPM
       const kickCycle = (now * beatFreq) % 1;
-      const kickPulse = Math.pow(Math.max(0, 1 - kickCycle * 2.8), 3); // Snappy punch
+      const kickPulse = Math.pow(Math.max(0, 1 - kickCycle * 2.6), 3.2); // Snappy bass punch
       const subDrop = Math.pow(Math.max(0, Math.sin(now * Math.PI * 1.05)), 4);
-      const bassEnergy = (kickPulse * 0.85 + subDrop * 0.35) * effectiveVol * waveSensitivity;
+      const bassEnergy = (kickPulse * 0.9 + subDrop * 0.4) * effectiveVol * waveSensitivity;
 
       // Snare hit on off-beat
       const snareCycle = (now * beatFreq + 0.5) % 1;
-      const snarePulse = Math.pow(Math.max(0, 1 - snareCycle * 3.8), 3);
+      const snarePulse = Math.pow(Math.max(0, 1 - snareCycle * 3.5), 3);
       const snareEnergy = snarePulse * effectiveVol * waveSensitivity;
 
-      // Hi-hats 16th ticks
-      const hatPulse = Math.pow(Math.max(0, Math.sin(now * Math.PI * 8.4)), 3.5);
+      // Hi-hats & 16th ticks
+      const hatPulse = Math.pow(Math.max(0, Math.sin(now * Math.PI * 8.6)), 3.5);
+
+      // Vocal & Melody modulation
+      const vocalMod =
+        (Math.sin(now * 3.4) * 0.35 + Math.sin(now * 6.8 + 0.5) * 0.25 + 0.55) *
+        effectiveVol *
+        waveSensitivity;
 
       // Smooth bass scale for center disk container
-      const targetScale = 1 + bassEnergy * 0.055;
+      const targetScale = 1 + bassEnergy * 0.05;
       bassScaleRef.current += (targetScale - bassScaleRef.current) * 0.25;
 
-      // 2. UPDATE 4 SCREEN EDGES GLOW (GIẬT THEO NHỊP NHẠC)
+      // 2. UPDATE 4 SCREEN EDGES GLOW (GIẬT MẠNH THEO NHỊP BASS 60FPS)
       let targetEdgeGlow = 0;
       if (isPlaying && effectiveVol > 0) {
-        targetEdgeGlow = Math.min(1, bassEnergy * 1.35 + snareEnergy * 0.45);
+        targetEdgeGlow = Math.min(1, bassEnergy * 1.45 + snareEnergy * 0.45);
       }
 
       if (targetEdgeGlow > edgeGlowEnergyRef.current) {
-        edgeGlowEnergyRef.current += (targetEdgeGlow - edgeGlowEnergyRef.current) * 0.75; // Snappy flash
+        edgeGlowEnergyRef.current += (targetEdgeGlow - edgeGlowEnergyRef.current) * 0.82; // Snappy flash
       } else {
-        edgeGlowEnergyRef.current -= (edgeGlowEnergyRef.current - targetEdgeGlow) * 0.12; // Smooth decay
+        edgeGlowEnergyRef.current -= (edgeGlowEnergyRef.current - targetEdgeGlow) * 0.12; // Smooth fade
       }
 
       const glowVal = edgeGlowEnergyRef.current;
-      const edgeOpacity = isPlaying ? (0.2 + glowVal * 0.78) : 0.18;
-      const scaleY = 1 + glowVal * 0.35;
-      const scaleX = 1 + glowVal * 0.35;
+      const edgeOpacity = isPlaying ? (0.22 + glowVal * 0.78) : 0.18;
+      const scaleY = 1 + glowVal * 0.4;
+      const scaleX = 1 + glowVal * 0.4;
 
       if (topEdgeRef.current) {
         topEdgeRef.current.style.opacity = edgeOpacity.toFixed(3);
@@ -436,126 +451,105 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         rightEdgeRef.current.style.transform = `scaleX(${scaleX.toFixed(3)})`;
       }
 
-      // 3. DRAW 120-BAND HALO AUDIO WAVEFORM AROUND VINYL DISK
+      // 3. DRAW 128-BAND NON-SYMMETRIC ORGANIC 360° HALO WAVEFORM AROUND VINYL DISK
       const centerX = width / 2;
-      const centerY = height / 2 - 40;
+      const centerY = height / 2 - 35;
 
-      // Calculate inner radius to match vinyl disk border perfectly
-      const isMobile = width < 640;
-      const diskRadius = isMobile ? 104 : 120;
-      const innerRadius = diskRadius + 6;
+      // Get accurate vinyl disk radius from DOM or responsive breakpoint
+      let diskRadius = 160;
+      if (diskRef.current) {
+        const rect = diskRef.current.getBoundingClientRect();
+        diskRadius = rect.width / 2;
+      } else {
+        diskRadius = width >= 1024 ? 175 : width >= 768 ? 160 : width >= 640 ? 144 : 128;
+      }
+      const innerRadius = diskRadius + 7;
 
       const barHeights = barHeightsRef.current;
+      const isMobile = width < 640;
+      const lineWidth = isMobile ? 3.0 : 3.8;
+      const angleStep = (Math.PI * 2) / numTotalBars;
 
-      // Update 60 half-band frequency amplitudes with audio visualizer physics
-      for (let k = 0; k < numHalfBands; k++) {
-        let bandEnergy = 0;
+      // Update 128 completely independent frequency bands (NO MIRRORING, ORGANIC 360°)
+      for (let i = 0; i < numTotalBars; i++) {
+        const theta = -Math.PI / 2 + i * angleStep;
 
+        let energy = 0;
         if (isPlaying && effectiveVol > 0) {
-          if (k <= 14) {
-            // Sub-Bass & Kick (Top region)
-            const falloff = 1 - k / 18;
-            bandEnergy =
-              bassEnergy * falloff * 1.25 +
-              Math.sin(now * 7.2 + k * 0.4) * 0.15;
-          } else if (k <= 28) {
-            // Low-Mids & Rhythm Body
-            const falloff = 1 - (k - 14) / 16;
-            bandEnergy =
-              (snareEnergy * 0.75 + bassEnergy * 0.4) * falloff +
-              Math.sin(now * 9.5 + k * 0.6) * 0.18;
-          } else if (k <= 44) {
-            // Mid-Range Vocals & Instruments
-            const vocalMod =
-              Math.sin(now * 3.8 + k * 0.35) * 0.35 +
-              Math.sin(now * 7.4 - k * 0.5) * 0.25 +
-              0.45;
-            bandEnergy =
-              vocalMod * (0.35 + snareEnergy * 0.35) * effectiveVol * waveSensitivity;
-          } else if (k <= 54) {
-            // High-Mids & Snare Snap / Hi-hats
-            bandEnergy =
-              (hatPulse * 0.6 + snareEnergy * 0.35) *
-              (0.35 + Math.sin(now * 15.2 + k) * 0.25) *
-              effectiveVol *
-              waveSensitivity;
-          } else {
-            // Air & Ultra-Highs (Bottom region)
-            bandEnergy =
-              (hatPulse * 0.35 + 0.15) *
-              (Math.sin(now * 19.8 + k * 1.8) * 0.4 + 0.5) *
-              effectiveVol *
-              waveSensitivity;
-          }
+          // Natural non-symmetric frequency clustering across 360°
+          // Bass dominance around 11 o'clock - 1 o'clock (theta near -PI/2)
+          const bassWeight = Math.pow(Math.max(0, Math.cos(theta + Math.PI / 2)), 2.2);
+          // Snare dominance around 4 o'clock and 8 o'clock
+          const snareWeight = Math.pow(Math.max(0, Math.sin(theta + 0.5)), 2.8);
+          // Vocal & Chords flowing across the right quadrant
+          const vocalWeight = Math.pow(Math.max(0, Math.cos(theta - 0.9)), 2.0);
+          // High-frequency rhythm shimmer distributed around
+          const hatWeight = Math.sin(theta * 5 + now * 11.2) * 0.35 + 0.65;
 
-          // Per-bar discrete frequency bin flutter (16Hz micro-noise: toothy waveform, NOT a smooth wave!)
-          const barNoise = Math.sin(k * 137.3 + Math.floor(now * 16) * 19.7);
-          const flutter = 0.75 + barNoise * 0.35; // Distinct jagged teeth
-          bandEnergy = Math.max(0, bandEnergy) * flutter;
+          // Per-bar continuous acoustic micro-harmonics
+          const perBarHarmonic =
+            Math.sin(now * 3.8 + i * 0.58) * 0.22 +
+            Math.cos(now * 6.5 - i * 0.42) * 0.18;
+
+          // Discrete 18Hz equalizer bin flutter (jagged audio teeth, NOT a smooth wave)
+          const barHash = Math.sin(i * 149.7 + Math.floor(now * 18) * 23.3);
+          const jitter = 0.72 + barHash * 0.42;
+
+          const rawEnergy =
+            (bassEnergy * (0.35 + bassWeight * 1.35) +
+              snareEnergy * (0.3 + snareWeight * 1.15) +
+              vocalMod * (0.32 + vocalWeight * 0.95) +
+              hatPulse * hatWeight * 0.5 +
+              perBarHarmonic) *
+            jitter *
+            effectiveVol *
+            waveSensitivity;
+
+          energy = Math.max(0, rawEnergy);
         }
 
-        let targetH = 4; // Idle baseline
+        let targetH = 6; // Idle baseline
         if (isPlaying && effectiveVol > 0) {
-          targetH = Math.max(4, Math.min(105, bandEnergy * 82));
+          // Dynamic grand length up to 135px on heavy beats!
+          targetH = Math.max(6, Math.min(145, 6 + energy * 95));
         }
 
-        // Snappy Attack (0.65) and Smooth Gravity Decay (0.15)
-        if (targetH > barHeights[k]) {
-          barHeights[k] += (targetH - barHeights[k]) * 0.65;
+        // Snappy Attack (0.65) and Smooth Gravity Falloff (0.14)
+        if (targetH > barHeights[i]) {
+          barHeights[i] += (targetH - barHeights[i]) * 0.65;
         } else {
-          barHeights[k] -= (barHeights[k] - targetH) * 0.15;
+          barHeights[i] -= (barHeights[i] - targetH) * 0.14;
         }
       }
 
       // Draw Concentric Outer Glow Accent Ring around vinyl disk
       ctx.beginPath();
       ctx.arc(centerX, centerY, innerRadius - 2, 0, Math.PI * 2);
-      ctx.strokeStyle = activeWaveColor.getBarColor(0.2);
-      ctx.lineWidth = 1.5;
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = activeWaveColor.getBarColor(0.2);
+      ctx.strokeStyle = activeWaveColor.getBarColor(0);
+      ctx.lineWidth = 1.8;
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = activeWaveColor.getBarColor(0);
       ctx.stroke();
 
-      // Render 120 Symmetrical Radial Bars (Right & Left mirror from 12 o'clock to 6 o'clock)
-      const lineWidth = isMobile ? 2.6 : 3.2;
-      const angleStep = Math.PI / numHalfBands; // pi / 60
+      // Render 128 Discrete Radial Spectrum Bars around the full 360°
+      for (let i = 0; i < numTotalBars; i++) {
+        const theta = -Math.PI / 2 + i * angleStep;
+        const barH = barHeights[i];
+        const normAngle = i / numTotalBars; // 0 to 1 around 360°
+        const barColor = activeWaveColor.getBarColor(normAngle);
 
-      for (let k = 0; k < numHalfBands; k++) {
-        const barH = barHeights[k];
-        const t = k / (numHalfBands - 1); // 0 at top, 1 at bottom
-        const barColor = activeWaveColor.getBarColor(t);
-
-        // Right side: -pi/2 (top) clockwise to +pi/2 (bottom)
-        const thetaRight = -Math.PI / 2 + (k + 0.5) * angleStep;
-        const x1R = centerX + Math.cos(thetaRight) * innerRadius;
-        const y1R = centerY + Math.sin(thetaRight) * innerRadius;
-        const x2R = centerX + Math.cos(thetaRight) * (innerRadius + barH);
-        const y2R = centerY + Math.sin(thetaRight) * (innerRadius + barH);
+        const x1 = centerX + Math.cos(theta) * innerRadius;
+        const y1 = centerY + Math.sin(theta) * innerRadius;
+        const x2 = centerX + Math.cos(theta) * (innerRadius + barH);
+        const y2 = centerY + Math.sin(theta) * (innerRadius + barH);
 
         ctx.beginPath();
-        ctx.moveTo(x1R, y1R);
-        ctx.lineTo(x2R, y2R);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
         ctx.strokeStyle = barColor;
         ctx.lineWidth = lineWidth;
         ctx.lineCap = "round";
-        ctx.shadowBlur = 7;
-        ctx.shadowColor = barColor;
-        ctx.stroke();
-
-        // Left side: -pi/2 (top) counter-clockwise to +pi/2 (bottom)
-        const thetaLeft = -Math.PI / 2 - (k + 0.5) * angleStep;
-        const x1L = centerX + Math.cos(thetaLeft) * innerRadius;
-        const y1L = centerY + Math.sin(thetaLeft) * innerRadius;
-        const x2L = centerX + Math.cos(thetaLeft) * (innerRadius + barH);
-        const y2L = centerY + Math.sin(thetaLeft) * (innerRadius + barH);
-
-        ctx.beginPath();
-        ctx.moveTo(x1L, y1L);
-        ctx.lineTo(x2L, y2L);
-        ctx.strokeStyle = barColor;
-        ctx.lineWidth = lineWidth;
-        ctx.lineCap = "round";
-        ctx.shadowBlur = 7;
+        ctx.shadowBlur = 9;
         ctx.shadowColor = barColor;
         ctx.stroke();
       }
@@ -619,45 +613,45 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/35 to-black/85" />
       </div>
 
-      {/* 2. 4-Edge Glowing Ambient Borders (Giật theo nhịp bass 60FPS) */}
+      {/* 2. 4-Edge Glowing Ambient Borders (Giật mạnh theo nhịp bass 60FPS) */}
       <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
         {/* Top Edge Glow */}
         <div
           ref={topEdgeRef}
-          className="absolute top-0 left-0 right-0 h-20 md:h-32 pointer-events-none blur-3xl origin-top transition-transform duration-75"
+          className="absolute top-0 left-0 right-0 h-24 md:h-36 pointer-events-none blur-3xl origin-top transition-transform duration-75"
           style={{
             background: `linear-gradient(to bottom, ${activeWaveColor.edgeColors.top}, transparent)`,
-            opacity: 0.2,
+            opacity: 0.22,
           }}
         />
 
         {/* Bottom Edge Glow */}
         <div
           ref={bottomEdgeRef}
-          className="absolute bottom-0 left-0 right-0 h-24 md:h-36 pointer-events-none blur-3xl origin-bottom transition-transform duration-75"
+          className="absolute bottom-0 left-0 right-0 h-28 md:h-40 pointer-events-none blur-3xl origin-bottom transition-transform duration-75"
           style={{
             background: `linear-gradient(to top, ${activeWaveColor.edgeColors.bottom}, transparent)`,
-            opacity: 0.2,
+            opacity: 0.22,
           }}
         />
 
         {/* Left Edge Glow */}
         <div
           ref={leftEdgeRef}
-          className="absolute top-0 bottom-0 left-0 w-20 md:w-36 pointer-events-none blur-3xl origin-left transition-transform duration-75"
+          className="absolute top-0 bottom-0 left-0 w-24 md:h-40 pointer-events-none blur-3xl origin-left transition-transform duration-75"
           style={{
             background: `linear-gradient(to right, ${activeWaveColor.edgeColors.left}, transparent)`,
-            opacity: 0.2,
+            opacity: 0.22,
           }}
         />
 
         {/* Right Edge Glow */}
         <div
           ref={rightEdgeRef}
-          className="absolute top-0 bottom-0 right-0 w-20 md:w-36 pointer-events-none blur-3xl origin-right transition-transform duration-75"
+          className="absolute top-0 bottom-0 right-0 w-24 md:h-40 pointer-events-none blur-3xl origin-right transition-transform duration-75"
           style={{
             background: `linear-gradient(to left, ${activeWaveColor.edgeColors.right}, transparent)`,
-            opacity: 0.2,
+            opacity: 0.22,
           }}
         />
       </div>
@@ -825,7 +819,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
 
       {/* 4. Main Center Stage: Audio Visualizer Canvas + Rotating Vinyl Album Disk */}
       <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
-        {/* Background Visualizer Canvas (Halo 120-Band Circular Waveform) */}
+        {/* Background Visualizer Canvas (128-Band Organic 360° Halo Waveform) */}
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full pointer-events-none z-10"
@@ -835,11 +829,14 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         <div
           className="relative z-10 transition-transform duration-75 flex flex-col items-center pointer-events-auto"
           style={{
-            transform: `translateY(-40px) scale(${bassScaleRef.current})`,
+            transform: `translateY(-35px) scale(${bassScaleRef.current})`,
           }}
         >
-          {/* Inner Album Art Circle with Outer Ring Accent */}
-          <div className="w-52 h-52 sm:w-60 sm:h-60 rounded-full overflow-hidden border-4 border-black/80 shadow-[0_0_55px_rgba(249,115,22,0.35)] relative bg-black flex items-center justify-center group select-none">
+          {/* Inner Album Art Circle with Outer Ring Accent (Larger Grand Hero Size) */}
+          <div
+            ref={diskRef}
+            className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[350px] lg:h-[350px] rounded-full overflow-hidden border-4 border-black/85 shadow-[0_0_65px_rgba(249,115,22,0.4)] relative bg-black flex items-center justify-center group select-none"
+          >
             {/* Smoothly Rotating Vinyl Image (100% Continuous, Non-Stuttering) */}
             <div
               className="w-full h-full rounded-full overflow-hidden animate-vinyl-continuous flex items-center justify-center"
@@ -851,11 +848,11 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                 <img
                   src={currentSong.image_url}
                   alt={currentSong.title}
-                  className="w-full h-full object-cover scale-110 select-none pointer-events-none"
+                  className="w-full h-full object-cover scale-125 select-none pointer-events-none"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-tr from-neutral-900 to-neutral-800 flex items-center justify-center">
-                  <Music className="w-16 h-16 text-amber-400/80" />
+                  <Music className="w-20 h-20 text-amber-400/80" />
                 </div>
               )}
             </div>
@@ -864,12 +861,12 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
             <div className="absolute inset-0 rounded-full pointer-events-none bg-[radial-gradient(circle_at_50%_50%,transparent_35%,rgba(0,0,0,0.35)_60%,rgba(255,255,255,0.08)_75%,transparent_90%)]" />
 
             {/* Inner Center Hole Vinyl Ring */}
-            <div className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-black/85 border-2 border-white/40 backdrop-blur-sm pointer-events-none shadow-inner" />
+            <div className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-black/85 border-2 border-white/40 backdrop-blur-sm pointer-events-none shadow-inner" />
           </div>
         </div>
 
         {/* 5. Center Floating Mini-Player Bar (Clean, Uncluttered, with Breathing Room) */}
-        <div className="absolute bottom-14 sm:bottom-16 z-30 w-[92%] max-w-md bg-black/70 border border-white/15 backdrop-blur-xl rounded-2xl p-3.5 shadow-2xl flex flex-col gap-2 pointer-events-auto animate-fadeIn">
+        <div className="absolute bottom-10 sm:bottom-12 z-30 w-[92%] max-w-md bg-black/75 border border-white/15 backdrop-blur-xl rounded-2xl p-3.5 shadow-2xl flex flex-col gap-2 pointer-events-auto animate-fadeIn">
           {/* Top Row: Artwork Thumbnail, Title, Artist, and Favorite/Playlist */}
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-lg overflow-hidden bg-black/60 border border-white/10 flex-shrink-0 shadow">
