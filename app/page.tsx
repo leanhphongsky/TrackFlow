@@ -805,12 +805,14 @@ export default function Home() {
         onOpenArtist={(name) => openArtist({ name })}
       />
 
-      {/* Persistent Audio Player */}
-      <Player
-        isRightPanelOpen={isRightPanelOpen}
-        onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
-        onOpenChill={() => setActiveTab("chill")}
-      />
+      {/* Persistent Audio Player (Hidden in Chill mode to prevent bottom overlap) */}
+      {activeTab !== "chill" && (
+        <Player
+          isRightPanelOpen={isRightPanelOpen}
+          onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
+          onOpenChill={() => setActiveTab("chill")}
+        />
+      )}
 
       {/* Upload Song Modal */}
       <UploadModal
