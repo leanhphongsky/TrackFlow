@@ -77,16 +77,16 @@ export default function Sidebar({
       {/* Top Section */}
       <div className="bg-[#121212] rounded-xl p-4 flex flex-col gap-4">
         {/* Brand Logo & Version Badge */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <div
             onClick={() => setActiveTab("home")}
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-2 cursor-pointer group min-w-0"
           >
-            <Disc3 className="w-7 h-7 text-[#1db954] animate-spin-slow group-hover:scale-105 transition-transform flex-shrink-0" />
+            <Disc3 className="w-6 h-6 text-[#1db954] animate-spin-slow group-hover:scale-105 transition-transform flex-shrink-0" />
             <img
               src="/brand/trackflow-text.png"
               alt="TrackFlow"
-              className="h-7 sm:h-8 w-auto object-contain select-none group-hover:scale-105 transition-transform drop-shadow"
+              className="h-5 sm:h-5.5 w-auto max-w-[95px] object-contain select-none group-hover:scale-105 transition-transform drop-shadow"
             />
           </div>
 
@@ -94,13 +94,13 @@ export default function Sidebar({
           <button
             onClick={() => setActiveTab("changelog")}
             title="Xem nhật ký bản cập nhật Beta v2.4"
-            className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide transition border shadow-sm ${
+            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide transition border shadow-sm flex-shrink-0 whitespace-nowrap ${
               activeTab === "changelog"
                 ? "bg-[#1db954] text-black border-[#1db954] shadow-[0_0_10px_rgba(29,185,84,0.4)]"
                 : "bg-[#1db954]/15 text-[#1db954] border-[#1db954]/30 hover:bg-[#1db954] hover:text-black hover:scale-105 active:scale-95"
             }`}
           >
-            <Sparkles className="w-2.5 h-2.5" />
+            <Sparkles className="w-2.5 h-2.5 flex-shrink-0" />
             <span>Beta v2.4</span>
           </button>
         </div>
