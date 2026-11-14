@@ -19,6 +19,7 @@ import {
   Mic2,
   Heart,
   Plus,
+  Waves,
 } from "lucide-react";
 
 function formatTime(seconds: number) {
@@ -31,9 +32,14 @@ function formatTime(seconds: number) {
 interface PlayerProps {
   onToggleRightPanel?: () => void;
   isRightPanelOpen?: boolean;
+  onOpenChill?: () => void;
 }
 
-export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerProps) {
+export default function Player({
+  onToggleRightPanel,
+  isRightPanelOpen,
+  onOpenChill,
+}: PlayerProps) {
   const {
     currentSong,
     isPlaying,
@@ -177,7 +183,18 @@ export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerP
           </div>
 
           {/* Right: Lyrics Karaoke, Video/Canvas Toggle & Volume */}
-          <div className="flex items-center justify-end gap-3 w-1/4 min-w-[150px]">
+          <div className="flex items-center justify-end gap-2.5 w-1/4 min-w-[150px]">
+            {/* Chill Mode Visualizer Toggle */}
+            {onOpenChill && (
+              <button
+                onClick={onOpenChill}
+                className="p-2 rounded-full text-purple-400 hover:text-purple-300 hover:bg-purple-500/15 transition shadow-sm"
+                title="Mở chế độ Chill & Visualizer sóng âm 360°"
+              >
+                <Waves className="w-5 h-5" />
+              </button>
+            )}
+
             {/* Fullscreen Karaoke Lyrics Toggle */}
             <button
               onClick={toggleLyricsFullscreen}

@@ -18,6 +18,7 @@ import AddToPlaylistModal from "@/components/AddToPlaylistModal";
 import FollowedArtistsFeed from "@/components/FollowedArtistsFeed";
 import PodcastsSection from "@/components/PodcastsSection";
 import FullscreenLyricsView from "@/components/FullscreenLyricsView";
+import ChillView from "@/components/ChillView";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -32,6 +33,7 @@ import {
   LogIn,
   Disc3,
   Users,
+  Waves,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
@@ -329,6 +331,18 @@ export default function Home() {
               </button>
             )}
 
+            {/* 3c. Chill Pill */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab("chill");
+              }}
+              className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-[#242424] hover:bg-gradient-to-r hover:from-purple-900/60 hover:to-indigo-900/60 text-white transition flex-shrink-0 flex items-center gap-1.5 border border-purple-500/20 shadow-sm group"
+            >
+              <Waves className="w-3.5 h-3.5 text-purple-400 group-hover:animate-pulse" />
+              <span>Chill</span>
+            </button>
+
             {/* 4. Audiobooks (Disabled with Amber Badge) */}
             <div className="relative group/audiobook flex items-center flex-shrink-0">
               <button
@@ -368,6 +382,12 @@ export default function Home() {
             /* VIEW: SPOTIFY PLAYLIST VIEW */
             <PlaylistView
               playlistId={selectedPlaylistId}
+              onBack={() => setActiveTab("home")}
+              onOpenArtist={(name) => openArtist({ name })}
+            />
+          ) : activeTab === "chill" ? (
+            /* VIEW: CHILL & 360 AUDIO VISUALIZER */
+            <ChillView
               onBack={() => setActiveTab("home")}
               onOpenArtist={(name) => openArtist({ name })}
             />
@@ -789,6 +809,7 @@ export default function Home() {
       <Player
         isRightPanelOpen={isRightPanelOpen}
         onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
+        onOpenChill={() => setActiveTab("chill")}
       />
 
       {/* Upload Song Modal */}

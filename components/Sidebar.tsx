@@ -13,6 +13,7 @@ import {
   ListPlus,
   Upload,
   Sparkles,
+  Waves,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
@@ -126,6 +127,23 @@ export default function Sidebar({
           >
             <Search className="w-5 h-5" />
             <span>Tìm kiếm</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("chill")}
+            className={`flex items-center gap-4 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
+              activeTab === "chill"
+                ? "text-white bg-gradient-to-r from-purple-900/40 to-[#282828] border-l-2 border-purple-400"
+                : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
+            }`}
+          >
+            <Waves className="w-5 h-5 text-purple-400" />
+            <div className="flex items-center gap-2">
+              <span>Chill</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                Visualizer
+              </span>
+            </div>
           </button>
         </nav>
       </div>

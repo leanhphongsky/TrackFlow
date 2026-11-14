@@ -16,6 +16,7 @@ import {
   Music,
   ListPlus,
   Tv,
+  Waves,
 } from "lucide-react";
 
 interface ChangelogViewProps {
@@ -84,6 +85,16 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           </div>
 
           <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-[#202020] border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Waves className="w-4 h-4 text-purple-400" />
+                <h3>Chế độ Chill &amp; Visualizer sóng âm 360° đồng bộ nhịp điệu</h3>
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed pl-6">
+                Chế độ trải nghiệm âm nhạc cực chill với vòng sóng âm 360° phát sáng rực rỡ quanh đĩa nhạc xoay tròn, dải sóng equalizer dưới đáy màn hình, đồng hồ Dynamic Island và bộ đổi hình nền nghệ thuật (Windows 11 Bloom Dark, Lofi City, Deep Space...). Sóng âm tự động phản hồi độ lớn âm lượng và nhịp bass thực tế.
+              </p>
+            </div>
+
             <div className="p-4 rounded-xl bg-[#202020] border border-white/5 space-y-1.5">
               <div className="flex items-center gap-2 text-sm font-bold text-white">
                 <Layers className="w-4 h-4 text-[#1db954]" />
