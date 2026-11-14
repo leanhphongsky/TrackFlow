@@ -272,7 +272,6 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
   const [wallClock, setWallClock] = useState("");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const diskRef = useRef<HTMLDivElement | null>(null);
   const animFrameIdRef = useRef<number | null>(null);
   const bassScaleRef = useRef<number>(1);
   const edgeGlowEnergyRef = useRef<number>(0);
@@ -451,23 +450,17 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         rightEdgeRef.current.style.transform = `scaleX(${scaleX.toFixed(3)})`;
       }
 
-      // 3. DRAW 128-BAND NON-SYMMETRIC ORGANIC 360° HALO WAVEFORM AROUND VINYL DISK
+      // 3. DRAW 120-BAND ORGANIC 360° HALO WAVEFORM AROUND VINYL DISK
+      const isMobile = width < 640;
       const centerX = width / 2;
-      const centerY = height / 2 - 35;
+      const centerY = height / 2 - 50;
 
-      // Get accurate vinyl disk radius from DOM or responsive breakpoint
-      let diskRadius = 160;
-      if (diskRef.current) {
-        const rect = diskRef.current.getBoundingClientRect();
-        diskRadius = rect.width / 2;
-      } else {
-        diskRadius = width >= 1024 ? 175 : width >= 768 ? 160 : width >= 640 ? 144 : 128;
-      }
-      const innerRadius = diskRadius + 7;
+      // Rock-solid fixed radius matching CSS disk precisely (no overlap, no clipping)
+      const diskRadius = isMobile ? 112 : 130;
+      const innerRadius = diskRadius + 6;
 
       const barHeights = barHeightsRef.current;
-      const isMobile = width < 640;
-      const lineWidth = isMobile ? 3.0 : 3.8;
+      const lineWidth = isMobile ? 2.8 : 3.4;
       const angleStep = (Math.PI * 2) / numTotalBars;
 
       // Update 128 completely independent frequency bands (NO MIRRORING, ORGANIC 360°)
@@ -477,13 +470,9 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         let energy = 0;
         if (isPlaying && effectiveVol > 0) {
           // Natural non-symmetric frequency clustering across 360°
-          // Bass dominance around 11 o'clock - 1 o'clock (theta near -PI/2)
           const bassWeight = Math.pow(Math.max(0, Math.cos(theta + Math.PI / 2)), 2.2);
-          // Snare dominance around 4 o'clock and 8 o'clock
           const snareWeight = Math.pow(Math.max(0, Math.sin(theta + 0.5)), 2.8);
-          // Vocal & Chords flowing across the right quadrant
           const vocalWeight = Math.pow(Math.max(0, Math.cos(theta - 0.9)), 2.0);
-          // High-frequency rhythm shimmer distributed around
           const hatWeight = Math.sin(theta * 5 + now * 11.2) * 0.35 + 0.65;
 
           // Per-bar continuous acoustic micro-harmonics
@@ -508,10 +497,10 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           energy = Math.max(0, rawEnergy);
         }
 
-        let targetH = 6; // Idle baseline
+        let targetH = 5; // Idle baseline
         if (isPlaying && effectiveVol > 0) {
-          // Dynamic grand length up to 135px on heavy beats!
-          targetH = Math.max(6, Math.min(145, 6 + energy * 95));
+          // Balanced, elegant grand length that radiates cleanly without invading mini-player
+          targetH = Math.max(5, Math.min(85, 5 + energy * 68));
         }
 
         // Snappy Attack (0.65) and Smooth Gravity Falloff (0.14)
@@ -527,7 +516,9 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
       ctx.arc(centerX, centerY, innerRadius - 2, 0, Math.PI * 2);
       ctx.strokeStyle = activeWaveColor.getBarColor(0);
       ctx.lineWidth = 1.8;
-      ctx.shadowBlur = 14;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = activeWaveColor.getBarColor(0);
+      ctx.stroke();
       ctx.shadowColor = activeWaveColor.getBarColor(0);
       ctx.stroke();
 
@@ -829,13 +820,12 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         <div
           className="relative z-10 transition-transform duration-75 flex flex-col items-center pointer-events-auto"
           style={{
-            transform: `translateY(-35px) scale(${bassScaleRef.current})`,
+            transform: `translateY(-50px) scale(${bassScaleRef.current})`,
           }}
         >
-          {/* Inner Album Art Circle with Outer Ring Accent (Larger Grand Hero Size) */}
+          {/* Inner Album Art Circle with Outer Ring Accent */}
           <div
-            ref={diskRef}
-            className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-[350px] lg:h-[350px] rounded-full overflow-hidden border-4 border-black/85 shadow-[0_0_65px_rgba(249,115,22,0.4)] relative bg-black flex items-center justify-center group select-none"
+            className="w-56 h-56 sm:w-[260px] sm:h-[260px] rounded-full overflow-hidden border-4 border-black/85 shadow-[0_0_50px_rgba(249,115,22,0.35)] relative bg-black flex items-center justify-center group select-none"
           >
             {/* Smoothly Rotating Vinyl Image (100% Continuous, Non-Stuttering) */}
             <div
@@ -848,11 +838,11 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                 <img
                   src={currentSong.image_url}
                   alt={currentSong.title}
-                  className="w-full h-full object-cover scale-125 select-none pointer-events-none"
+                  className="w-full h-full object-cover scale-[1.38] select-none pointer-events-none"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-tr from-neutral-900 to-neutral-800 flex items-center justify-center">
-                  <Music className="w-20 h-20 text-amber-400/80" />
+                  <Music className="w-16 h-16 text-amber-400/80" />
                 </div>
               )}
             </div>
@@ -861,17 +851,12 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
             <div className="absolute inset-0 rounded-full pointer-events-none bg-[radial-gradient(circle_at_50%_50%,transparent_35%,rgba(0,0,0,0.35)_60%,rgba(255,255,255,0.08)_75%,transparent_90%)]" />
 
             {/* Inner Center Hole Vinyl Ring */}
-            <div className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-black/85 border-2 border-white/40 backdrop-blur-sm pointer-events-none shadow-inner" />
+            <div className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-black/85 border-2 border-white/40 backdrop-blur-sm pointer-events-none shadow-inner" />
           </div>
         </div>
 
         {/* 5. Center Floating Mini-Player Bar with Signature Frosted Glassmorphism */}
-        <div className="absolute bottom-10 sm:bottom-12 z-30 w-[92%] max-w-md bg-gradient-to-b from-white/[0.14] via-black/40 to-black/60 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.55),inset_0_1px_1px_rgba(255,255,255,0.25)] flex flex-col gap-2 pointer-events-auto animate-fadeIn overflow-hidden relative">
-          {/* Ambient Wave Color Sheen behind Glass */}
-          <div
-            className="absolute -top-10 -right-10 w-36 h-36 rounded-full opacity-30 blur-2xl pointer-events-none"
-            style={{ background: activeWaveColor.gradientPreview }}
-          />
+        <div className="absolute bottom-6 sm:bottom-8 z-30 w-[90%] max-w-md bg-black/45 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col gap-2 pointer-events-auto animate-fadeIn overflow-hidden relative">
 
           {/* Top Row: Artwork Thumbnail, Title, Artist, and Favorite/Playlist */}
           <div className="flex items-center gap-3 relative z-10">
