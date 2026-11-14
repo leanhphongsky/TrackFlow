@@ -55,6 +55,8 @@ export default function NowPlayingPanel({
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
   const [hasLyrics, setHasLyrics] = useState<boolean>(false);
   const [isSyncedLyrics, setIsSyncedLyrics] = useState<boolean>(false);
+  const [lyricsSource, setLyricsSource] = useState<string>("");
+  const [lyricsOffset, setLyricsOffset] = useState<number>(0);
   const [lyricsMessage, setLyricsMessage] = useState<string>("");
   const [loadingLyrics, setLoadingLyrics] = useState<boolean>(false);
   const [isExpandedLyrics, setIsExpandedLyrics] = useState<boolean>(false);
@@ -67,10 +69,12 @@ export default function NowPlayingPanel({
   const isPanelVisible = isOpen && currentSong !== null;
 
   useEffect(() => {
+    setLyricsOffset(0);
     if (!currentSong) {
       setLyrics([]);
       setHasLyrics(false);
       setIsSyncedLyrics(false);
+      setLyricsSource("");
       return;
     }
 
@@ -91,23 +95,27 @@ export default function NowPlayingPanel({
           if (data.hasLyrics && data.lines?.length > 0) {
             setHasLyrics(true);
             setIsSyncedLyrics(Boolean(data.isSynced));
+            setLyricsSource(data.source || "");
             setLyrics(data.lines);
             setLyricsMessage("");
           } else {
             setHasLyrics(false);
             setIsSyncedLyrics(false);
+            setLyricsSource("");
             setLyricsMessage(data.message || "Hiện bài hát này chưa có lời");
             setLyrics([]);
           }
         } else {
           setHasLyrics(false);
           setIsSyncedLyrics(false);
+          setLyricsSource("");
           setLyricsMessage("Hiện bài hát này chưa có lời");
           setLyrics([]);
         }
       } catch (err) {
         setHasLyrics(false);
         setIsSyncedLyrics(false);
+        setLyricsSource("");
         setLyricsMessage("Hiện bài hát này chưa có lời");
         setLyrics([]);
       } finally {
@@ -118,6 +126,8 @@ export default function NowPlayingPanel({
     fetchLyrics();
   }, [currentSong?.id, currentSong?.audio_url, currentSong?.title, currentSong?.artist]);
 
+  const effectiveCurrentTime = currentTime + lyricsOffset;
+
   // Auto-scroll lyrics
   useEffect(() => {
     if (activeLineRef.current && lyricsContainerRef.current) {
@@ -126,12 +136,12 @@ export default function NowPlayingPanel({
         block: "center",
       });
     }
-  }, [currentTime]);
+  }, [effectiveCurrentTime]);
 
   const activeIndex = lyrics.findIndex(
     (line, idx) =>
-      currentTime >= line.start &&
-      (idx === lyrics.length - 1 || currentTime < lyrics[idx + 1].start)
+      effectiveCurrentTime >= line.start &&
+      (idx === lyrics.length - 1 || effectiveCurrentTime < lyrics[idx + 1].start)
   );
 
   return (
@@ -140,7 +150,7 @@ export default function NowPlayingPanel({
         isPanelVisible
           ? "w-80 md:w-88 lg:w-96 opacity-100 pointer-events-auto border-l border-[#242424] overflow-hidden"
           : "w-0 opacity-0 pointer-events-none overflow-hidden border-0 p-0 m-0"
-      }`}
+      } ${currentSong ? "pb-28" : ""}`}
     >
       <div className="w-80 md:w-88 lg:w-96 h-full flex flex-col overflow-hidden">
         {/* Top Header */}
@@ -330,25 +340,54 @@ export default function NowPlayingPanel({
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-bold text-base text-white">Lyrics</span>
                 {isSyncedLyrics && (
                   <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    Đồng bộ thời gian thực
+                    {lyricsSource === "youtube-captions" ? "Khớp chuẩn video" : "Đồng bộ thời gian thực"}
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => setIsExpandedLyrics(!isExpandedLyrics)}
-                className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-                title={isExpandedLyrics ? "Thu nhỏ" : "Mở rộng"}
-              >
-                {isExpandedLyrics ? (
-                  <Minimize2 className="w-4 h-4" />
-                ) : (
-                  <Maximize2 className="w-4 h-4" />
+              <div className="flex items-center gap-1">
+                {isSyncedLyrics && (
+                  <div className="flex items-center gap-1 text-[11px] bg-white/5 border border-white/10 rounded-lg px-1.5 py-0.5 mr-1" title="Điều chỉnh độ trễ lời bài hát">
+                    <button
+                      onClick={() => setLyricsOffset((prev) => Math.round((prev - 0.5) * 10) / 10)}
+                      className="px-1 text-gray-400 hover:text-white transition font-mono hover:bg-white/10 rounded"
+                      title="Chạy sớm hơn 0.5s"
+                    >
+                      -0.5s
+                    </button>
+                    {lyricsOffset !== 0 && (
+                      <span
+                        onClick={() => setLyricsOffset(0)}
+                        className="text-[10px] font-bold text-[#1db954] cursor-pointer hover:underline px-0.5"
+                        title="Bấm để đặt lại về 0s"
+                      >
+                        {lyricsOffset > 0 ? `+${lyricsOffset}s` : `${lyricsOffset}s`}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => setLyricsOffset((prev) => Math.round((prev + 0.5) * 10) / 10)}
+                      className="px-1 text-gray-400 hover:text-white transition font-mono hover:bg-white/10 rounded"
+                      title="Chạy trễ hơn 0.5s"
+                    >
+                      +0.5s
+                    </button>
+                  </div>
                 )}
-              </button>
+                <button
+                  onClick={() => setIsExpandedLyrics(!isExpandedLyrics)}
+                  className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+                  title={isExpandedLyrics ? "Thu nhỏ" : "Mở rộng"}
+                >
+                  {isExpandedLyrics ? (
+                    <Minimize2 className="w-4 h-4" />
+                  ) : (
+                    <Maximize2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {loadingLyrics ? (

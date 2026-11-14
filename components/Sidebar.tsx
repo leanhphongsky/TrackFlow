@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { usePlayer } from "@/context/PlayerContext";
 
 interface SidebarProps {
   onOpenUpload: () => void;
@@ -37,6 +38,7 @@ export default function Sidebar({
     selectedPlaylistId,
     setSelectedPlaylistId,
   } = usePlaylist();
+  const { currentSong } = usePlayer();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -66,7 +68,11 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="w-64 bg-black flex flex-col h-full p-2 gap-2 text-gray-300 select-none border-r border-[#242424] flex-shrink-0">
+    <aside
+      className={`w-64 bg-black flex flex-col h-full p-2 gap-2 text-gray-300 select-none border-r border-[#242424] flex-shrink-0 transition-all duration-300 ${
+        currentSong ? "pb-28" : "pb-2"
+      }`}
+    >
       {/* Top Section */}
       <div className="bg-[#121212] rounded-xl p-4 flex flex-col gap-4">
         {/* Brand Logo & Version Badge */}

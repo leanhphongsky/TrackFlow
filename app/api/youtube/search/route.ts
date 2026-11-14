@@ -103,47 +103,46 @@ export async function GET(req: Request) {
         });
       }
 
-      // Collect authentic artist channels with their REAL channel avatars (not video thumbnails)
+      // Collect candidate channels from direct search & video authors
       let candidateChannels: any[] = [];
       if (directChannelResult?.channels && directChannelResult.channels.length > 0) {
         candidateChannels.push(...directChannelResult.channels);
       }
 
-      // If user searched for a song title (e.g. "Nơi này có anh"), directChannelResult may be empty
-      // Lookup the actual artist from the top music video so the matching artist is shown with real avatar
-      const topVideo = musicVideos[0] || rawVideos[0];
-      if (topVideo) {
-        const primaryArtistName = topVideo.artist || topVideo.author?.name;
-        if (primaryArtistName) {
-          const alreadyIncluded = candidateChannels.some(
-            (c) => c.name?.toLowerCase() === primaryArtistName.toLowerCase()
-          );
-          if (!alreadyIncluded) {
-            const artistCh = await (ytSearch as any)({ query: primaryArtistName, type: "channel" }).catch(() => null);
-            if (artistCh?.channels?.[0]) {
-              candidateChannels.unshift(artistCh.channels[0]);
-            }
+      // Add top video authors as candidate channels (re-up, karaoke, remixes are kept per user preference)
+      const topAuthors = Array.from(new Set(rawVideos.map((v) => v.author?.name).filter(Boolean))).slice(0, 3);
+      for (const authorName of topAuthors) {
+        const alreadyIn = candidateChannels.some(
+          (c) => (c.name || c.title)?.toLowerCase() === (authorName as string).toLowerCase()
+        );
+        if (!alreadyIn) {
+          // Look up this channel's genuine profile avatar (never use video thumbnail)
+          const chLookup = await (ytSearch as any)({ query: authorName, type: "channel" }).catch(() => null);
+          if (chLookup?.channels?.[0]) {
+            candidateChannels.push(chLookup.channels[0]);
+          } else {
+            candidateChannels.push({
+              name: authorName,
+              id: "",
+              title: authorName,
+              image: null,
+            });
           }
         }
       }
 
-      // Deduplicate and filter out junk uploaders, lyric channels, and non-artist channels
+      // Deduplicate and format channels without excluding re-upload or karaoke channels
       const seenNames = new Set<string>();
       for (const ch of candidateChannels) {
         const name = ch.name || ch.title;
         if (!name || seenNames.has(name.toLowerCase())) continue;
         seenNames.add(name.toLowerCase());
 
-        // Skip non-official reupload / karaoke / subbing channels unless verified
-        if (/\b(subtify|lyrics|karaoke|vietsub|fanpage|remix|topic|clip)\b/i.test(name) && !ch.verified) {
-          continue;
-        }
-
         channels.push({
           channelId: ch.id || (ch.url ? ch.url.split("/channel/")[1] || "" : ""),
           title: name,
-          avatar: ch.image || ch.thumbnail, // REAL round channel profile picture from yt3.ggpht.com
-          description: ch.about || `Kênh nghệ sĩ: ${name}`,
+          avatar: ch.image || ch.thumbnail || null, // Genuine channel profile picture from yt3.ggpht.com
+          description: ch.about || `Kênh: ${name}`,
           subscribers: ch.subCountLabel ? `${ch.subCountLabel} người đăng ký` : "",
           verified: Boolean(ch.verified),
         });

@@ -388,8 +388,14 @@ export default function Home() {
                             onClick={() => openArtist({ channelId: ch.channelId, name: ch.title })}
                             className="group flex items-center gap-4 p-4 rounded-2xl bg-[#181818] hover:bg-[#252525] border border-white/5 hover:border-white/10 transition cursor-pointer shadow-lg"
                           >
-                            <div className="w-16 h-16 rounded-full overflow-hidden bg-black flex-shrink-0 border-2 border-white/10 group-hover:scale-105 transition">
-                              <img src={ch.avatar} alt={ch.title} className="w-full h-full object-cover" />
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-black flex-shrink-0 border-2 border-white/10 group-hover:scale-105 transition flex items-center justify-center">
+                              {ch.avatar ? (
+                                <img src={ch.avatar} alt={ch.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-800 text-[#1db954] font-bold text-lg">
+                                  {ch.title.charAt(0).toUpperCase()}
+                                </div>
+                              )}
                             </div>
                             <div className="overflow-hidden flex-1">
                               <p className="font-bold text-white text-base group-hover:text-[#1db954] transition truncate flex items-center gap-1.5">

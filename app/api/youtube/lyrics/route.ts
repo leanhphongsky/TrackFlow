@@ -13,18 +13,51 @@ function decodeHtmlEntities(str: string): string {
     .replace(/&gt;/g, ">");
 }
 
-function cleanSongTitleForLyrics(title: string): string {
+function cleanSongTitleForLyrics(title: string, artist: string = ""): string {
   if (!title) return "";
   let clean = decodeHtmlEntities(title);
+
+  // Remove common YouTube suffixes and tags in brackets/parentheses
   clean = clean
-    .replace(/\s*[\[\(](?:Official\s*(?:Music\s*)?Video|M\/?V|Performance|Visualizer|Lyric\s*Video|Audio|Teaser|Prod\..*?)[\]\)]/gi, "")
-    .replace(/\s*\|\s*(?:Official\s*(?:Music\s*)?Video|M\/?V|Official Performance|Visualizer|Lyric Video).*/gi, "")
-    .replace(/\s*-\s*(?:Official\s*(?:Music\s*)?Video|M\/?V).*/gi, "")
+    .replace(/\s*[\[\(](?:Official\s*(?:Music\s*)?Video|M\/?V|Performance|Visualizer|Lyric\s*Video|Audio|Official Audio|Teaser|Prod\..*?|4K|HD|Full\s*HD)[\]\)]/gi, "")
+    .replace(/\s*[\[\(](?:Audio\s*Official|Video\s*Official)[\]\)]/gi, "")
+    .replace(/\s*\|\s*(?:Official\s*(?:Music\s*)?Video|M\/?V|Official Performance|Visualizer|Lyric Video|Audio).*/gi, "")
+    .replace(/\s*-\s*(?:Official\s*(?:Music\s*)?Video|M\/?V|Audio).*/gi, "")
     .replace(/\s*\(feat\..*?\)/gi, "")
     .replace(/\s*\[feat\..*?\]/gi, "")
     .replace(/\s*ft\..*/gi, "")
     .trim();
-  return clean || decodeHtmlEntities(title);
+
+  const artistNorm = artist ? artist.toLowerCase().replace(/official|- topic/gi, "").trim() : "";
+
+  // If separated by '|', determine which segment is title
+  if (clean.includes("|")) {
+    const parts = clean.split("|").map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      if (artistNorm && parts[0].toLowerCase().includes(artistNorm)) {
+        clean = parts[1];
+      } else {
+        clean = parts[0];
+      }
+    }
+  }
+
+  // If separated by ' - '
+  if (clean.includes(" - ")) {
+    const parts = clean.split(" - ").map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      if (artistNorm && parts[0].toLowerCase().includes(artistNorm)) {
+        clean = parts[1];
+      } else {
+        clean = parts[0];
+      }
+    }
+  }
+
+  // Remove trailing M/V or MV or Audio
+  clean = clean.replace(/\s*(?:M\/?V|Official\s*Audio|Audio)$/gi, "").trim();
+
+  return clean.replace(/['"‘’“”]/g, "").trim() || decodeHtmlEntities(title);
 }
 
 function cleanArtistForLyrics(artist: string): string {
@@ -87,20 +120,70 @@ export async function GET(req: Request) {
     const rawTitle = searchParams.get("title") || "";
     const rawArtist = searchParams.get("artist") || "";
 
-    const cleanTitle = cleanSongTitleForLyrics(rawTitle);
+    const cleanTitle = cleanSongTitleForLyrics(rawTitle, rawArtist);
     const cleanArtist = cleanArtistForLyrics(rawArtist);
 
-    // 1. Try querying LRCLIB (World's standard open lyrics database with millisecond timestamps)
+    // =========================================================================
+    // PRIORITY 1: Native YouTube Video Captions (100% video-synced & exact song)
+    // =========================================================================
+    if (videoId) {
+      let subtitles: any[] = [];
+      const languagesToTry = ["vi", "en", "ko", "ja"];
+
+      for (const lang of languagesToTry) {
+        try {
+          const res = await getSubtitles({ videoID: videoId, lang });
+          if (res && res.length > 3) {
+            subtitles = res;
+            break;
+          }
+        } catch {
+          // continue
+        }
+      }
+
+      if (!subtitles || subtitles.length <= 3) {
+        try {
+          const res = await getSubtitles({ videoID: videoId });
+          if (res && res.length > 3) {
+            subtitles = res;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const validLines = (subtitles || [])
+        .filter((s) => s.text && s.text.trim() !== "")
+        .map((s) => ({
+          start: Math.round((parseFloat(s.start) || 0) * 100) / 100,
+          dur: Math.round((parseFloat(s.dur) || 0) * 100) / 100,
+          text: decodeHtmlEntities(s.text).replace(/\n/g, " ").trim(),
+        }));
+
+      if (validLines.length > 3) {
+        return NextResponse.json({
+          hasLyrics: true,
+          isSynced: true,
+          source: "youtube-captions",
+          lines: validLines,
+        });
+      }
+    }
+
+    // =========================================================================
+    // PRIORITY 2: LRCLIB Open Database (Fallback when video has no YT subtitles)
+    // =========================================================================
     if (cleanTitle) {
       try {
-        // Method A: Direct Get with track_name & artist_name
+        // Method A: Direct lookup by exact title & artist
         let lrcUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(cleanTitle)}`;
         if (cleanArtist) {
           lrcUrl += `&artist_name=${encodeURIComponent(cleanArtist)}`;
         }
 
         const lrcRes = await fetch(lrcUrl, {
-          headers: { "User-Agent": "TrackFlow/1.0.0 (https://trackflow.app)" },
+          headers: { "User-Agent": "TrackFlow/2.4.0 (https://trackflow.app)" },
         });
 
         if (lrcRes.ok) {
@@ -138,7 +221,8 @@ export async function GET(req: Request) {
           }
         }
 
-        // Method B: Search LRCLIB if direct match didn't find synced lyrics
+        // Method B: Search LRCLIB with Anti-Liveshow & Strict Title Validation
+        const isOriginalLive = /\b(live|liveshow|concert|acoustic)\b/i.test(rawTitle);
         const searchTerms = [
           cleanArtist ? `${cleanTitle} ${cleanArtist}` : cleanTitle,
           cleanTitle,
@@ -147,82 +231,73 @@ export async function GET(req: Request) {
         for (const term of searchTerms) {
           const searchRes = await fetch(
             `https://lrclib.net/api/search?q=${encodeURIComponent(term)}`,
-            { headers: { "User-Agent": "TrackFlow/1.0.0 (https://trackflow.app)" } }
+            { headers: { "User-Agent": "TrackFlow/2.4.0 (https://trackflow.app)" } }
           );
 
           if (searchRes.ok) {
             const results = await searchRes.json();
             if (Array.isArray(results) && results.length > 0) {
-              // Prefer match with syncedLyrics
-              const syncedMatch = results.find((r) => r.syncedLyrics) || results[0];
+              // Filter: Must match song title, and filter out liveshow/acoustic if original is studio
+              const candidates = results.filter((r) => {
+                const trackLower = (r.trackName || "").toLowerCase();
+                const cleanLower = cleanTitle.toLowerCase();
+                const isTitleClose =
+                  trackLower.includes(cleanLower) || cleanLower.includes(trackLower);
 
-              if (syncedMatch.syncedLyrics) {
-                const parsed = parseLrc(syncedMatch.syncedLyrics);
-                if (parsed.length > 0) {
+                if (!isTitleClose) return false;
+
+                // Anti-liveshow filter
+                if (!isOriginalLive) {
+                  const isResultLive = /\b(live|liveshow|concert|acoustic|remix)\b/i.test(
+                    trackLower
+                  );
+                  if (isResultLive) return false;
+                }
+
+                return true;
+              });
+
+              const targetMatch =
+                candidates.find((r) => r.syncedLyrics) || candidates[0];
+
+              if (targetMatch) {
+                if (targetMatch.syncedLyrics) {
+                  const parsed = parseLrc(targetMatch.syncedLyrics);
+                  if (parsed.length > 0) {
+                    return NextResponse.json({
+                      hasLyrics: true,
+                      isSynced: true,
+                      source: "lrclib",
+                      trackName: targetMatch.trackName,
+                      artistName: targetMatch.artistName,
+                      lines: parsed,
+                    });
+                  }
+                } else if (targetMatch.plainLyrics) {
+                  const plainLines = targetMatch.plainLyrics
+                    .split("\n")
+                    .filter((l: string) => l.trim() !== "")
+                    .map((text: string, idx: number) => ({
+                      start: idx * 3,
+                      dur: 3,
+                      text: text.trim(),
+                    }));
+
                   return NextResponse.json({
                     hasLyrics: true,
-                    isSynced: true,
+                    isSynced: false,
                     source: "lrclib",
-                    trackName: syncedMatch.trackName,
-                    artistName: syncedMatch.artistName,
-                    lines: parsed,
+                    trackName: targetMatch.trackName,
+                    artistName: targetMatch.artistName,
+                    lines: plainLines,
                   });
                 }
-              } else if (syncedMatch.plainLyrics) {
-                const plainLines = syncedMatch.plainLyrics
-                  .split("\n")
-                  .filter((l: string) => l.trim() !== "")
-                  .map((text: string, idx: number) => ({
-                    start: idx * 3,
-                    dur: 3,
-                    text: text.trim(),
-                  }));
-
-                return NextResponse.json({
-                  hasLyrics: true,
-                  isSynced: false,
-                  source: "lrclib",
-                  trackName: syncedMatch.trackName,
-                  artistName: syncedMatch.artistName,
-                  lines: plainLines,
-                });
               }
             }
           }
         }
       } catch (lrclibErr) {
-        console.warn("LRCLIB lookup error, falling back to YouTube captions:", lrclibErr);
-      }
-    }
-
-    // 2. Fallback: YouTube Caption Extractor (if videoId is available)
-    if (videoId) {
-      let subtitles: any[] = [];
-      try {
-        subtitles = await getSubtitles({ videoID: videoId, lang: "vi" });
-      } catch (e) {
-        try {
-          subtitles = await getSubtitles({ videoID: videoId, lang: "en" });
-        } catch (err) {
-          subtitles = [];
-        }
-      }
-
-      const validLines = (subtitles || [])
-        .filter((s) => s.text && s.text.trim() !== "")
-        .map((s) => ({
-          start: parseFloat(s.start) || 0,
-          dur: parseFloat(s.dur) || 0,
-          text: decodeHtmlEntities(s.text).trim(),
-        }));
-
-      if (validLines.length > 0) {
-        return NextResponse.json({
-          hasLyrics: true,
-          isSynced: true,
-          source: "youtube-captions",
-          lines: validLines,
-        });
+        console.warn("LRCLIB lookup error:", lrclibErr);
       }
     }
 
