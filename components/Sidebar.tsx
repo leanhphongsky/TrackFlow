@@ -84,9 +84,9 @@ export default function Sidebar({
           >
             <Disc3 className="w-7 h-7 text-[#1db954] animate-spin-slow group-hover:scale-105 transition-transform flex-shrink-0" />
             <img
-              src="/brand/chu-trackflow.png"
+              src="/brand/trackflow-text.png"
               alt="TrackFlow"
-              className="h-8 sm:h-9 w-auto object-contain select-none group-hover:scale-105 transition-transform drop-shadow"
+              className="h-7 sm:h-8 w-auto object-contain select-none group-hover:scale-105 transition-transform drop-shadow"
             />
           </div>
 
