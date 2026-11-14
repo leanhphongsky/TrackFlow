@@ -828,7 +828,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         <div
           className="relative z-20 flex flex-col items-center justify-center pointer-events-auto transition-transform duration-75 flex-shrink-0"
           style={{
-            transform: `scale(${bassScaleRef.current})`,
+            transform: `translateY(-28px) scale(${bassScaleRef.current})`,
           }}
         >
           {/* Inner Album Art Circle with Outer Ring Accent */}
@@ -864,11 +864,11 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           </div>
         </div>
 
-        {/* 5. Sleek Compact Glass Mini-Player (Positioned in natural flow directly below visualizer - ZERO OVERLAP) */}
-        <div className="relative z-30 mt-6 sm:mt-8 w-[92%] max-w-md bg-black/50 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3 shadow-[0_12px_36px_rgba(0,0,0,0.55),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col gap-1.5 pointer-events-auto animate-fadeIn overflow-hidden flex-shrink-0">
-          {/* Row 1: Artwork, Title & Artist, Playback Controls */}
-          <div className="flex items-center gap-2.5 relative z-10">
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 border border-white/20 flex-shrink-0 shadow">
+        {/* 5. Center Floating Mini-Player Bar (3 Rows Restored, Frosted Glass, Positioned Nicely Lower Down) */}
+        <div className="absolute bottom-3 sm:bottom-4 z-30 w-[92%] max-w-md bg-black/60 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3.5 sm:p-4 shadow-[0_16px_40px_rgba(0,0,0,0.65),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col gap-2.5 pointer-events-auto animate-fadeIn overflow-hidden">
+          {/* Row 1: Artwork Thumbnail, Title, Artist, and Favorite/Playlist Buttons */}
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 border border-white/20 flex-shrink-0 shadow-md">
               {currentSong?.image_url ? (
                 <img
                   src={currentSong.image_url}
@@ -877,96 +877,51 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <Music className="w-4 h-4" />
+                  <Music className="w-5 h-5" />
                 </div>
               )}
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-extrabold text-white truncate hover:underline cursor-pointer drop-shadow-sm">
+              <p className="text-xs sm:text-sm font-extrabold text-white truncate hover:underline cursor-pointer drop-shadow-sm">
                 {currentSong?.title || "Chưa phát bài hát nào"}
               </p>
               <p
                 onClick={() => currentSong?.artist && onOpenArtist?.(currentSong.artist)}
-                className="text-[10px] text-gray-300 truncate hover:text-white hover:underline cursor-pointer"
+                className="text-[11px] text-gray-300 truncate hover:text-white hover:underline cursor-pointer mt-0.5"
               >
                 {currentSong?.artist || "TrackFlow"}
               </p>
             </div>
 
-            {/* Controls */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                onClick={toggleLoop}
-                className={`p-1 rounded-full transition ${
-                  isLooping ? "text-[#fbbf24]" : "text-gray-400 hover:text-white"
-                }`}
-                title="Lặp lại"
-              >
-                <Repeat className="w-3 h-3" />
-              </button>
-
-              <button
-                onClick={prevSong}
-                className="p-1 text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
-                title="Bài trước"
-              >
-                <SkipBack className="w-3.5 h-3.5 fill-current" />
-              </button>
-
-              <button
-                onClick={togglePlay}
-                className="w-8 h-8 rounded-full bg-white hover:scale-105 active:scale-95 flex items-center justify-center text-black shadow-[0_0_15px_rgba(255,255,255,0.45)] transition"
-                title={isPlaying ? "Tạm dừng" : "Phát"}
-              >
-                {isPlaying ? (
-                  <Pause className="w-3.5 h-3.5 fill-black" />
-                ) : (
-                  <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
-                )}
-              </button>
-
-              <button
-                onClick={nextSong}
-                className="p-1 text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
-                title="Bài tiếp theo"
-              >
-                <SkipForward className="w-3.5 h-3.5 fill-current" />
-              </button>
-
-              {currentSong && (
+            {/* Actions: Add to Playlist and Heart Favorite */}
+            {currentSong && (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => openAddToPlaylist(currentSong)}
+                  className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
+                  title="Thêm vào danh sách phát"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => toggleFavorite(currentSong)}
-                  className="p-1 text-gray-400 hover:text-white transition"
+                  className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
                   title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
                 >
                   <Heart
-                    className={`w-3.5 h-3.5 transition ${
+                    className={`w-4 h-4 transition ${
                       favorited ? "fill-[#1db954] text-[#1db954]" : ""
                     }`}
                   />
                 </button>
-              )}
-
-              <button
-                onClick={toggleMute}
-                className="p-1 text-gray-400 hover:text-white transition"
-                title={isMuted ? "Bật âm thanh" : "Tắt tiếng"}
-              >
-                {isMuted || volume === 0 ? (
-                  <VolumeX className="w-3.5 h-3.5" />
-                ) : volume < 0.5 ? (
-                  <Volume1 className="w-3.5 h-3.5" />
-                ) : (
-                  <Volume2 className="w-3.5 h-3.5" />
-                )}
-              </button>
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Row 2: Compact Scrubber Progress Bar */}
-          <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono relative z-10 px-0.5">
-            <span className="w-7 text-right drop-shadow">{formatTime(currentTime)}</span>
+          {/* Row 2: Scrubber Progress Bar */}
+          <div className="flex items-center gap-2 text-[10px] text-gray-300 font-mono relative z-10">
+            <span className="w-8 text-right drop-shadow">{formatTime(currentTime)}</span>
             <div className="relative flex-1 flex items-center cursor-pointer">
               <input
                 type="range"
@@ -974,10 +929,70 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                 max={duration || 100}
                 value={currentTime}
                 onChange={(e) => seekTo(Number(e.target.value))}
-                className="w-full h-1 bg-white/20 hover:bg-white/30 rounded-lg appearance-none cursor-pointer accent-[#fbbf24] focus:outline-none transition"
+                className="w-full h-1 bg-white/20 hover:bg-white/30 rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none transition"
               />
             </div>
-            <span className="w-7 drop-shadow">{formatTime(duration)}</span>
+            <span className="w-8 drop-shadow">{formatTime(duration)}</span>
+          </div>
+
+          {/* Row 3: Playback Controls & Volume */}
+          <div className="flex items-center justify-between pt-1 border-t border-white/10 relative z-10">
+            {/* Left: Loop button */}
+            <button
+              onClick={toggleLoop}
+              className={`p-1.5 rounded-full transition ${
+                isLooping ? "text-[#1db954]" : "text-gray-300 hover:text-white hover:bg-white/10"
+              }`}
+              title="Lặp lại"
+            >
+              <Repeat className="w-3.5 h-3.5" />
+            </button>
+
+            {/* Center: Prev, Play/Pause, Next */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={prevSong}
+                className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
+                title="Bài trước"
+              >
+                <SkipBack className="w-4 h-4 fill-current" />
+              </button>
+
+              <button
+                onClick={togglePlay}
+                className="w-9 h-9 rounded-full bg-white hover:scale-105 active:scale-95 flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.45)] transition"
+                title={isPlaying ? "Tạm dừng" : "Phát"}
+              >
+                {isPlaying ? (
+                  <Pause className="w-4 h-4 fill-black" />
+                ) : (
+                  <Play className="w-4 h-4 fill-black ml-0.5" />
+                )}
+              </button>
+
+              <button
+                onClick={nextSong}
+                className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
+                title="Bài tiếp theo"
+              >
+                <SkipForward className="w-4 h-4 fill-current" />
+              </button>
+            </div>
+
+            {/* Right: Mute toggle */}
+            <button
+              onClick={toggleMute}
+              className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition"
+              title={isMuted ? "Bật âm thanh" : "Tắt tiếng"}
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeX className="w-3.5 h-3.5" />
+              ) : volume < 0.5 ? (
+                <Volume1 className="w-3.5 h-3.5" />
+              ) : (
+                <Volume2 className="w-3.5 h-3.5" />
+              )}
+            </button>
           </div>
         </div>
       </div>
