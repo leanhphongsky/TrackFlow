@@ -233,6 +233,121 @@ export default function Home() {
           </div>
         </header>
 
+        {/* Fixed Spotify-Style Category Filter Navigation Bar on Home */}
+        {activeTab === "home" && !selectedArtist && (
+          <div className="h-14 px-6 bg-[#121212] border-b border-white/5 flex items-center gap-2 flex-shrink-0 z-20 overflow-x-auto scrollbar-none">
+            {/* 1. All */}
+            <button
+              type="button"
+              onClick={() => {
+                setHomeCategory("all");
+                setMusicSubFilter("all");
+                setPodcastSubFilter("all");
+              }}
+              className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
+                homeCategory === "all"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : "bg-[#242424] text-white hover:bg-[#303030]"
+              }`}
+            >
+              Tất cả
+            </button>
+
+            {/* 2. Music */}
+            <button
+              type="button"
+              onClick={() => {
+                setHomeCategory("music");
+                if (homeCategory !== "music") {
+                  setMusicSubFilter("all");
+                }
+              }}
+              className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
+                homeCategory === "music" && musicSubFilter === "all"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : homeCategory === "music"
+                  ? "bg-white/20 text-white hover:bg-white/30"
+                  : "bg-[#242424] text-white hover:bg-[#303030]"
+              }`}
+            >
+              Âm nhạc
+            </button>
+
+            {/* 2b. Music Following Sub-Pill */}
+            {homeCategory === "music" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMusicSubFilter((prev) => (prev === "following" ? "all" : "following"));
+                }}
+                className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 flex-shrink-0 animate-fadeIn ${
+                  musicSubFilter === "following"
+                    ? "bg-[#1db954] text-black font-bold shadow-md"
+                    : "bg-[#282828] text-gray-200 hover:bg-[#353535] hover:text-white border border-white/10"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Đang theo dõi</span>
+              </button>
+            )}
+
+            {/* 3. Podcasts */}
+            <button
+              type="button"
+              onClick={() => {
+                setHomeCategory("podcasts");
+                if (homeCategory !== "podcasts") {
+                  setPodcastSubFilter("all");
+                }
+              }}
+              className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
+                homeCategory === "podcasts" && podcastSubFilter === "all"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : homeCategory === "podcasts"
+                  ? "bg-white/20 text-white hover:bg-white/30"
+                  : "bg-[#242424] text-white hover:bg-[#303030]"
+              }`}
+            >
+              Podcasts
+            </button>
+
+            {/* 3b. Podcasts Following Sub-Pill */}
+            {homeCategory === "podcasts" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setPodcastSubFilter((prev) => (prev === "following" ? "all" : "following"));
+                }}
+                className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 flex-shrink-0 animate-fadeIn ${
+                  podcastSubFilter === "following"
+                    ? "bg-purple-500 text-white font-bold shadow-md"
+                    : "bg-[#282828] text-gray-200 hover:bg-[#353535] hover:text-white border border-white/10"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Đang theo dõi</span>
+              </button>
+            )}
+
+            {/* 4. Audiobooks (Disabled with Amber Badge) */}
+            <div className="relative group/audiobook flex items-center flex-shrink-0">
+              <button
+                type="button"
+                disabled
+                className="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-[#242424]/50 text-gray-400 border border-white/5 cursor-not-allowed opacity-60 flex items-center gap-2 select-none"
+              >
+                <span>Sách nói</span>
+                <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md tracking-wider">
+                  Đang phát triển
+                </span>
+              </button>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 hidden group-hover/audiobook:block bg-[#1f1f1f] text-gray-200 text-[11px] px-2.5 py-1 rounded-md shadow-lg border border-white/10 whitespace-nowrap z-30 pointer-events-none">
+                Tính năng Sách nói đang trong tiến trình phát triển và sẽ sớm ra mắt!
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Scrollable View Area */}
         <div className="flex-1 overflow-y-auto px-6 py-6 pb-32">
           {/* VIEW 1: ARTIST PROFILE PAGE */}
@@ -520,119 +635,6 @@ export default function Home() {
           ) : (
             /* VIEW 4: HOME / ALL SONGS & CATEGORIES */
             <div>
-              {/* Spotify-Style Category Filter Navigation Bar */}
-              <div className="sticky top-0 bg-[#121212]/95 backdrop-blur-md pt-0.5 pb-4 z-20 flex items-center gap-2 mb-6 overflow-x-auto scrollbar-none">
-                {/* 1. All */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHomeCategory("all");
-                    setMusicSubFilter("all");
-                    setPodcastSubFilter("all");
-                  }}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
-                    homeCategory === "all"
-                      ? "bg-white text-black font-bold shadow-sm"
-                      : "bg-[#242424] text-white hover:bg-[#303030]"
-                  }`}
-                >
-                  Tất cả
-                </button>
-
-                {/* 2. Music */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHomeCategory("music");
-                    if (homeCategory !== "music") {
-                      setMusicSubFilter("all");
-                    }
-                  }}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
-                    homeCategory === "music" && musicSubFilter === "all"
-                      ? "bg-white text-black font-bold shadow-sm"
-                      : homeCategory === "music"
-                      ? "bg-white/20 text-white hover:bg-white/30"
-                      : "bg-[#242424] text-white hover:bg-[#303030]"
-                  }`}
-                >
-                  Âm nhạc
-                </button>
-
-                {/* 2b. Music Following Sub-Pill */}
-                {homeCategory === "music" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMusicSubFilter((prev) => (prev === "following" ? "all" : "following"));
-                    }}
-                    className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 flex-shrink-0 animate-fadeIn ${
-                      musicSubFilter === "following"
-                        ? "bg-[#1db954] text-black font-bold shadow-md"
-                        : "bg-[#282828] text-gray-200 hover:bg-[#353535] hover:text-white border border-white/10"
-                    }`}
-                  >
-                    <Users className="w-3.5 h-3.5" />
-                    <span>Đang theo dõi</span>
-                  </button>
-                )}
-
-                {/* 3. Podcasts */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setHomeCategory("podcasts");
-                    if (homeCategory !== "podcasts") {
-                      setPodcastSubFilter("all");
-                    }
-                  }}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
-                    homeCategory === "podcasts" && podcastSubFilter === "all"
-                      ? "bg-white text-black font-bold shadow-sm"
-                      : homeCategory === "podcasts"
-                      ? "bg-white/20 text-white hover:bg-white/30"
-                      : "bg-[#242424] text-white hover:bg-[#303030]"
-                  }`}
-                >
-                  Podcasts
-                </button>
-
-                {/* 3b. Podcasts Following Sub-Pill */}
-                {homeCategory === "podcasts" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPodcastSubFilter((prev) => (prev === "following" ? "all" : "following"));
-                    }}
-                    className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 flex-shrink-0 animate-fadeIn ${
-                      podcastSubFilter === "following"
-                        ? "bg-purple-500 text-white font-bold shadow-md"
-                        : "bg-[#282828] text-gray-200 hover:bg-[#353535] hover:text-white border border-white/10"
-                    }`}
-                  >
-                    <Users className="w-3.5 h-3.5" />
-                    <span>Đang theo dõi</span>
-                  </button>
-                )}
-
-                {/* 4. Audiobooks (Disabled with Amber Badge) */}
-                <div className="relative group/audiobook flex items-center flex-shrink-0">
-                  <button
-                    type="button"
-                    disabled
-                    className="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-[#242424]/50 text-gray-400 border border-white/5 cursor-not-allowed opacity-60 flex items-center gap-2 select-none"
-                  >
-                    <span>Sách nói</span>
-                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md tracking-wider">
-                      Đang phát triển
-                    </span>
-                  </button>
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 hidden group-hover/audiobook:block bg-[#1f1f1f] text-gray-200 text-[11px] px-2.5 py-1 rounded-md shadow-lg border border-white/10 whitespace-nowrap z-30 pointer-events-none">
-                    Tính năng Sách nói đang trong tiến trình phát triển và sẽ sớm ra mắt!
-                  </div>
-                </div>
-              </div>
-
               {/* CONDITIONAL CONTENT BASED ON CATEGORY & SUB-FILTER */}
               {homeCategory === "podcasts" ? (
                 /* PODCASTS VIEW */
