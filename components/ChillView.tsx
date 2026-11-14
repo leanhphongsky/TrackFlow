@@ -314,9 +314,23 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
       (idx === lyrics.length - 1 || effectiveCurrentTime < lyrics[idx + 1].start)
   );
 
+  const isIntro = activeIndex === -1 && lyrics.length > 0 && effectiveCurrentTime < lyrics[0].start;
+  const introCountdown = isIntro ? Math.max(0, Math.ceil(lyrics[0].start - effectiveCurrentTime)) : 0;
+
   const currentLine = activeIndex >= 0 ? lyrics[activeIndex] : null;
   const nextLine =
-    activeIndex >= 0 && activeIndex < lyrics.length - 1 ? lyrics[activeIndex + 1] : null;
+    activeIndex >= 0 && activeIndex < lyrics.length - 1
+      ? lyrics[activeIndex + 1]
+      : isIntro && lyrics.length > 0
+      ? lyrics[0]
+      : null;
+
+  // Check if current line has ended and there's an instrumental break before next line
+  const isInstrumentalBreak =
+    currentLine &&
+    nextLine &&
+    effectiveCurrentTime > currentLine.start + (currentLine.dur || 5) + 1.2 &&
+    effectiveCurrentTime < nextLine.start;
 
   // Progress ratio for active lyric line karaoke bar
   let progressRatio = 0;
@@ -325,7 +339,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
       activeIndex < lyrics.length - 1
         ? lyrics[activeIndex + 1].start
         : currentLine.start + (currentLine.dur || 4);
-    const lineDur = Math.max(0.5, nextStart - currentLine.start);
+    const lineDur = Math.max(0.5, Math.min(nextStart - currentLine.start, (currentLine.dur || 6) + 1));
     progressRatio = Math.min(1, Math.max(0, (effectiveCurrentTime - currentLine.start) / lineDur));
   }
 
@@ -373,16 +387,22 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
     }
   };
 
-  // Auto-scroll lyrics in panel mode smoothly
+  // Auto-scroll lyrics in panel mode smoothly (container-isolated, no page jumping)
   useEffect(() => {
     if (lyricsMode !== "panel" || isPanelUserScrollingRef.current) return;
-    if (panelActiveLineRef.current && panelScrollContainerRef.current) {
-      panelActiveLineRef.current.scrollIntoView({
+    const target = panelActiveLineRef.current;
+    const container = panelScrollContainerRef.current;
+    if (target && container) {
+      const targetTop = target.offsetTop;
+      const targetHeight = target.offsetHeight;
+      const containerHeight = container.offsetHeight;
+      const scrollTo = targetTop - containerHeight / 2 + targetHeight / 2;
+      container.scrollTo({
+        top: Math.max(0, scrollTo),
         behavior: "smooth",
-        block: "center",
       });
     }
-  }, [activeIndex, lyricsMode]);
+  }, [activeIndex, lyricsMode, effectiveCurrentTime]);
 
   const handlePanelScroll = () => {
     isPanelUserScrollingRef.current = true;
@@ -1189,6 +1209,26 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                 <div className="flex items-center gap-2 text-xs font-semibold text-gray-300 py-1">
                   <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                   <span>Đang tải lời bài hát...</span>
+                </div>
+              ) : isIntro && nextLine ? (
+                <div className="relative z-10 w-full flex flex-col items-center animate-fadeIn py-0.5">
+                  <div className="flex items-center gap-2 text-amber-300 text-xs sm:text-sm font-bold">
+                    <Music className="w-3.5 h-3.5 animate-pulse" />
+                    <span>Đoạn dạo đầu • Chuẩn bị {introCountdown > 0 ? `(${introCountdown}s)` : ""}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-white/80 font-semibold truncate max-w-[90%] mt-1 italic">
+                    Sắp hát: &ldquo;{nextLine.text}&rdquo;
+                  </p>
+                </div>
+              ) : isInstrumentalBreak && nextLine ? (
+                <div className="relative z-10 w-full flex flex-col items-center animate-fadeIn py-0.5">
+                  <div className="flex items-center gap-2 text-amber-300 text-xs sm:text-sm font-bold">
+                    <Music className="w-3.5 h-3.5 animate-pulse" />
+                    <span>Khúc dạo nhạc</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-white/80 font-semibold truncate max-w-[90%] mt-1 italic">
+                    Sắp tới: &ldquo;{nextLine.text}&rdquo;
+                  </p>
                 </div>
               ) : currentLine ? (
                 <div className="relative z-10 w-full flex flex-col items-center">

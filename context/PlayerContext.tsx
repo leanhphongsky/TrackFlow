@@ -479,7 +479,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           setCurrentTime(curr);
           if (dur > 0) setDuration(dur);
         }
-      }, 500);
+      }, 100);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
