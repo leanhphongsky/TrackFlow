@@ -949,25 +949,25 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
       </div>
 
       {/* 3. Top Header Bar & Dynamic Island */}
-      <div className="h-16 px-6 md:px-10 flex items-center justify-between z-30 flex-shrink-0">
+      <div className="h-16 px-3 sm:px-6 md:px-10 flex items-center justify-between z-30 flex-shrink-0">
         {/* Left: TrackFlow Chill Logo */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 to-amber-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
             <Waves className="w-4 h-4 text-white" />
           </div>
-          <span className="font-extrabold text-sm tracking-wide text-white drop-shadow">
+          <span className="font-extrabold text-xs sm:text-sm tracking-wide text-white drop-shadow hidden xs:inline sm:inline">
             TrackFlow Chill
           </span>
         </div>
 
         {/* Center: Dynamic Island Clock & Audio Pulse Indicator */}
-        <div className="bg-black/65 border border-white/10 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2.5 shadow-2xl">
+        <div className="bg-black/65 border border-white/10 backdrop-blur-md px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2.5 shadow-2xl flex-shrink-0">
           <span className="w-2 h-2 rounded-full bg-[#1db954] animate-pulse" />
-          <span className="text-xs font-mono font-bold text-gray-200">
+          <span className="text-[11px] sm:text-xs font-mono font-bold text-gray-200">
             {wallClock || "12:00 PM"}
           </span>
           {isPlaying && (
-            <div className="flex items-center gap-0.5 ml-1">
+            <div className="hidden xs:flex sm:flex items-center gap-0.5 ml-1">
               <span className="w-0.5 h-2 bg-[#1db954] rounded-full animate-pulse" />
               <span className="w-0.5 h-3.5 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
               <span className="w-0.5 h-2 bg-[#1db954] rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
@@ -976,7 +976,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         </div>
 
         {/* Right: Lyrics Mode, Wave Color Switcher, Background Theme, Sensitivity & Fullscreen / Close */}
-        <div className="flex items-center gap-2 relative">
+        <div className="flex items-center gap-1 sm:gap-2 relative flex-shrink-0">
           {/* Lyrics Mode Switcher Button */}
           <div className="relative">
             <button

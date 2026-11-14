@@ -14,6 +14,7 @@ import {
   Upload,
   Sparkles,
   Waves,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
@@ -24,6 +25,8 @@ interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onOpenArtist: (name: string) => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 export default function Sidebar({
@@ -31,6 +34,8 @@ export default function Sidebar({
   activeTab,
   setActiveTab,
   onOpenArtist,
+  isMobileOpen,
+  onMobileClose,
 }: SidebarProps) {
   const { user, favoriteSongs, openAuthModal, followedArtists } = useAuth();
   const {
@@ -43,6 +48,11 @@ export default function Sidebar({
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+
+  const handleNav = (action: () => void) => {
+    action();
+    onMobileClose?.();
+  };
 
   const handleCreatePlaylistClick = async () => {
     setIsMenuOpen(false);
@@ -57,6 +67,7 @@ export default function Sidebar({
       if (newPlaylist) {
         setSelectedPlaylistId(newPlaylist.id);
         setActiveTab("playlist");
+        onMobileClose?.();
       }
     } finally {
       setIsCreating(false);
@@ -66,89 +77,117 @@ export default function Sidebar({
   const handleSelectPlaylist = (id: number) => {
     setSelectedPlaylistId(id);
     setActiveTab("playlist");
+    onMobileClose?.();
   };
 
   return (
-    <aside
-      className={`w-64 bg-black flex flex-col h-full p-2 gap-2 text-gray-300 select-none border-r border-[#242424] flex-shrink-0 transition-all duration-300 ${
-        currentSong ? "pb-28" : "pb-2"
-      }`}
-    >
-      {/* Top Section */}
-      <div className="bg-[#121212] rounded-xl p-4 flex flex-col gap-4">
-        {/* Brand Logo & Version Badge */}
-        <div className="flex items-center justify-between gap-2">
-          <div
-            onClick={() => setActiveTab("home")}
-            className="flex items-center gap-2 cursor-pointer group min-w-0"
-          >
-            <Disc3 className="w-6 h-6 text-[#1db954] animate-spin-slow group-hover:scale-105 transition-transform flex-shrink-0" />
-            <img
-              src="/brand/trackflow-text.png"
-              alt="TrackFlow"
-              className="h-5 sm:h-5.5 w-auto max-w-[95px] object-contain select-none group-hover:scale-105 transition-transform drop-shadow"
-            />
+    <>
+      {/* Mobile Drawer Backdrop Overlay */}
+      {isMobileOpen && (
+        <div
+          onClick={onMobileClose}
+          className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 md:hidden animate-fadeIn"
+        />
+      )}
+
+      {/* Main Sidebar: Desktop (static w-64) + Mobile (slide-out drawer z-50) */}
+      <aside
+        className={`${
+          isMobileOpen
+            ? "fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-black shadow-2xl flex animate-fadeIn"
+            : "hidden md:flex md:w-64"
+        } flex-col h-full p-2 gap-2 text-gray-300 select-none border-r border-[#242424] flex-shrink-0 transition-all duration-300 ${
+          currentSong ? "pb-36 md:pb-28" : "pb-20 md:pb-2"
+        }`}
+      >
+        {/* Top Section */}
+        <div className="bg-[#121212] rounded-xl p-4 flex flex-col gap-4">
+          {/* Brand Logo & Version Badge */}
+          <div className="flex items-center justify-between gap-2">
+            <div
+              onClick={() => handleNav(() => setActiveTab("home"))}
+              className="flex items-center gap-2 cursor-pointer group min-w-0"
+            >
+              <Disc3 className="w-6 h-6 text-[#1db954] animate-spin-slow group-hover:scale-105 transition-transform flex-shrink-0" />
+              <img
+                src="/brand/trackflow-text.png"
+                alt="TrackFlow"
+                className="h-5 sm:h-5.5 w-auto max-w-[95px] object-contain select-none group-hover:scale-105 transition-transform drop-shadow"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {/* Version Badge (Clickable to open Changelog) */}
+              <button
+                onClick={() => handleNav(() => setActiveTab("changelog"))}
+                title="Xem nhật ký bản cập nhật Beta v2.4"
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide transition border shadow-sm flex-shrink-0 whitespace-nowrap ${
+                  activeTab === "changelog"
+                    ? "bg-[#1db954] text-black border-[#1db954] shadow-[0_0_10px_rgba(29,185,84,0.4)]"
+                    : "bg-[#1db954]/15 text-[#1db954] border-[#1db954]/30 hover:bg-[#1db954] hover:text-black hover:scale-105 active:scale-95"
+                }`}
+              >
+                <Sparkles className="w-2.5 h-2.5 flex-shrink-0" />
+                <span>Beta v2.4</span>
+              </button>
+
+              {/* Close Drawer Button on Mobile */}
+              {onMobileClose && (
+                <button
+                  onClick={onMobileClose}
+                  className="md:hidden p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+                  title="Đóng menu"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Version Badge (Clickable to open Changelog) */}
-          <button
-            onClick={() => setActiveTab("changelog")}
-            title="Xem nhật ký bản cập nhật Beta v2.4"
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide transition border shadow-sm flex-shrink-0 whitespace-nowrap ${
-              activeTab === "changelog"
-                ? "bg-[#1db954] text-black border-[#1db954] shadow-[0_0_10px_rgba(29,185,84,0.4)]"
-                : "bg-[#1db954]/15 text-[#1db954] border-[#1db954]/30 hover:bg-[#1db954] hover:text-black hover:scale-105 active:scale-95"
-            }`}
-          >
-            <Sparkles className="w-2.5 h-2.5 flex-shrink-0" />
-            <span>Beta v2.4</span>
-          </button>
+          {/* Navigation */}
+          <nav className="flex flex-col gap-1">
+            <button
+              onClick={() => handleNav(() => setActiveTab("home"))}
+              className={`flex items-center gap-4 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
+                activeTab === "home"
+                  ? "text-white bg-[#282828]"
+                  : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
+              }`}
+            >
+              <Home className="w-5 h-5 text-[#1db954]" />
+              <span>Trang chủ</span>
+            </button>
+
+            <button
+              onClick={() => handleNav(() => setActiveTab("search"))}
+              className={`flex items-center gap-4 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
+                activeTab === "search"
+                  ? "text-white bg-[#282828]"
+                  : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
+              }`}
+            >
+              <Search className="w-5 h-5" />
+              <span>Tìm kiếm</span>
+            </button>
+
+            <button
+              onClick={() => handleNav(() => setActiveTab("chill"))}
+              className={`flex items-center gap-4 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
+                activeTab === "chill"
+                  ? "text-white bg-gradient-to-r from-purple-900/40 to-[#282828] border-l-2 border-purple-400"
+                  : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
+              }`}
+            >
+              <Waves className="w-5 h-5 text-purple-400" />
+              <div className="flex items-center gap-2">
+                <span>Chill</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  Visualizer
+                </span>
+              </div>
+            </button>
+          </nav>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex flex-col gap-1">
-          <button
-            onClick={() => setActiveTab("home")}
-            className={`flex items-center gap-4 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
-              activeTab === "home"
-                ? "text-white bg-[#282828]"
-                : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
-            }`}
-          >
-            <Home className="w-5 h-5 text-[#1db954]" />
-            <span>Trang chủ</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("search")}
-            className={`flex items-center gap-4 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
-              activeTab === "search"
-                ? "text-white bg-[#282828]"
-                : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
-            }`}
-          >
-            <Search className="w-5 h-5" />
-            <span>Tìm kiếm</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("chill")}
-            className={`flex items-center gap-4 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${
-              activeTab === "chill"
-                ? "text-white bg-gradient-to-r from-purple-900/40 to-[#282828] border-l-2 border-purple-400"
-                : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
-            }`}
-          >
-            <Waves className="w-5 h-5 text-purple-400" />
-            <div className="flex items-center gap-2">
-              <span>Chill</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Visualizer
-              </span>
-            </div>
-          </button>
-        </nav>
-      </div>
 
       {/* Library Section */}
       <div className="bg-[#121212] rounded-xl p-3 flex-1 flex flex-col overflow-hidden relative">
@@ -204,7 +243,7 @@ export default function Sidebar({
         <div
           onClick={() => {
             if (!user) openAuthModal("login");
-            else setActiveTab("favorites");
+            else handleNav(() => setActiveTab("favorites"));
           }}
           className={`flex items-center gap-3 p-2 rounded-lg transition cursor-pointer mb-1 ${
             activeTab === "favorites" ? "bg-[#282828]" : "hover:bg-[#1f1f1f]"
@@ -275,7 +314,7 @@ export default function Sidebar({
               {followedArtists.map((artist) => (
                 <div
                   key={artist.id}
-                  onClick={() => onOpenArtist(artist.artist_name)}
+                  onClick={() => handleNav(() => onOpenArtist(artist.artist_name))}
                   className="group flex items-center gap-3 p-2 rounded-lg hover:bg-[#1f1f1f] transition cursor-pointer"
                 >
                   <div className="w-11 h-11 rounded-full overflow-hidden bg-black flex-shrink-0 shadow border border-white/10 group-hover:scale-105 transition">
@@ -321,7 +360,7 @@ export default function Sidebar({
         {/* Upload Card at bottom */}
         <div className="mt-2 pt-2 border-t border-white/5 space-y-2">
           <button
-            onClick={onOpenUpload}
+            onClick={() => handleNav(onOpenUpload)}
             className="w-full bg-[#1f1f1f] hover:bg-[#282828] text-white text-xs font-semibold py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition border border-white/5"
           >
             <Plus className="w-4 h-4 text-[#1db954]" />
@@ -331,7 +370,7 @@ export default function Sidebar({
           {/* Footer Navigation Links: Changelog & Terms */}
           <div className="grid grid-cols-2 gap-1.5 pt-1">
             <button
-              onClick={() => setActiveTab("changelog")}
+              onClick={() => handleNav(() => setActiveTab("changelog"))}
               className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded transition truncate ${
                 activeTab === "changelog"
                   ? "text-[#1db954] bg-[#1db954]/10 font-bold"
@@ -343,7 +382,7 @@ export default function Sidebar({
             </button>
 
             <button
-              onClick={() => setActiveTab("terms")}
+              onClick={() => handleNav(() => setActiveTab("terms"))}
               className={`flex items-center justify-center gap-1 py-1.5 px-2 text-[11px] font-medium rounded transition truncate ${
                 activeTab === "terms"
                   ? "text-[#1db954] bg-[#1db954]/10 font-bold"
@@ -357,5 +396,6 @@ export default function Sidebar({
         </div>
       </div>
     </aside>
+    </>
   );
 }

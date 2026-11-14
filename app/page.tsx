@@ -34,6 +34,8 @@ import {
   Disc3,
   Users,
   Waves,
+  Menu,
+  Home as HomeIcon,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
@@ -63,6 +65,7 @@ export default function Home() {
     name?: string;
   } | null>(null);
 
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
 
   const {
@@ -156,7 +159,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-black text-white font-sans">
-      {/* Left Sidebar */}
+      {/* Left Sidebar (Desktop Static + Mobile Slide-out Drawer) */}
       <Sidebar
         onOpenUpload={() => setIsUploadOpen(true)}
         activeTab={selectedArtist ? "artist" : activeTab}
@@ -165,25 +168,47 @@ export default function Home() {
           setActiveTab(tab);
         }}
         onOpenArtist={(name) => openArtist({ name })}
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileClose={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#121212] m-2 ml-0 mr-0 rounded-xl relative">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#121212] m-0 md:m-2 md:ml-0 md:mr-0 rounded-none md:rounded-xl relative">
         {/* Top Navbar */}
-        <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-[#121212]/90 backdrop-blur-md sticky top-0 z-40">
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-4 flex-1 max-w-lg">
+        <header className="h-16 px-3 sm:px-6 flex items-center justify-between border-b border-white/5 bg-[#121212]/90 backdrop-blur-md sticky top-0 z-30">
+          {/* Mobile Drawer Trigger & Brand Disc on Mobile */}
+          <div className="flex items-center gap-2 md:hidden mr-2">
+            <button
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="p-2 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition flex-shrink-0"
+              title="Mở menu điều hướng"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div
+              onClick={() => {
+                setSelectedArtist(null);
+                setActiveTab("home");
+              }}
+              className="flex items-center gap-1 cursor-pointer flex-shrink-0"
+            >
+              <Disc3 className="w-5 h-5 text-[#1db954] animate-spin-slow" />
+            </div>
+          </div>
+
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 sm:gap-4 flex-1 max-w-lg">
             <div className="relative w-full">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search className="w-4 h-4 absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm bài hát, nghệ sĩ từ YouTube..."
-                className="w-full bg-[#242424] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-sm text-white placeholder-gray-400 pl-10 pr-24 py-2 rounded-full border border-transparent focus:border-white/20 focus:outline-none transition"
+                className="w-full bg-[#242424] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-xs sm:text-sm text-white placeholder-gray-400 pl-8 sm:pl-10 pr-20 sm:pr-24 py-1.5 sm:py-2 rounded-full border border-transparent focus:border-white/20 focus:outline-none transition"
               />
               <button
                 type="submit"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-[#1db954] hover:bg-[#1ed760] text-black text-xs font-bold px-3 py-1 rounded-full transition flex items-center gap-1 shadow"
+                className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#1db954] hover:bg-[#1ed760] text-black text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full transition flex items-center gap-1 shadow"
               >
                 {isSearchingYt ? <Loader2 className="w-3 h-3 animate-spin" /> : "Tìm kiếm"}
               </button>
@@ -191,7 +216,7 @@ export default function Home() {
           </form>
 
           {/* User Profile / Auth Area */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 ml-2">
             <button
               onClick={() => setIsUploadOpen(true)}
               className="hidden sm:flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3.5 py-2 rounded-full hover:scale-105 transition shadow"
@@ -363,7 +388,7 @@ export default function Home() {
         )}
 
         {/* Scrollable View Area */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 pb-32">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 pb-44 md:pb-32">
           {/* VIEW 1: ARTIST PROFILE PAGE */}
           {selectedArtist ? (
             <ArtistView
@@ -833,6 +858,82 @@ export default function Home() {
           onClose={() => setIsLyricsFullscreen(false)}
           onOpenArtist={(name) => openArtist({ name })}
         />
+      )}
+
+      {/* Mobile Bottom Navigation Bar (Hidden on desktop & Chill mode) */}
+      {activeTab !== "chill" && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#121212]/95 border-t border-white/10 backdrop-blur-xl z-40 flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)] select-none">
+          {/* 1. Trang chủ */}
+          <button
+            onClick={() => {
+              setSelectedArtist(null);
+              setActiveTab("home");
+            }}
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
+              activeTab === "home" && !selectedArtist
+                ? "text-[#1db954]"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <HomeIcon className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Trang chủ</span>
+          </button>
+
+          {/* 2. Tìm kiếm */}
+          <button
+            onClick={() => {
+              setSelectedArtist(null);
+              setActiveTab("search");
+            }}
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
+              activeTab === "search"
+                ? "text-[#1db954]"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <Search className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Tìm kiếm</span>
+          </button>
+
+          {/* 3. Bài hát đã thích */}
+          <button
+            onClick={() => {
+              setSelectedArtist(null);
+              setActiveTab("favorites");
+            }}
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition ${
+              activeTab === "favorites"
+                ? "text-[#1db954]"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            <Heart className={`w-5 h-5 ${activeTab === "favorites" ? "fill-current" : ""}`} />
+            <span className="text-[10px] font-bold">Đã thích</span>
+          </button>
+
+          {/* 4. Chill Visualizer */}
+          <button
+            onClick={() => {
+              setSelectedArtist(null);
+              setActiveTab("chill");
+            }}
+            className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-purple-400 hover:text-purple-300 transition group"
+          >
+            <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-amber-400 flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform">
+              <Waves className="w-3.5 h-3.5" />
+            </div>
+            <span className="text-[10px] font-bold">Chill</span>
+          </button>
+
+          {/* 5. Menu Drawer */}
+          <button
+            onClick={() => setIsMobileSidebarOpen(true)}
+            className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-gray-400 hover:text-white transition"
+          >
+            <Menu className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Menu</span>
+          </button>
+        </nav>
       )}
     </div>
   );

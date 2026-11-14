@@ -69,9 +69,9 @@ export default function Player({
 
   return (
     <>
-      {/* Spotify Bottom Player Bar */}
+      {/* 1. Desktop Spotify Bottom Player Bar */}
       {currentSong && (
-        <div className="fixed bottom-0 left-0 right-0 h-24 bg-[#181818] border-t border-[#282828] px-4 flex items-center justify-between z-50 text-white select-none">
+        <div className="fixed bottom-0 left-0 right-0 h-24 bg-[#181818] border-t border-[#282828] px-4 hidden md:flex items-center justify-between z-50 text-white select-none">
           {/* Left: Song Info */}
           <div className="flex items-center gap-3 w-1/4 min-w-[180px]">
             <div className="relative group">
@@ -243,6 +243,95 @@ export default function Player({
               onChange={(e) => setVolumeLevel(Number(e.target.value))}
               className="w-24 h-1 bg-[#4d4d4d] rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none"
             />
+          </div>
+        </div>
+      )}
+
+      {/* 2. Mobile Floating Mini-Player Pill */}
+      {currentSong && (
+        <div className="fixed bottom-[68px] left-2 right-2 z-40 rounded-2xl bg-[#202020]/95 border border-white/15 backdrop-blur-2xl shadow-[0_12px_32px_rgba(0,0,0,0.85)] p-2.5 flex md:hidden items-center justify-between pointer-events-auto select-none overflow-hidden animate-fadeIn">
+          {/* Slim Progress Bar */}
+          <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-white/15">
+            <div
+              className="h-full bg-[#1db954] transition-all duration-100 ease-linear shadow-sm"
+              style={{ width: `${((currentTime || 0) / (duration || 1)) * 100}%` }}
+            />
+          </div>
+
+          {/* Left: Thumbnail & Title (Tapping opens Chill View or Lyrics) */}
+          <div
+            onClick={onOpenChill || toggleLyricsFullscreen}
+            className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer pr-2"
+          >
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 border border-white/10 flex-shrink-0 shadow-md">
+              {currentSong.image_url ? (
+                <img
+                  src={currentSong.image_url}
+                  alt={currentSong.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <Music className="w-5 h-5" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-white truncate">
+                {currentSong.title}
+              </p>
+              <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                {currentSong.artist}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Quick Touch-Friendly Controls */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Chill View Shortcut */}
+            {onOpenChill && (
+              <button
+                onClick={onOpenChill}
+                className="p-2 rounded-full text-purple-400 hover:text-purple-300 hover:bg-purple-500/15 transition active:scale-95"
+                title="Mở Visualizer Chill"
+              >
+                <Waves className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Favorite Heart */}
+            <button
+              onClick={() => toggleFavorite(currentSong)}
+              className={`p-2 rounded-full transition active:scale-95 ${
+                isCurrentFav ? "text-[#1db954]" : "text-gray-400 hover:text-white"
+              }`}
+              title={isCurrentFav ? "Bỏ thích" : "Yêu thích"}
+            >
+              <Heart className={`w-4 h-4 ${isCurrentFav ? "fill-current" : ""}`} />
+            </button>
+
+            {/* Play / Pause Circular Button */}
+            <button
+              onClick={togglePlay}
+              className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-black shadow-md hover:scale-105 active:scale-90 transition"
+              title={isPlaying ? "Tạm dừng" : "Phát"}
+            >
+              {isPlaying ? (
+                <Pause className="w-4 h-4 fill-black" />
+              ) : (
+                <Play className="w-4 h-4 fill-black ml-0.5" />
+              )}
+            </button>
+
+            {/* Next Song */}
+            <button
+              onClick={nextSong}
+              className="p-1.5 rounded-full text-gray-400 hover:text-white transition active:scale-95"
+              title="Bài tiếp theo"
+            >
+              <SkipForward className="w-4 h-4 fill-current" />
+            </button>
           </div>
         </div>
       )}
