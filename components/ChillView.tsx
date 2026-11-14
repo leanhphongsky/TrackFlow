@@ -272,6 +272,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
   const [wallClock, setWallClock] = useState("");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const diskRef = useRef<HTMLDivElement | null>(null);
   const animFrameIdRef = useRef<number | null>(null);
   const bassScaleRef = useRef<number>(1);
   const edgeGlowEnergyRef = useRef<number>(0);
@@ -450,17 +451,25 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         rightEdgeRef.current.style.transform = `scaleX(${scaleX.toFixed(3)})`;
       }
 
-      // 3. DRAW 120-BAND ORGANIC 360° HALO WAVEFORM AROUND VINYL DISK
+      // 3. DRAW 128-BAND ORGANIC 360° HALO WAVEFORM AROUND VINYL DISK
       const isMobile = width < 640;
-      const centerX = width / 2;
-      const centerY = height / 2 - 50;
+      const diskEl = diskRef.current;
+      let centerX = width / 2;
+      let centerY = height / 2 - 30;
+      let diskRadius = isMobile ? 96 : 115;
 
-      // Rock-solid fixed radius matching CSS disk precisely (no overlap, no clipping)
-      const diskRadius = isMobile ? 112 : 130;
-      const innerRadius = diskRadius + 6;
+      // Pixel-perfect alignment: calculate exact disk center directly from DOM bounding rect
+      if (diskEl && canvas) {
+        const diskRect = diskEl.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        centerX = diskRect.left + diskRect.width / 2 - canvasRect.left;
+        centerY = diskRect.top + diskRect.height / 2 - canvasRect.top;
+        diskRadius = diskRect.width / 2;
+      }
 
+      const innerRadius = diskRadius + 4;
       const barHeights = barHeightsRef.current;
-      const lineWidth = isMobile ? 2.8 : 3.4;
+      const lineWidth = isMobile ? 2.6 : 3.2;
       const angleStep = (Math.PI * 2) / numTotalBars;
 
       // Update 128 completely independent frequency bands (NO MIRRORING, ORGANIC 360°)
@@ -497,10 +506,11 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           energy = Math.max(0, rawEnergy);
         }
 
-        let targetH = 5; // Idle baseline
+        // Clearly visible glowing baseline teeth even when paused (8px)!
+        let targetH = 8;
         if (isPlaying && effectiveVol > 0) {
-          // Balanced, elegant grand length that radiates cleanly without invading mini-player
-          targetH = Math.max(5, Math.min(85, 5 + energy * 68));
+          // Dynamic grand length that radiates cleanly without invading mini-player
+          targetH = Math.max(8, Math.min(65, 8 + energy * 52));
         }
 
         // Snappy Attack (0.65) and Smooth Gravity Falloff (0.14)
@@ -517,8 +527,6 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
       ctx.strokeStyle = activeWaveColor.getBarColor(0);
       ctx.lineWidth = 1.8;
       ctx.shadowBlur = 12;
-      ctx.shadowColor = activeWaveColor.getBarColor(0);
-      ctx.stroke();
       ctx.shadowColor = activeWaveColor.getBarColor(0);
       ctx.stroke();
 
@@ -540,7 +548,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         ctx.strokeStyle = barColor;
         ctx.lineWidth = lineWidth;
         ctx.lineCap = "round";
-        ctx.shadowBlur = 9;
+        ctx.shadowBlur = 8;
         ctx.shadowColor = barColor;
         ctx.stroke();
       }
@@ -809,7 +817,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
       </div>
 
       {/* 4. Main Center Stage: Audio Visualizer Canvas + Rotating Vinyl Album Disk */}
-      <div className="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+      <div className="flex-1 relative flex flex-col items-center justify-center p-4 overflow-hidden">
         {/* Background Visualizer Canvas (128-Band Organic 360° Halo Waveform) */}
         <canvas
           ref={canvasRef}
@@ -818,14 +826,15 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
 
         {/* Center Circular Rotating Album Cover Disk (Continuous 60FPS CSS GPU Rotation) */}
         <div
-          className="relative z-10 transition-transform duration-75 flex flex-col items-center pointer-events-auto"
+          className="relative z-20 flex flex-col items-center justify-center pointer-events-auto transition-transform duration-75 flex-shrink-0"
           style={{
-            transform: `translateY(-50px) scale(${bassScaleRef.current})`,
+            transform: `scale(${bassScaleRef.current})`,
           }}
         >
           {/* Inner Album Art Circle with Outer Ring Accent */}
           <div
-            className="w-56 h-56 sm:w-[260px] sm:h-[260px] rounded-full overflow-hidden border-4 border-black/85 shadow-[0_0_50px_rgba(249,115,22,0.35)] relative bg-black flex items-center justify-center group select-none"
+            ref={diskRef}
+            className="w-48 h-48 sm:w-56 sm:h-56 md:w-60 md:h-60 rounded-full overflow-hidden border-4 border-black/85 shadow-[0_0_40px_rgba(249,115,22,0.35)] relative bg-black flex items-center justify-center group select-none flex-shrink-0"
           >
             {/* Smoothly Rotating Vinyl Image (100% Continuous, Non-Stuttering) */}
             <div
@@ -838,7 +847,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                 <img
                   src={currentSong.image_url}
                   alt={currentSong.title}
-                  className="w-full h-full object-cover scale-[1.38] select-none pointer-events-none"
+                  className="w-full h-full object-cover scale-[1.4] select-none pointer-events-none"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-tr from-neutral-900 to-neutral-800 flex items-center justify-center">
@@ -855,12 +864,11 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           </div>
         </div>
 
-        {/* 5. Center Floating Mini-Player Bar with Signature Frosted Glassmorphism */}
-        <div className="absolute bottom-6 sm:bottom-8 z-30 w-[90%] max-w-md bg-black/45 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col gap-2 pointer-events-auto animate-fadeIn overflow-hidden relative">
-
-          {/* Top Row: Artwork Thumbnail, Title, Artist, and Favorite/Playlist */}
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="w-11 h-11 rounded-lg overflow-hidden bg-white/10 border border-white/20 flex-shrink-0 shadow-md">
+        {/* 5. Sleek Compact Glass Mini-Player (Positioned in natural flow directly below visualizer - ZERO OVERLAP) */}
+        <div className="relative z-30 mt-6 sm:mt-8 w-[92%] max-w-md bg-black/50 border border-white/20 backdrop-blur-2xl backdrop-saturate-150 rounded-2xl p-3 shadow-[0_12px_36px_rgba(0,0,0,0.55),inset_0_1px_1px_rgba(255,255,255,0.2)] flex flex-col gap-1.5 pointer-events-auto animate-fadeIn overflow-hidden flex-shrink-0">
+          {/* Row 1: Artwork, Title & Artist, Playback Controls */}
+          <div className="flex items-center gap-2.5 relative z-10">
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 border border-white/20 flex-shrink-0 shadow">
               {currentSong?.image_url ? (
                 <img
                   src={currentSong.image_url}
@@ -869,51 +877,96 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <Music className="w-5 h-5" />
+                  <Music className="w-4 h-4" />
                 </div>
               )}
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-extrabold text-white truncate hover:underline cursor-pointer drop-shadow-sm">
+              <p className="text-xs font-extrabold text-white truncate hover:underline cursor-pointer drop-shadow-sm">
                 {currentSong?.title || "Chưa phát bài hát nào"}
               </p>
               <p
                 onClick={() => currentSong?.artist && onOpenArtist?.(currentSong.artist)}
-                className="text-[11px] text-gray-300 truncate hover:text-white hover:underline cursor-pointer mt-0.5"
+                className="text-[10px] text-gray-300 truncate hover:text-white hover:underline cursor-pointer"
               >
                 {currentSong?.artist || "TrackFlow"}
               </p>
             </div>
 
-            {/* Actions */}
-            {currentSong && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={() => openAddToPlaylist(currentSong)}
-                  className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
-                  title="Thêm vào danh sách phát"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+            {/* Controls */}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={toggleLoop}
+                className={`p-1 rounded-full transition ${
+                  isLooping ? "text-[#fbbf24]" : "text-gray-400 hover:text-white"
+                }`}
+                title="Lặp lại"
+              >
+                <Repeat className="w-3 h-3" />
+              </button>
+
+              <button
+                onClick={prevSong}
+                className="p-1 text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
+                title="Bài trước"
+              >
+                <SkipBack className="w-3.5 h-3.5 fill-current" />
+              </button>
+
+              <button
+                onClick={togglePlay}
+                className="w-8 h-8 rounded-full bg-white hover:scale-105 active:scale-95 flex items-center justify-center text-black shadow-[0_0_15px_rgba(255,255,255,0.45)] transition"
+                title={isPlaying ? "Tạm dừng" : "Phát"}
+              >
+                {isPlaying ? (
+                  <Pause className="w-3.5 h-3.5 fill-black" />
+                ) : (
+                  <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
+                )}
+              </button>
+
+              <button
+                onClick={nextSong}
+                className="p-1 text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
+                title="Bài tiếp theo"
+              >
+                <SkipForward className="w-3.5 h-3.5 fill-current" />
+              </button>
+
+              {currentSong && (
                 <button
                   onClick={() => toggleFavorite(currentSong)}
-                  className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
+                  className="p-1 text-gray-400 hover:text-white transition"
                   title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
                 >
                   <Heart
-                    className={`w-4 h-4 transition ${
+                    className={`w-3.5 h-3.5 transition ${
                       favorited ? "fill-[#1db954] text-[#1db954]" : ""
                     }`}
                   />
                 </button>
-              </div>
-            )}
+              )}
+
+              <button
+                onClick={toggleMute}
+                className="p-1 text-gray-400 hover:text-white transition"
+                title={isMuted ? "Bật âm thanh" : "Tắt tiếng"}
+              >
+                {isMuted || volume === 0 ? (
+                  <VolumeX className="w-3.5 h-3.5" />
+                ) : volume < 0.5 ? (
+                  <Volume1 className="w-3.5 h-3.5" />
+                ) : (
+                  <Volume2 className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </div>
           </div>
 
-          {/* Middle Row: Scrubber Progress Bar */}
-          <div className="flex items-center gap-2 text-[10px] text-gray-300 font-mono relative z-10">
-            <span className="w-8 text-right drop-shadow">{formatTime(currentTime)}</span>
+          {/* Row 2: Compact Scrubber Progress Bar */}
+          <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono relative z-10 px-0.5">
+            <span className="w-7 text-right drop-shadow">{formatTime(currentTime)}</span>
             <div className="relative flex-1 flex items-center cursor-pointer">
               <input
                 type="range"
@@ -924,66 +977,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                 className="w-full h-1 bg-white/20 hover:bg-white/30 rounded-lg appearance-none cursor-pointer accent-[#fbbf24] focus:outline-none transition"
               />
             </div>
-            <span className="w-8 drop-shadow">{formatTime(duration)}</span>
-          </div>
-
-          {/* Bottom Row: Playback Controls & Volume */}
-          <div className="flex items-center justify-between pt-1 border-t border-white/10 relative z-10">
-            <button
-              onClick={toggleLoop}
-              className={`p-1.5 rounded-full transition ${
-                isLooping ? "text-[#fbbf24]" : "text-gray-300 hover:text-white hover:bg-white/10"
-              }`}
-              title="Lặp lại"
-            >
-              <Repeat className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Center: Prev, Play/Pause, Next */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={prevSong}
-                className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
-                title="Bài trước"
-              >
-                <SkipBack className="w-4 h-4 fill-current" />
-              </button>
-
-              <button
-                onClick={togglePlay}
-                className="w-9 h-9 rounded-full bg-white hover:scale-105 active:scale-95 flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.45)] transition"
-                title={isPlaying ? "Tạm dừng" : "Phát"}
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 fill-black" />
-                ) : (
-                  <Play className="w-4 h-4 fill-black ml-0.5" />
-                )}
-              </button>
-
-              <button
-                onClick={nextSong}
-                className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
-                title="Bài tiếp theo"
-              >
-                <SkipForward className="w-4 h-4 fill-current" />
-              </button>
-            </div>
-
-            {/* Right: Mute toggle */}
-            <button
-              onClick={toggleMute}
-              className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition"
-              title={isMuted ? "Bật âm thanh" : "Tắt tiếng"}
-            >
-              {isMuted || volume === 0 ? (
-                <VolumeX className="w-3.5 h-3.5" />
-              ) : volume < 0.5 ? (
-                <Volume1 className="w-3.5 h-3.5" />
-              ) : (
-                <Volume2 className="w-3.5 h-3.5" />
-              )}
-            </button>
+            <span className="w-7 drop-shadow">{formatTime(duration)}</span>
           </div>
         </div>
       </div>
