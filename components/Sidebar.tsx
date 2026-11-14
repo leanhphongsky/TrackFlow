@@ -80,12 +80,14 @@ export default function Sidebar({
         <div className="flex items-center justify-between">
           <div
             onClick={() => setActiveTab("home")}
-            className="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight cursor-pointer group"
+            className="flex items-center gap-2 cursor-pointer group"
           >
-            <Disc3 className="w-7 h-7 text-[#1db954] animate-spin-slow group-hover:scale-105 transition-transform" />
-            <span className="bg-gradient-to-r from-white via-gray-200 to-[#1db954] bg-clip-text text-transparent">
-              TrackFlow
-            </span>
+            <Disc3 className="w-7 h-7 text-[#1db954] animate-spin-slow group-hover:scale-105 transition-transform flex-shrink-0" />
+            <img
+              src="/brand/chu-trackflow.png"
+              alt="TrackFlow"
+              className="h-8 sm:h-9 w-auto object-contain select-none group-hover:scale-105 transition-transform drop-shadow"
+            />
           </div>
 
           {/* Version Badge (Clickable to open Changelog) */}
