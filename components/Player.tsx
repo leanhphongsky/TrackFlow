@@ -52,6 +52,9 @@ export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerP
     setVolumeLevel,
     toggleMute,
     toggleLoop,
+    isLyricsFullscreen,
+    toggleLyricsFullscreen,
+    hasLyrics,
   } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
@@ -173,36 +176,33 @@ export default function Player({ onToggleRightPanel, isRightPanelOpen }: PlayerP
             </div>
           </div>
 
-          {/* Right: Lyrics, Video Toggle & Volume */}
+          {/* Right: Lyrics Karaoke, Video/Canvas Toggle & Volume */}
           <div className="flex items-center justify-end gap-3 w-1/4 min-w-[150px]">
+            {/* Fullscreen Karaoke Lyrics Toggle */}
+            <button
+              onClick={toggleLyricsFullscreen}
+              className={`p-2 rounded-full transition ${
+                isLyricsFullscreen
+                  ? "text-[#1db954] bg-[#1db954]/20 shadow-[0_0_12px_rgba(29,185,84,0.3)]"
+                  : hasLyrics
+                  ? "text-gray-300 hover:text-[#1db954] hover:bg-white/10"
+                  : "text-gray-400 hover:text-white hover:bg-white/10"
+              }`}
+              title="Xem Lời bài hát Karaoke toàn màn hình"
+            >
+              <Mic2 className="w-5 h-5" />
+            </button>
+
+            {/* Right Panel / Canvas Toggle */}
             {onToggleRightPanel && (
               <button
                 onClick={onToggleRightPanel}
                 className={`p-2 rounded-full transition ${
                   isRightPanelOpen
                     ? "text-[#1db954] bg-white/10"
-                    : "text-gray-400 hover:text-white"
+                    : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
-                title="Hiện thông tin & Lời bài hát"
-              >
-                <Mic2 className="w-5 h-5" />
-              </button>
-            )}
-
-            {isYouTube && (
-              <button
-                onClick={() => {
-                  if (!isRightPanelOpen && onToggleRightPanel) {
-                    onToggleRightPanel();
-                  }
-                  setShowVideo(!showVideo);
-                }}
-                className={`p-2 rounded-full transition ${
-                  showVideo && isRightPanelOpen
-                    ? "text-[#1db954] bg-white/10"
-                    : "text-gray-400 hover:text-white"
-                }`}
-                title={showVideo && isRightPanelOpen ? "Tắt Canvas Video" : "Xem Spotify Canvas Video"}
+                title="Thông tin bài hát & Ảnh bìa"
               >
                 <Tv className="w-5 h-5" />
               </button>

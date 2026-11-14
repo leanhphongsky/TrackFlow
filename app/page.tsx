@@ -17,6 +17,7 @@ import PlaylistView from "@/components/PlaylistView";
 import AddToPlaylistModal from "@/components/AddToPlaylistModal";
 import FollowedArtistsFeed from "@/components/FollowedArtistsFeed";
 import PodcastsSection from "@/components/PodcastsSection";
+import FullscreenLyricsView from "@/components/FullscreenLyricsView";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -68,6 +69,8 @@ export default function Home() {
     isRightPanelOpen,
     setIsRightPanelOpen,
     toggleRightPanel,
+    isLyricsFullscreen,
+    setIsLyricsFullscreen,
   } = usePlayer();
   const { user, loading: authLoading, openAuthModal, logout, favoriteSongs, isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist, selectedPlaylistId, setSelectedPlaylistId } = usePlaylist();
@@ -798,6 +801,14 @@ export default function Home() {
 
       {/* Spotify-style Add to Playlist Modal */}
       <AddToPlaylistModal />
+
+      {/* Fullscreen Apple Music / Spotify Style Karaoke Lyrics Experience */}
+      {isLyricsFullscreen && currentSong && (
+        <FullscreenLyricsView
+          onClose={() => setIsLyricsFullscreen(false)}
+          onOpenArtist={(name) => openArtist({ name })}
+        />
+      )}
     </div>
   );
 }

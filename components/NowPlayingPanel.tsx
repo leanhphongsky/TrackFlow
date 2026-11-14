@@ -48,18 +48,18 @@ export default function NowPlayingPanel({
     showVideo,
     setShowVideo,
     seekTo,
+    lyrics,
+    hasLyrics,
+    isSyncedLyrics,
+    lyricsSource,
+    lyricsOffset,
+    setLyricsOffset,
+    lyricsMessage,
+    loadingLyrics,
+    toggleLyricsFullscreen,
   } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
-
-  const [lyrics, setLyrics] = useState<LyricLine[]>([]);
-  const [hasLyrics, setHasLyrics] = useState<boolean>(false);
-  const [isSyncedLyrics, setIsSyncedLyrics] = useState<boolean>(false);
-  const [lyricsSource, setLyricsSource] = useState<string>("");
-  const [lyricsOffset, setLyricsOffset] = useState<number>(0);
-  const [lyricsMessage, setLyricsMessage] = useState<string>("");
-  const [loadingLyrics, setLoadingLyrics] = useState<boolean>(false);
-  const [isExpandedLyrics, setIsExpandedLyrics] = useState<boolean>(false);
 
   const activeLineRef = useRef<HTMLParagraphElement | null>(null);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
@@ -67,64 +67,6 @@ export default function NowPlayingPanel({
   const favorited = currentSong ? isFavorite(currentSong) : false;
   const isCanvasMode = Boolean(isYouTube && showVideo);
   const isPanelVisible = isOpen && currentSong !== null;
-
-  useEffect(() => {
-    setLyricsOffset(0);
-    if (!currentSong) {
-      setLyrics([]);
-      setHasLyrics(false);
-      setIsSyncedLyrics(false);
-      setLyricsSource("");
-      return;
-    }
-
-    const videoId =
-      currentSong.videoId || extractYouTubeId(currentSong.audio_url);
-
-    async function fetchLyrics() {
-      try {
-        setLoadingLyrics(true);
-        const params = new URLSearchParams();
-        if (videoId) params.set("videoId", videoId);
-        if (currentSong?.title) params.set("title", currentSong.title);
-        if (currentSong?.artist) params.set("artist", currentSong.artist);
-
-        const res = await fetch(`/api/youtube/lyrics?${params.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.hasLyrics && data.lines?.length > 0) {
-            setHasLyrics(true);
-            setIsSyncedLyrics(Boolean(data.isSynced));
-            setLyricsSource(data.source || "");
-            setLyrics(data.lines);
-            setLyricsMessage("");
-          } else {
-            setHasLyrics(false);
-            setIsSyncedLyrics(false);
-            setLyricsSource("");
-            setLyricsMessage(data.message || "Hiện bài hát này chưa có lời");
-            setLyrics([]);
-          }
-        } else {
-          setHasLyrics(false);
-          setIsSyncedLyrics(false);
-          setLyricsSource("");
-          setLyricsMessage("Hiện bài hát này chưa có lời");
-          setLyrics([]);
-        }
-      } catch (err) {
-        setHasLyrics(false);
-        setIsSyncedLyrics(false);
-        setLyricsSource("");
-        setLyricsMessage("Hiện bài hát này chưa có lời");
-        setLyrics([]);
-      } finally {
-        setLoadingLyrics(false);
-      }
-    }
-
-    fetchLyrics();
-  }, [currentSong?.id, currentSong?.audio_url, currentSong?.title, currentSong?.artist]);
 
   const effectiveCurrentTime = currentTime + lyricsOffset;
 
@@ -331,26 +273,31 @@ export default function NowPlayingPanel({
             )}
           </div>
 
-          {/* Lyrics Box */}
-          <div
-            className={`rounded-xl p-4 transition-all duration-300 ${
-              isExpandedLyrics
-                ? "bg-[#1c181a] fixed inset-4 z-50 overflow-hidden flex flex-col shadow-2xl border border-white/20"
-                : "bg-[#1c181a] border border-white/5"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-3">
+          {/* Redesigned Premium Glassmorphic Lyrics Box */}
+          <div className="rounded-2xl p-4 bg-gradient-to-br from-neutral-900/90 via-[#181818] to-neutral-950 border border-white/10 shadow-2xl relative overflow-hidden group">
+            {/* Ambient Accent Aura */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#1db954]/10 rounded-full blur-2xl pointer-events-none" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3 relative z-10">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-base text-white">Lyrics</span>
+                <span className="font-extrabold text-sm text-white flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-[#1db954]" />
+                  <span>Lời bài hát</span>
+                </span>
                 {isSyncedLyrics && (
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    {lyricsSource === "youtube-captions" ? "Khớp chuẩn video" : "Đồng bộ thời gian thực"}
+                  <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    {lyricsSource === "youtube-captions" ? "Khớp chuẩn video" : "Đồng bộ thời gian"}
                   </span>
                 )}
               </div>
+
               <div className="flex items-center gap-1">
                 {isSyncedLyrics && (
-                  <div className="flex items-center gap-1 text-[11px] bg-white/5 border border-white/10 rounded-lg px-1.5 py-0.5 mr-1" title="Điều chỉnh độ trễ lời bài hát">
+                  <div
+                    className="flex items-center gap-0.5 text-[10px] bg-white/5 border border-white/10 rounded-lg px-1.5 py-0.5 mr-1"
+                    title="Điều chỉnh độ trễ lời bài hát"
+                  >
                     <button
                       onClick={() => setLyricsOffset((prev) => Math.round((prev - 0.5) * 10) / 10)}
                       className="px-1 text-gray-400 hover:text-white transition font-mono hover:bg-white/10 rounded"
@@ -376,20 +323,19 @@ export default function NowPlayingPanel({
                     </button>
                   </div>
                 )}
+
+                {/* Fullscreen Karaoke Launch Button */}
                 <button
-                  onClick={() => setIsExpandedLyrics(!isExpandedLyrics)}
-                  className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-                  title={isExpandedLyrics ? "Thu nhỏ" : "Mở rộng"}
+                  onClick={toggleLyricsFullscreen}
+                  className="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition border border-white/5 shadow-sm"
+                  title="Mở toàn màn hình Karaoke"
                 >
-                  {isExpandedLyrics ? (
-                    <Minimize2 className="w-4 h-4" />
-                  ) : (
-                    <Maximize2 className="w-4 h-4" />
-                  )}
+                  <Maximize2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
+            {/* Lyrics Content Stream */}
             {loadingLyrics ? (
               <div className="py-8 flex flex-col items-center justify-center text-gray-400 gap-2">
                 <Loader2 className="w-5 h-5 animate-spin text-[#1db954]" />
@@ -397,21 +343,19 @@ export default function NowPlayingPanel({
               </div>
             ) : !hasLyrics ? (
               <div className="py-6 text-center">
-                <p className="text-sm text-gray-400 italic font-medium">
+                <p className="text-xs text-gray-400 italic font-medium">
                   {lyricsMessage || "Hiện bài hát này chưa có lời"}
                 </p>
               </div>
             ) : (
               <div
                 ref={lyricsContainerRef}
-                className={`space-y-3.5 overflow-y-auto pr-1 select-text scroll-smooth ${
-                  isExpandedLyrics ? "flex-1 max-h-none py-6" : "max-h-60"
-                }`}
+                className="space-y-3 max-h-64 overflow-y-auto pr-1 select-text scroll-smooth scrollbar-none"
               >
                 {lyrics.map((line, idx) => {
                   const isActive = idx === activeIndex;
                   return (
-                    <p
+                    <div
                       key={idx}
                       ref={isActive ? activeLineRef : null}
                       onClick={() => {
@@ -419,20 +363,51 @@ export default function NowPlayingPanel({
                           seekTo(line.start);
                         }
                       }}
-                      className={`transition-all duration-200 leading-relaxed ${
+                      className={`group/line flex items-start gap-2.5 transition-all duration-200 ${
                         isSyncedLyrics ? "cursor-pointer" : ""
-                      } ${
-                        isActive
-                          ? "text-white font-extrabold text-base drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] scale-[1.01] origin-left"
-                          : "text-gray-400 hover:text-white font-semibold text-sm hover:scale-[1.005] origin-left"
                       }`}
                       title={isSyncedLyrics ? "Bấm để phát từ đoạn này" : undefined}
                     >
-                      {line.text}
-                    </p>
+                      {/* Active Indicator Bar & Wave */}
+                      {isActive && (
+                        <div className="flex items-center gap-0.5 pt-1 flex-shrink-0">
+                          <span className="w-1 h-3 bg-[#1db954] rounded-full animate-pulse" />
+                          <span className="w-1 h-4 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1 h-2 bg-[#1db954] rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
+                        </div>
+                      )}
+
+                      <p
+                        className={`transition-all duration-200 leading-relaxed flex-1 ${
+                          isActive
+                            ? "text-white font-extrabold text-sm drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] scale-[1.01] origin-left"
+                            : "text-gray-400 hover:text-white font-medium text-xs hover:scale-[1.005] origin-left"
+                        }`}
+                      >
+                        {line.text}
+                      </p>
+
+                      {/* Line Hover Jump Icon */}
+                      {isSyncedLyrics && !isActive && (
+                        <span className="opacity-0 group-hover/line:opacity-100 text-gray-400 hover:text-[#1db954] text-[10px] flex-shrink-0 pt-0.5">
+                          <Play className="w-3 h-3 fill-current" />
+                        </span>
+                      )}
+                    </div>
                   );
                 })}
               </div>
+            )}
+
+            {/* Bottom Fullscreen Pill Button */}
+            {hasLyrics && (
+              <button
+                onClick={toggleLyricsFullscreen}
+                className="mt-3 w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-gray-300 hover:text-white text-xs font-bold transition flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#1db954]" />
+                <span>Xem toàn màn hình Karaoke</span>
+              </button>
             )}
           </div>
 

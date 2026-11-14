@@ -9,6 +9,12 @@ export function extractYouTubeId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+export interface LyricLine {
+  start: number;
+  dur: number;
+  text: string;
+}
+
 interface PlayerContextType {
   currentSong: Song | null;
   isPlaying: boolean;
@@ -33,6 +39,18 @@ interface PlayerContextType {
   setVolumeLevel: (vol: number) => void;
   toggleMute: () => void;
   toggleLoop: () => void;
+  // Lyrics state
+  lyrics: LyricLine[];
+  hasLyrics: boolean;
+  isSyncedLyrics: boolean;
+  lyricsSource: string;
+  lyricsOffset: number;
+  setLyricsOffset: React.Dispatch<React.SetStateAction<number>>;
+  lyricsMessage: string;
+  loadingLyrics: boolean;
+  isLyricsFullscreen: boolean;
+  setIsLyricsFullscreen: (open: boolean) => void;
+  toggleLyricsFullscreen: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -80,6 +98,77 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
 
   const toggleRightPanel = () => setIsRightPanelOpen((prev) => !prev);
+
+  // Global Lyrics state shared across NowPlayingPanel and FullscreenLyricsView
+  const [lyrics, setLyrics] = useState<LyricLine[]>([]);
+  const [hasLyrics, setHasLyrics] = useState<boolean>(false);
+  const [isSyncedLyrics, setIsSyncedLyrics] = useState<boolean>(false);
+  const [lyricsSource, setLyricsSource] = useState<string>("");
+  const [lyricsOffset, setLyricsOffset] = useState<number>(0);
+  const [lyricsMessage, setLyricsMessage] = useState<string>("");
+  const [loadingLyrics, setLoadingLyrics] = useState<boolean>(false);
+  const [isLyricsFullscreen, setIsLyricsFullscreen] = useState<boolean>(false);
+
+  const toggleLyricsFullscreen = () => setIsLyricsFullscreen((prev) => !prev);
+
+  // Automatically fetch lyrics whenever current song changes
+  useEffect(() => {
+    setLyricsOffset(0);
+    if (!currentSong) {
+      setLyrics([]);
+      setHasLyrics(false);
+      setIsSyncedLyrics(false);
+      setLyricsSource("");
+      setLyricsMessage("");
+      return;
+    }
+
+    const videoId = currentSong.videoId || extractYouTubeId(currentSong.audio_url);
+
+    async function fetchLyrics() {
+      try {
+        setLoadingLyrics(true);
+        const params = new URLSearchParams();
+        if (videoId) params.set("videoId", videoId);
+        if (currentSong?.title) params.set("title", currentSong.title);
+        if (currentSong?.artist) params.set("artist", currentSong.artist);
+
+        const res = await fetch(`/api/youtube/lyrics?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hasLyrics && data.lines?.length > 0) {
+            setHasLyrics(true);
+            setIsSyncedLyrics(Boolean(data.isSynced));
+            setLyricsSource(data.source || "");
+            setLyrics(data.lines);
+            setLyricsMessage("");
+          } else {
+            setHasLyrics(false);
+            setIsSyncedLyrics(false);
+            setLyricsSource("");
+            setLyricsMessage(data.message || "Hiện bài hát này chưa có lời");
+            setLyrics([]);
+          }
+        } else {
+          setHasLyrics(false);
+          setIsSyncedLyrics(false);
+          setLyricsSource("");
+          setLyricsMessage("Hiện bài hát này chưa có lời");
+          setLyrics([]);
+        }
+      } catch (err) {
+        setHasLyrics(false);
+        setIsSyncedLyrics(false);
+        setLyricsSource("");
+        setLyricsMessage("Hiện bài hát này chưa có lời");
+        setLyrics([]);
+      } finally {
+        setLoadingLyrics(false);
+      }
+    }
+
+    fetchLyrics();
+  }, [currentSong?.id, currentSong?.audio_url, currentSong?.title, currentSong?.artist]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
@@ -760,6 +849,17 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         setVolumeLevel,
         toggleMute,
         toggleLoop,
+        lyrics,
+        hasLyrics,
+        isSyncedLyrics,
+        lyricsSource,
+        lyricsOffset,
+        setLyricsOffset,
+        lyricsMessage,
+        loadingLyrics,
+        isLyricsFullscreen,
+        setIsLyricsFullscreen,
+        toggleLyricsFullscreen,
       }}
     >
       {children}
