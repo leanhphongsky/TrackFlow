@@ -23,6 +23,8 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
 import { usePlayer } from "@/context/PlayerContext";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 interface SidebarProps {
   onOpenUpload: () => void;
@@ -42,6 +44,7 @@ export default function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const { user, favoriteSongs, openAuthModal, followedArtists } = useAuth();
+  const { t } = useLanguage();
   const {
     playlists,
     createPlaylist,
@@ -124,7 +127,7 @@ export default function Sidebar({
                   ? "bg-[#282828] text-white shadow"
                   : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
-              title="Trang chủ"
+              title={t.nav.home}
             >
               <Home className="w-5 h-5 text-current" />
               {activeTab === "home" && (
@@ -140,7 +143,7 @@ export default function Sidebar({
                   ? "bg-[#282828] text-[#1db954] shadow"
                   : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
-              title="Bảng xếp hạng thịnh hành"
+              title={t.nav.charts}
             >
               <TrendingUp className="w-5 h-5 text-current" />
               {activeTab === "charts" && (
@@ -148,7 +151,7 @@ export default function Sidebar({
               )}
             </button>
 
-            {/* 2. Search */}
+            {/* 3. Search */}
             <button
               onClick={() => handleNav(() => setActiveTab("search"))}
               className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition ${
@@ -156,7 +159,7 @@ export default function Sidebar({
                   ? "bg-[#282828] text-white shadow"
                   : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
-              title="Tìm kiếm"
+              title={t.nav.search}
             >
               <Search className="w-5 h-5 text-current" />
               {activeTab === "search" && (
@@ -164,7 +167,7 @@ export default function Sidebar({
               )}
             </button>
 
-            {/* 3. Library (Flyout Drawer Trigger) */}
+            {/* 4. Library (Flyout Drawer Trigger) */}
             <button
               onClick={() => setIsLibraryFlyoutOpen(!isLibraryFlyoutOpen)}
               className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition ${
@@ -172,7 +175,7 @@ export default function Sidebar({
                   ? "bg-[#282828] text-[#1db954] shadow"
                   : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
-              title="Thư viện & Danh sách phát"
+              title={t.nav.library}
             >
               <Library className="w-5 h-5 text-current" />
               {(isLibraryFlyoutOpen || activeTab === "favorites" || activeTab === "playlist") && (
@@ -180,7 +183,7 @@ export default function Sidebar({
               )}
             </button>
 
-            {/* 4. Chill Mode Visualizer */}
+            {/* 5. Chill Mode Visualizer */}
             <button
               onClick={() => handleNav(() => setActiveTab("chill"))}
               className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition ${
@@ -188,7 +191,7 @@ export default function Sidebar({
                   ? "bg-purple-900/40 text-purple-300 border border-purple-500/30 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
                   : "text-purple-400/80 hover:text-purple-300 hover:bg-purple-500/10"
               }`}
-              title="Chế độ Chill & Visualizer 360°"
+              title={t.nav.chill}
             >
               <Waves className="w-5 h-5 text-current" />
               {activeTab === "chill" && (
@@ -196,27 +199,30 @@ export default function Sidebar({
               )}
             </button>
 
-            {/* 5. 1-Click Import Playlist */}
+            {/* 6. 1-Click Import Playlist */}
             <button
               onClick={() => openImportModal()}
               className="group relative flex items-center justify-center w-11 h-11 rounded-xl text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition"
-              title="Nhập playlist từ Spotify hoặc YouTube"
+              title={t.nav.importPlaylist}
             >
               <Download className="w-5 h-5 text-current" />
             </button>
           </nav>
         </div>
 
-        {/* Bottom: Quick Upload & Settings / Legal / Changelog */}
+        {/* Bottom: Language Switcher, Quick Upload & Settings / Legal / Changelog */}
         <div className="flex flex-col items-center gap-2 w-full px-2">
           {/* Quick Upload MP3 */}
           <button
             onClick={onOpenUpload}
             className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/15 text-sky-400 transition"
-            title="Đăng bài hát MP3"
+            title={t.nav.uploadMp3}
           >
             <Upload className="w-4 h-4 text-current" />
           </button>
+
+          {/* Language Switcher Icon Button */}
+          <LanguageSwitcher variant="icon" />
 
           {/* Legal / Terms & Disclaimer */}
           <button
@@ -226,7 +232,7 @@ export default function Sidebar({
                 ? "bg-[#282828] text-[#1db954] shadow"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
             }`}
-            title="Điều khoản dịch vụ & Tuyên bố pháp lý bản quyền"
+            title={t.nav.terms}
           >
             <ShieldCheck className="w-4 h-4 text-current" />
             {activeTab === "terms" && (
@@ -242,7 +248,7 @@ export default function Sidebar({
                 ? "bg-[#1db954] text-black font-extrabold shadow"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
             }`}
-            title="Nhật ký cập nhật Beta v3.5"
+            title={`${t.nav.changelog} (${t.nav.betaBadge})`}
           >
             <Sparkles className="w-4 h-4 text-current" />
           </button>
@@ -261,14 +267,14 @@ export default function Sidebar({
             <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
               <div className="flex items-center gap-2 text-white font-bold text-sm">
                 <Library className="w-4 h-4 text-[#1db954]" />
-                <span>Thư viện của bạn</span>
+                <span>{t.nav.yourLibrary}</span>
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={handleCreatePlaylistClick}
                   disabled={isCreating}
                   className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition"
-                  title="Tạo playlist mới"
+                  title={t.nav.createPlaylist}
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -295,9 +301,9 @@ export default function Sidebar({
                 <Heart className="w-5 h-5 fill-white text-white" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-white truncate">Bài hát đã thích</p>
+                <p className="text-xs font-bold text-white truncate">{t.nav.likedSongs}</p>
                 <p className="text-[11px] text-gray-400 truncate">
-                  {user ? `${favoriteSongs.length} bài hát` : "Đăng nhập để xem"}
+                  {user ? `${favoriteSongs.length} ${t.mixes.songsCount}` : t.nav.login}
                 </p>
               </div>
             </div>
@@ -307,7 +313,7 @@ export default function Sidebar({
               {playlists.length > 0 && (
                 <div className="space-y-1 mb-3">
                   <p className="text-[10px] font-bold text-gray-500 uppercase px-2 py-1">
-                    Danh sách phát ({playlists.length})
+                    {t.nav.yourPlaylists} ({playlists.length})
                   </p>
                   {playlists.map((pl) => {
                     const isSelected = activeTab === "playlist" && selectedPlaylistId === pl.id;
@@ -335,7 +341,7 @@ export default function Sidebar({
                           >
                             {pl.name}
                           </p>
-                          <p className="text-[10px] text-gray-400 truncate">{pl.song_count} bài hát</p>
+                          <p className="text-[10px] text-gray-400 truncate">{pl.song_count} {t.mixes.songsCount}</p>
                         </div>
                       </div>
                     );
@@ -347,7 +353,7 @@ export default function Sidebar({
               {followedArtists.length > 0 && (
                 <div className="space-y-1 pt-2 border-t border-white/5">
                   <p className="text-[10px] font-bold text-gray-500 uppercase px-2 py-1">
-                    Nghệ sĩ đang theo dõi
+                    {t.nav.followedArtists}
                   </p>
                   {followedArtists.map((artist) => (
                     <div
@@ -368,7 +374,7 @@ export default function Sidebar({
                         <p className="text-xs font-semibold text-white group-hover:text-[#1db954] truncate">
                           {artist.artist_name}
                         </p>
-                        <p className="text-[10px] text-gray-400">Nghệ sĩ</p>
+                        <p className="text-[10px] text-gray-400">{t.nav.artist}</p>
                       </div>
                     </div>
                   ))}
@@ -378,14 +384,14 @@ export default function Sidebar({
               {playlists.length === 0 && followedArtists.length === 0 && (
                 <div className="text-center py-8 px-2 space-y-3">
                   <p className="text-xs text-gray-400 leading-relaxed">
-                    Bạn chưa có playlist nào. Hãy tạo mới hoặc nhập kho nhạc ngay!
+                    {t.nav.emptyLibrary}
                   </p>
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={handleCreatePlaylistClick}
                       className="w-full py-2 bg-[#1db954] text-black font-bold text-xs rounded-xl hover:bg-[#1ed760] transition"
                     >
-                      + Tạo danh sách phát
+                      + {t.nav.createPlaylist}
                     </button>
                     <button
                       onClick={() => {
@@ -395,7 +401,7 @@ export default function Sidebar({
                       className="w-full py-2 bg-white/5 hover:bg-white/10 text-white font-medium text-xs rounded-xl transition flex items-center justify-center gap-1.5 border border-white/5"
                     >
                       <Download className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Nhập từ Spotify / YouTube</span>
+                      <span>{t.nav.importPlaylist}</span>
                     </button>
                   </div>
                 </div>
@@ -407,7 +413,7 @@ export default function Sidebar({
               <button
                 onClick={() => handleNav(() => setActiveTab("changelog"))}
                 className="flex items-center gap-1.5 hover:text-white transition"
-                title="Nhật ký phiên bản"
+                title={t.nav.changelog}
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#1db954]" />
                 <span>Beta v3.5</span>
@@ -415,10 +421,10 @@ export default function Sidebar({
               <button
                 onClick={() => handleNav(() => setActiveTab("terms"))}
                 className="flex items-center gap-1.5 hover:text-white transition"
-                title="Điều khoản pháp lý bản quyền"
+                title={t.nav.terms}
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
-                <span>Pháp lý</span>
+                <span>{t.nav.terms}</span>
               </button>
             </div>
           </div>
@@ -441,12 +447,15 @@ export default function Sidebar({
                 className="h-5 w-auto max-w-[95px] object-contain"
               />
             </div>
-            <button
-              onClick={onMobileClose}
-              className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher variant="minimal" />
+              <button
+                onClick={onMobileClose}
+                className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Navigation */}
@@ -458,7 +467,7 @@ export default function Sidebar({
               }`}
             >
               <Home className="w-5 h-5 text-[#1db954]" />
-              <span>Trang chủ</span>
+              <span>{t.nav.home}</span>
             </button>
 
             <button
@@ -468,7 +477,7 @@ export default function Sidebar({
               }`}
             >
               <TrendingUp className="w-5 h-5 text-emerald-400" />
-              <span>Bảng xếp hạng</span>
+              <span>{t.nav.charts}</span>
             </button>
 
             <button
@@ -478,7 +487,7 @@ export default function Sidebar({
               }`}
             >
               <Search className="w-5 h-5" />
-              <span>Tìm kiếm</span>
+              <span>{t.nav.search}</span>
             </button>
 
             <button
@@ -490,7 +499,7 @@ export default function Sidebar({
               }`}
             >
               <Waves className="w-5 h-5 text-purple-400" />
-              <span>Chill Visualizer 360°</span>
+              <span>{t.nav.chill}</span>
             </button>
 
             <button
@@ -501,7 +510,7 @@ export default function Sidebar({
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold hover:bg-white/5 text-emerald-400 transition"
             >
               <Download className="w-5 h-5 text-emerald-400" />
-              <span>Nhập playlist từ Spotify / YouTube</span>
+              <span>{t.nav.importPlaylist}</span>
             </button>
           </nav>
 
@@ -517,7 +526,7 @@ export default function Sidebar({
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-600 to-pink-500 flex items-center justify-center flex-shrink-0">
                 <Heart className="w-4 h-4 fill-white text-white" />
               </div>
-              <span className="text-xs font-bold text-white">Bài hát đã thích</span>
+              <span className="text-xs font-bold text-white">{t.nav.likedSongs}</span>
             </div>
 
             {playlists.map((pl) => (
@@ -535,7 +544,7 @@ export default function Sidebar({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-white truncate">{pl.name}</p>
-                  <p className="text-[10px] text-gray-400">{pl.song_count} bài</p>
+                  <p className="text-[10px] text-gray-400">{pl.song_count} {t.mixes.songsCount}</p>
                 </div>
               </div>
             ))}
@@ -554,7 +563,7 @@ export default function Sidebar({
               onClick={() => handleNav(() => setActiveTab("terms"))}
               className="hover:text-white"
             >
-              Pháp lý
+              {t.nav.terms}
             </button>
           </div>
         </aside>

@@ -21,6 +21,7 @@ import { DailyMixItem } from "@/app/api/songs/mixes/route";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface MixDetailViewProps {
   mix: DailyMixItem;
@@ -42,6 +43,7 @@ export default function MixDetailView({
   const { currentSong, isPlaying, togglePlay } = usePlayer();
   const { user, openAuthModal, isFavorite, toggleFavorite } = useAuth();
   const { createPlaylist, addSongToPlaylist, openAddToPlaylist } = usePlaylist();
+  const { t } = useLanguage();
 
   // Check if current playing song belongs to this mix
   const isCurrentMixPlaying =
@@ -107,11 +109,11 @@ export default function MixDetailView({
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-gray-300 hover:text-white bg-white/5 hover:bg-white/10 transition border border-white/5"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Quay lại Trang chủ</span>
+          <span>{t.mixes.backToHome}</span>
         </button>
 
         <span className="text-xs font-mono text-gray-400">
-          Cập nhật mỗi ngày • TrackFlow Mix Engine
+          {t.mixes.updatedDaily}
         </span>
       </div>
 
@@ -150,10 +152,10 @@ export default function MixDetailView({
         <div className="flex-1 text-center md:text-left min-w-0">
           <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
             <span className="text-xs font-black uppercase tracking-wider text-white/80 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10">
-              Tuyển tập trộn ngẫu nhiên
+              {t.mixes.randomMixBadge}
             </span>
             <span className="text-xs font-medium text-gray-300">
-              • {songsList.length} bài hát
+              • {songsList.length} {t.mixes.songsCount}
             </span>
           </div>
 
@@ -166,7 +168,7 @@ export default function MixDetailView({
           </p>
 
           <p className="text-xs text-gray-400 mt-1.5 truncate">
-            <span className="text-white/80 font-semibold">Nghệ sĩ tiêu biểu:</span>{" "}
+            <span className="text-white/80 font-semibold">{t.mixes.featuredArtists}:</span>{" "}
             {mix.artistsSummary}
           </p>
 
@@ -180,12 +182,12 @@ export default function MixDetailView({
               {isCurrentMixPlaying ? (
                 <>
                   <Pause className="w-5 h-5 fill-black" />
-                  <span>Tạm dừng</span>
+                  <span>{t.mixes.pause}</span>
                 </>
               ) : (
                 <>
                   <Play className="w-5 h-5 fill-black ml-0.5" />
-                  <span>Phát trộn danh sách</span>
+                  <span>{t.mixes.shufflePlay}</span>
                 </>
               )}
             </button>
@@ -197,7 +199,7 @@ export default function MixDetailView({
               title="Đổi thứ tự ngẫu nhiên trong mix"
             >
               <Shuffle className="w-4 h-4 text-[#1db954]" />
-              <span>Trộn lại</span>
+              <span>{t.mixes.reshuffle}</span>
             </button>
 
             {/* Save to Library Button */}
@@ -214,12 +216,12 @@ export default function MixDetailView({
               {savedSuccess ? (
                 <>
                   <Check className="w-4 h-4 text-emerald-400" />
-                  <span>Đã lưu vào Thư viện!</span>
+                  <span>{t.mixes.saved}</span>
                 </>
               ) : (
                 <>
                   <FolderPlus className="w-4 h-4 text-sky-400" />
-                  <span>{isSaving ? "Đang lưu..." : "Lưu thành Playlist"}</span>
+                  <span>{isSaving ? t.mixes.saving : t.mixes.saveToLibrary}</span>
                 </>
               )}
             </button>
@@ -235,11 +237,11 @@ export default function MixDetailView({
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#1db954]" />
           <h3 className="text-base sm:text-lg font-bold text-white">
-            Danh sách bài hát trong Mix ({songsList.length})
+            {t.mixes.tracklistTitle} ({songsList.length})
           </h3>
         </div>
         <span className="text-xs text-gray-400">
-          Nhấn vào bất kỳ bài hát nào để phát tiếp
+          {t.mixes.clickToPlay}
         </span>
       </div>
 

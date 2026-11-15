@@ -50,8 +50,11 @@ import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function Home() {
+  const { t, language } = useLanguage();
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -284,27 +287,30 @@ export default function Home() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm bài hát, nghệ sĩ từ YouTube..."
+                placeholder={t.nav.searchPlaceholder}
                 className="w-full bg-[#242424] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-xs sm:text-sm text-white placeholder-gray-400 pl-8 sm:pl-10 pr-20 sm:pr-24 py-1.5 sm:py-2 rounded-full border border-transparent focus:border-white/20 focus:outline-none transition"
               />
               <button
                 type="submit"
                 className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#1db954] hover:bg-[#1ed760] text-black text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full transition flex items-center gap-1 shadow"
               >
-                {isSearchingYt ? <Loader2 className="w-3 h-3 animate-spin" /> : "Tìm kiếm"}
+                {isSearchingYt ? <Loader2 className="w-3 h-3 animate-spin" /> : t.nav.searchButton}
               </button>
             </div>
           </form>
 
-          {/* User Profile / Auth Area */}
+          {/* User Profile / Auth Area & Language Toggle */}
           <div className="flex items-center gap-2 sm:gap-3 ml-2">
+            {/* Top Navbar Bilingual Switcher (VI | EN Pill) */}
+            <LanguageSwitcher variant="pill" />
+
             <button
               onClick={openImportModal}
               className="hidden sm:flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-bold px-3 py-1.5 rounded-full hover:scale-105 transition shadow"
-              title="Nhập playlist từ Spotify hoặc YouTube"
+              title={t.nav.importPlaylist}
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Nhập playlist</span>
+              <span>{t.nav.importPlaylist}</span>
             </button>
 
             <button
@@ -312,7 +318,7 @@ export default function Home() {
               className="hidden sm:flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3.5 py-1.5 rounded-full hover:scale-105 transition shadow"
             >
               <Plus className="w-4 h-4" />
-              <span>Đăng nhạc</span>
+              <span>{t.nav.upload}</span>
             </button>
 
             {user ? (
@@ -331,7 +337,7 @@ export default function Home() {
                     await logout();
                   }}
                   className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-                  title="Đăng xuất"
+                  title={t.nav.logout}
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -343,7 +349,7 @@ export default function Home() {
                   className="bg-[#1db954] hover:bg-[#1ed760] text-black text-xs font-extrabold px-4 py-2 rounded-full transition hover:scale-105 shadow flex items-center gap-1.5"
                 >
                   <LogIn className="w-3.5 h-3.5" />
-                  <span>Đăng nhập</span>
+                  <span>{t.nav.login}</span>
                 </button>
               </div>
             )}
@@ -368,7 +374,7 @@ export default function Home() {
                   : "bg-[#242424] text-white hover:bg-[#303030]"
               }`}
             >
-              Tất cả
+              {t.nav.all}
             </button>
 
             {/* 2. Music */}
@@ -389,7 +395,7 @@ export default function Home() {
                   : "bg-[#242424] text-white hover:bg-[#303030]"
               }`}
             >
-              Âm nhạc
+              {t.nav.music}
             </button>
 
             {/* 2b. Music Following Sub-Pill */}
@@ -406,7 +412,7 @@ export default function Home() {
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                <span>Đang theo dõi</span>
+                <span>{t.nav.following}</span>
               </button>
             )}
 
@@ -421,7 +427,7 @@ export default function Home() {
               }`}
             >
               <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Bảng xếp hạng</span>
+              <span>{t.nav.charts}</span>
             </button>
 
             {/* 4. Podcasts */}
@@ -442,7 +448,7 @@ export default function Home() {
                   : "bg-[#242424] text-white hover:bg-[#303030]"
               }`}
             >
-              Podcasts
+              {t.nav.podcasts}
             </button>
 
             {/* 3b. Podcasts Following Sub-Pill */}
@@ -459,7 +465,7 @@ export default function Home() {
                 }`}
               >
                 <Users className="w-3.5 h-3.5" />
-                <span>Đang theo dõi</span>
+                <span>{t.nav.following}</span>
               </button>
             )}
 
@@ -472,7 +478,7 @@ export default function Home() {
               className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-[#242424] hover:bg-gradient-to-r hover:from-purple-900/60 hover:to-indigo-900/60 text-white transition flex-shrink-0 flex items-center gap-1.5 border border-purple-500/20 shadow-sm group"
             >
               <Waves className="w-3.5 h-3.5 text-purple-400 group-hover:animate-pulse" />
-              <span>Chill</span>
+              <span>{t.nav.chill}</span>
             </button>
 
             {/* 4. Audiobooks (Disabled with Amber Badge) */}
@@ -482,13 +488,13 @@ export default function Home() {
                 disabled
                 className="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold bg-[#242424]/50 text-gray-400 border border-white/5 cursor-not-allowed opacity-60 flex items-center gap-2 select-none"
               >
-                <span>Sách nói</span>
+                <span>{t.nav.audiobooks}</span>
                 <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md tracking-wider">
-                  Đang phát triển
+                  {t.nav.inDevelopment}
                 </span>
               </button>
               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 hidden group-hover/audiobook:block bg-[#1f1f1f] text-gray-200 text-[11px] px-2.5 py-1 rounded-md shadow-lg border border-white/10 whitespace-nowrap z-30 pointer-events-none">
-                Tính năng Sách nói đang trong tiến trình phát triển và sẽ sớm ra mắt!
+                {t.nav.audiobooksDevTooltip}
               </div>
             </div>
           </div>
@@ -526,21 +532,21 @@ export default function Home() {
                       <TrendingUp className="w-4 h-4 text-[#1db954]" />
                     </span>
                     <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
-                      Bảng xếp hạng âm nhạc
+                      {t.nav.musicCharts}
                     </span>
                   </div>
                   <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-                    Top Thịnh Hành &amp; Bứt Phá
+                    {t.nav.trendingAndBreakout}
                   </h1>
                   <p className="text-xs sm:text-sm text-gray-300 mt-2 max-w-xl">
-                    Bảng xếp hạng thời gian thực dựa trên độ tăng trưởng lượt xem (24h Velocity Growth) và thứ hạng từ YouTube Music trên toàn cầu.
+                    {t.nav.chartsHeroDesc}
                   </p>
                 </div>
                 <button
                   onClick={() => setActiveTab("home")}
                   className="text-xs text-gray-400 hover:text-white underline self-start md:self-auto"
                 >
-                  ← Quay lại Trang chủ
+                  ← {t.mixes.backToHome}
                 </button>
               </div>
 
@@ -681,13 +687,13 @@ export default function Home() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                   <YoutubeIcon className="w-7 h-7 text-red-500" />
-                  <span>Kết quả tìm kiếm cho: &quot;{searchQuery}&quot;</span>
+                  <span>{t.nav.searchResultsFor}: &quot;{searchQuery}&quot;</span>
                 </h2>
                 <button
                   onClick={() => setActiveTab("home")}
                   className="text-xs text-gray-400 hover:text-white underline"
                 >
-                  Quay lại Trang chủ
+                  {t.mixes.backToHome}
                 </button>
               </div>
 
@@ -703,7 +709,7 @@ export default function Home() {
                     <div className="mb-8">
                       <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                         <UserCheck className="w-5 h-5 text-sky-400" />
-                        <span>Nghệ sĩ phù hợp</span>
+                        <span>{t.nav.matchingArtists}</span>
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {ytChannels.map((ch) => (
@@ -732,7 +738,7 @@ export default function Home() {
                               </p>
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-xs text-gray-400 bg-white/10 px-2 py-0.5 rounded-full inline-block">
-                                  Nghệ sĩ
+                                  {t.nav.artist}
                                 </span>
                                 {ch.subscribers && (
                                   <span className="text-xs text-gray-400 truncate">
@@ -751,7 +757,7 @@ export default function Home() {
                   <div>
                     <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                       <Music2 className="w-5 h-5 text-[#1db954]" />
-                      <span>Bài hát ({ytResults.length})</span>
+                      <span>{t.nav.songs} ({ytResults.length})</span>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {ytResults.map((item) => {
@@ -857,14 +863,14 @@ export default function Home() {
                         <div className="flex items-center gap-2.5">
                           <span className="w-5 h-5 rounded-lg bg-gradient-to-br from-rose-500 to-orange-400 shadow-sm flex-shrink-0" />
                           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                            Your Mixes
+                            {t.mixes.title}
                           </h2>
                           <span className="hidden sm:inline-block text-[11px] font-bold text-gray-400 bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-full">
-                            Playlist theo chủ đề &amp; Trộn ngẫu nhiên
+                            {t.mixes.subtitle}
                           </span>
                         </div>
                         <span className="text-xs text-gray-400 hidden md:inline">
-                          Nhấn để xem danh sách hoặc rê chuột để phát ngay
+                          {t.mixes.hint}
                         </span>
                       </div>
 
@@ -911,7 +917,7 @@ export default function Home() {
                                     }
                                   }}
                                   className="w-11 h-11 rounded-full bg-[#1db954] hover:bg-[#1ed760] text-black shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition"
-                                  title={`Phát trộn ${mix.name}`}
+                                  title={`${t.mixes.shufflePlay} ${mix.name}`}
                                 >
                                   <Play className="w-5 h-5 fill-black ml-0.5" />
                                 </button>
@@ -946,13 +952,13 @@ export default function Home() {
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-bold text-white flex items-center gap-2">
                           <Heart className="w-5 h-5 fill-[#1db954] text-[#1db954]" />
-                          <span>Bài hát bạn đã thích gần đây ({favoriteSongs.length})</span>
+                          <span>{t.nav.recentLikedSongs} ({favoriteSongs.length})</span>
                         </h3>
                         <button
                           onClick={() => setActiveTab("favorites")}
                           className="text-xs text-gray-400 hover:text-white transition font-semibold"
                         >
-                          Xem tất cả →
+                          {t.nav.viewAll} →
                         </button>
                       </div>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -1031,7 +1037,7 @@ export default function Home() {
               <footer className="mt-16 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 pb-8">
                 <div className="flex items-center gap-2">
                   <Disc3 className="w-4 h-4 text-[#1db954]" />
-                  <span>TrackFlow Beta v3.5 • Nền tảng nghe nhạc trực tuyến</span>
+                  <span>{t.footer.platformDesc}</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <button
@@ -1039,14 +1045,14 @@ export default function Home() {
                     className="hover:text-white transition flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Nhật ký cập nhật</span>
+                    <span>{t.footer.changelogLink}</span>
                   </button>
                   <button
                     onClick={() => setActiveTab("terms")}
                     className="hover:text-white transition flex items-center gap-1.5"
                   >
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Điều khoản &amp; Pháp lý bản quyền</span>
+                    <span>{t.footer.legalLink}</span>
                   </button>
                 </div>
               </footer>
@@ -1116,7 +1122,7 @@ export default function Home() {
             }`}
           >
             <HomeIcon className="w-5 h-5" />
-            <span className="text-[10px] font-bold">Trang chủ</span>
+            <span className="text-[10px] font-bold">{t.nav.home}</span>
           </button>
 
           {/* 2. Tìm kiếm */}
@@ -1132,7 +1138,7 @@ export default function Home() {
             }`}
           >
             <Search className="w-5 h-5" />
-            <span className="text-[10px] font-bold">Tìm kiếm</span>
+            <span className="text-[10px] font-bold">{t.nav.search}</span>
           </button>
 
           {/* 3. Bài hát đã thích */}
@@ -1148,7 +1154,7 @@ export default function Home() {
             }`}
           >
             <Heart className={`w-5 h-5 ${activeTab === "favorites" ? "fill-current" : ""}`} />
-            <span className="text-[10px] font-bold">Đã thích</span>
+            <span className="text-[10px] font-bold">{t.nav.likedSongs}</span>
           </button>
 
           {/* 4. Chill Visualizer */}
@@ -1162,7 +1168,7 @@ export default function Home() {
             <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-purple-500 to-amber-400 flex items-center justify-center text-white shadow-sm group-hover:scale-110 transition-transform">
               <Waves className="w-3.5 h-3.5" />
             </div>
-            <span className="text-[10px] font-bold">Chill</span>
+            <span className="text-[10px] font-bold">{t.nav.chill}</span>
           </button>
 
           {/* 5. Menu Drawer */}

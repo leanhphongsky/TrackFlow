@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { LanguageProvider } from "@/context/LanguageContext";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { PlaylistProvider } from "@/context/PlaylistContext";
@@ -17,11 +18,13 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className="bg-black text-white antialiased">
-        <AuthProvider>
-          <PlaylistProvider>
-            <PlayerProvider>{children}</PlayerProvider>
-          </PlaylistProvider>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <PlaylistProvider>
+              <PlayerProvider>{children}</PlayerProvider>
+            </PlaylistProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

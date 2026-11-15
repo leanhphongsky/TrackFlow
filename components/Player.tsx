@@ -4,6 +4,7 @@ import React from "react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import {
   Play,
@@ -64,6 +65,7 @@ export default function Player({
   } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
+  const { t } = useLanguage();
 
   const isCurrentFav = currentSong ? isFavorite(currentSong) : false;
 
@@ -111,14 +113,14 @@ export default function Player({
                     ? "text-[#1db954]"
                     : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
-                title={isCurrentFav ? "Bỏ thích" : "Yêu thích"}
+                title={isCurrentFav ? t.player.unfavorite : t.player.favorite}
               >
                 <Heart className={`w-4 h-4 ${isCurrentFav ? "fill-current" : ""}`} />
               </button>
               <button
                 onClick={() => openAddToPlaylist(currentSong)}
                 className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-                title="Thêm vào danh sách phát"
+                title={t.player.addToPlaylist}
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -131,7 +133,7 @@ export default function Player({
               <button
                 onClick={toggleLoop}
                 className={`transition ${isLooping ? "text-[#1db954]" : "text-gray-400 hover:text-white"}`}
-                title="Lặp lại bài hát"
+                title={t.player.repeat}
               >
                 <Repeat className="w-4 h-4" />
               </button>
@@ -139,7 +141,7 @@ export default function Player({
               <button
                 onClick={prevSong}
                 className="text-gray-400 hover:text-white transition hover:scale-105 active:scale-95"
-                title="Bài trước"
+                title={t.player.previous}
               >
                 <SkipBack className="w-5 h-5 fill-current" />
               </button>
@@ -147,7 +149,7 @@ export default function Player({
               <button
                 onClick={togglePlay}
                 className="w-10 h-10 rounded-full bg-white hover:bg-gray-100 hover:scale-105 active:scale-95 flex items-center justify-center text-black transition shadow-xl"
-                title={isPlaying ? "Tạm dừng" : "Phát"}
+                title={isPlaying ? t.player.pause : t.player.play}
               >
                 {isPlaying ? (
                   <Pause className="w-5 h-5 fill-black" />
@@ -159,7 +161,7 @@ export default function Player({
               <button
                 onClick={nextSong}
                 className="text-gray-400 hover:text-white transition hover:scale-105 active:scale-95"
-                title="Bài tiếp theo"
+                title={t.player.next}
               >
                 <SkipForward className="w-5 h-5 fill-current" />
               </button>
@@ -189,7 +191,7 @@ export default function Player({
               <button
                 onClick={onOpenChill}
                 className="p-2 rounded-full text-purple-400 hover:text-purple-300 hover:bg-purple-500/15 transition shadow-sm"
-                title="Mở chế độ Chill & Visualizer sóng âm 360°"
+                title={t.player.chillMode}
               >
                 <Waves className="w-5 h-5" />
               </button>
@@ -205,7 +207,7 @@ export default function Player({
                   ? "text-gray-300 hover:text-[#1db954] hover:bg-white/10"
                   : "text-gray-400 hover:text-white hover:bg-white/10"
               }`}
-              title="Xem Lời bài hát Karaoke toàn màn hình"
+              title={t.player.lyrics}
             >
               <Mic2 className="w-5 h-5" />
             </button>
@@ -219,7 +221,7 @@ export default function Player({
                     ? "text-[#1db954] bg-white/10"
                     : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
-                title="Thông tin bài hát & Ảnh bìa"
+                title={t.player.nowPlayingInfo}
               >
                 <Tv className="w-5 h-5" />
               </button>
