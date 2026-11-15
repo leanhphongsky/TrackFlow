@@ -43,7 +43,7 @@ export default function MixDetailView({
   const { currentSong, isPlaying, togglePlay } = usePlayer();
   const { user, openAuthModal, isFavorite, toggleFavorite } = useAuth();
   const { createPlaylist, addSongToPlaylist, openAddToPlaylist } = usePlaylist();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Check if current playing song belongs to this mix
   const isCurrentMixPlaying =
@@ -82,7 +82,9 @@ export default function MixDetailView({
       setIsSaving(true);
       const newPlaylist = await createPlaylist(
         `${mix.name}: ${mix.theme}`,
-        `Tuyển tập ${mix.theme} được lưu từ Daily Mix của TrackFlow. Gồm ${songsList.length} ca khúc.`
+        language === "vi"
+          ? `Tuyển tập ${mix.theme} được lưu từ Daily Mix của TrackFlow. Gồm ${songsList.length} ca khúc.`
+          : `Curated ${mix.theme} saved from TrackFlow Daily Mix. Includes ${songsList.length} tracks.`
       );
 
       if (newPlaylist && songsList.length > 0) {
@@ -196,7 +198,7 @@ export default function MixDetailView({
             <button
               onClick={handleReshuffle}
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-white font-bold text-xs border border-white/10 transition hover:scale-105"
-              title="Đổi thứ tự ngẫu nhiên trong mix"
+              title={t.mixes.reshuffle}
             >
               <Shuffle className="w-4 h-4 text-[#1db954]" />
               <span>{t.mixes.reshuffle}</span>
@@ -211,7 +213,7 @@ export default function MixDetailView({
                   ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
                   : "bg-white/10 hover:bg-white/15 text-white border-white/10 hover:scale-105"
               }`}
-              title="Lưu danh sách này thành playlist riêng trong Thư viện"
+              title={t.mixes.saveToLibrary}
             >
               {savedSuccess ? (
                 <>
@@ -333,7 +335,7 @@ export default function MixDetailView({
                     className={`p-1.5 rounded-full hover:bg-white/10 transition ${
                       favorited ? "text-[#1db954]" : "text-gray-500 hover:text-white"
                     }`}
-                    title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+                    title={favorited ? t.player.unfavorite : t.player.favorite}
                   >
                     <Heart
                       className={`w-3.5 h-3.5 ${favorited ? "fill-[#1db954]" : ""}`}
@@ -347,7 +349,7 @@ export default function MixDetailView({
                       openAddToPlaylist(song);
                     }}
                     className="p-1.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition"
-                    title="Thêm vào danh sách phát"
+                    title={t.addToPlaylistModal.title}
                   >
                     <Plus className="w-4 h-4" />
                   </button>

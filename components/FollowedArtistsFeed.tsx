@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { usePlayer } from "@/context/PlayerContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Song } from "@/lib/db";
 import {
   Play,
@@ -60,6 +61,7 @@ export default function FollowedArtistsFeed({
   const { currentSong, isPlaying } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
+  const { t, language } = useLanguage();
 
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +98,11 @@ export default function FollowedArtistsFeed({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-[#1db954]" />
-              <span>Nghệ sĩ bạn đang theo dõi ({followedArtists.length})</span>
+              <span>
+                {language === "vi"
+                  ? `Nghệ sĩ bạn đang theo dõi (${followedArtists.length})`
+                  : `Artists you follow (${followedArtists.length})`}
+              </span>
             </h3>
           </div>
 
@@ -129,7 +135,7 @@ export default function FollowedArtistsFeed({
                   {artist.artist_name}
                 </p>
                 <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.5 rounded-full">
-                  Nghệ sĩ
+                  {t.nav.artist}
                 </span>
               </div>
             ))}
@@ -144,17 +150,19 @@ export default function FollowedArtistsFeed({
             <Users className="w-8 h-8" />
           </div>
           <h3 className="text-xl font-bold text-white mb-2">
-            Bạn chưa theo dõi nghệ sĩ nào
+            {language === "vi" ? "Bạn chưa theo dõi nghệ sĩ nào" : "You haven't followed any artists yet"}
           </h3>
           <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-            Nhấn theo dõi các nghệ sĩ mà bạn yêu thích trên trang nghệ sĩ để cập nhật những ca khúc và sản phẩm mới nhất ngay tại đây!
+            {language === "vi"
+              ? "Nhấn theo dõi các nghệ sĩ mà bạn yêu thích trên trang nghệ sĩ để cập nhật những ca khúc và sản phẩm mới nhất ngay tại đây!"
+              : "Follow your favorite artists on their page to get the latest tracks and releases right here!"}
           </p>
 
           {/* Quick Suggestions */}
           <div className="text-left mt-6 pt-6 border-t border-white/5">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Gợi ý nghệ sĩ nổi bật dành cho bạn:</span>
+              <span>{language === "vi" ? "Gợi ý nghệ sĩ nổi bật dành cho bạn:" : "Recommended artists for you:"}</span>
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {SUGGESTED_ARTISTS.map((item) => {
@@ -202,12 +210,12 @@ export default function FollowedArtistsFeed({
                       {following ? (
                         <>
                           <Check className="w-3.5 h-3.5" />
-                          <span>Đang theo dõi</span>
+                          <span>{t.artist.following}</span>
                         </>
                       ) : (
                         <>
                           <UserPlus className="w-3.5 h-3.5" />
-                          <span>Theo dõi</span>
+                          <span>{t.artist.follow}</span>
                         </>
                       )}
                     </button>
@@ -226,10 +234,16 @@ export default function FollowedArtistsFeed({
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <Music2 className="w-5 h-5 text-[#1db954]" />
-                <span>Ca khúc từ các nghệ sĩ đang theo dõi ({songs.length})</span>
+                <span>
+                  {language === "vi"
+                    ? `Ca khúc từ các nghệ sĩ đang theo dõi (${songs.length})`
+                    : `Tracks from followed artists (${songs.length})`}
+                </span>
               </h2>
               <p className="text-xs text-gray-400 mt-0.5">
-                Được tổng hợp từ các kênh chính thức của những nghệ sĩ bạn theo dõi
+                {language === "vi"
+                  ? "Được tổng hợp từ các kênh chính thức của những nghệ sĩ bạn theo dõi"
+                  : "Curated from official channels of artists you follow"}
               </p>
             </div>
 
@@ -239,7 +253,7 @@ export default function FollowedArtistsFeed({
                 className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2 px-5 rounded-full flex items-center gap-2 transition hover:scale-105 shadow-md"
               >
                 <Play className="w-3.5 h-3.5 fill-black" />
-                <span>Phát tất cả</span>
+                <span>{t.common.playAll}</span>
               </button>
             )}
           </div>
@@ -247,11 +261,19 @@ export default function FollowedArtistsFeed({
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
-              <p className="text-sm">Đang tải ca khúc từ các nghệ sĩ bạn theo dõi...</p>
+              <p className="text-sm">
+                {language === "vi"
+                  ? "Đang tải ca khúc từ các nghệ sĩ bạn theo dõi..."
+                  : "Loading tracks from followed artists..."}
+              </p>
             </div>
           ) : songs.length === 0 ? (
             <div className="text-center py-16 bg-[#181818]/60 border border-white/5 rounded-2xl text-gray-400">
-              <p className="text-sm">Chưa tìm thấy ca khúc nào từ các nghệ sĩ bạn theo dõi.</p>
+              <p className="text-sm">
+                {language === "vi"
+                  ? "Chưa tìm thấy ca khúc nào từ các nghệ sĩ bạn theo dõi."
+                  : "No tracks found from followed artists."}
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-1">
@@ -337,7 +359,7 @@ export default function FollowedArtistsFeed({
                         e.stopPropagation();
                         openAddToPlaylist(song);
                       }}
-                      title="Thêm vào danh sách phát"
+                      title={t.player.addToPlaylist}
                       className="p-2 rounded-full text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 hover:bg-white/10 transition"
                     >
                       <Plus className="w-4 h-4" />
@@ -349,7 +371,7 @@ export default function FollowedArtistsFeed({
                         e.stopPropagation();
                         toggleFavorite(song);
                       }}
-                      title={isFavorite(song) ? "Bỏ yêu thích" : "Yêu thích"}
+                      title={isFavorite(song) ? t.player.unfavorite : t.player.favorite}
                       className="p-2 text-gray-400 hover:text-white transition"
                     >
                       <Heart

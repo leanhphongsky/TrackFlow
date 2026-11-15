@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   ShieldCheck,
   Scale,
@@ -27,14 +28,15 @@ interface TermsViewProps {
 
 export default function TermsView({ onBack, showBackButton = true }: TermsViewProps) {
   const [activeSection, setActiveSection] = useState<string>("overview");
+  const { t, language } = useLanguage();
 
   const sections = [
-    { id: "overview", label: "Tổng quan & Bản chất dự án" },
-    { id: "youtube", label: "Cơ chế YouTube IFrame & Bản quyền" },
-    { id: "upload", label: "Lưu trữ nhạc cá nhân (Cloud)" },
-    { id: "law", label: "Căn cứ pháp lý (VN & Quốc tế)" },
-    { id: "dmca", label: "Quy trình gỡ bỏ nội dung (DMCA)" },
-    { id: "privacy", label: "Bảo mật & Quyền riêng tư" },
+    { id: "overview", label: language === "vi" ? "Tổng quan & Bản chất dự án" : "Overview & Project Scope" },
+    { id: "youtube", label: language === "vi" ? "Cơ chế YouTube IFrame & Bản quyền" : "YouTube IFrame & Copyright" },
+    { id: "upload", label: language === "vi" ? "Lưu trữ nhạc cá nhân (Cloud)" : "Cloud Music Storage" },
+    { id: "law", label: language === "vi" ? "Căn cứ pháp lý (VN & Quốc tế)" : "Legal Basis (VN & International)" },
+    { id: "dmca", label: language === "vi" ? "Quy trình gỡ bỏ nội dung (DMCA)" : "DMCA Takedown Process" },
+    { id: "privacy", label: language === "vi" ? "Bảo mật & Quyền riêng tư" : "Security & Privacy" },
   ];
 
   return (
@@ -49,27 +51,27 @@ export default function TermsView({ onBack, showBackButton = true }: TermsViewPr
               className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Quay lại ứng dụng</span>
+              <span>{t.common.back}</span>
             </button>
           )}
 
           <div className="flex flex-wrap items-center gap-2.5">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#1db954]/10 text-[#1db954] border border-[#1db954]/20">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Tuyên bố Pháp lý & Điều khoản Dịch vụ
+              {language === "vi" ? "Tuyên bố Pháp lý & Điều khoản Dịch vụ" : "Legal Disclaimer & Terms of Service"}
             </span>
             <span className="text-xs text-gray-400 px-2 py-0.5 rounded bg-white/5 border border-white/5">
-              Phiên bản 1.2 — Hiệu lực từ: Tháng 11/2026
+              {language === "vi" ? "Phiên bản 1.2 — Hiệu lực từ: Tháng 11/2026" : "Version 1.2 — Effective: Nov 2026"}
             </span>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            Điều khoản Dịch vụ & Minh bạch Pháp lý
+            {language === "vi" ? "Điều khoản Dịch vụ & Minh bạch Pháp lý" : "Terms of Service & Legal Compliance"}
           </h1>
           <p className="text-gray-300 text-sm md:text-base leading-relaxed">
-            Tài liệu này giải thích chi tiết kiến trúc kỹ thuật của <strong className="text-white font-semibold">TrackFlow</strong>, 
-            phương thức vận hành luồng phát trực tuyến và các căn cứ pháp luật khẳng định dự án hoạt động minh bạch, 
-            hợp pháp, tuân thủ quyền sở hữu trí tuệ theo luật pháp Việt Nam và thông lệ quốc tế.
+            {language === "vi"
+              ? "Tài liệu này giải thích chi tiết kiến trúc kỹ thuật của TrackFlow, phương thức vận hành luồng phát trực tuyến và các căn cứ pháp luật khẳng định dự án hoạt động minh bạch, hợp pháp, tuân thủ quyền sở hữu trí tuệ theo luật pháp Việt Nam và thông lệ quốc tế."
+              : "This document explains the technical architecture of TrackFlow, audio streaming mechanisms, and legal grounds demonstrating that the project operates transparently, legally, and in full compliance with intellectual property laws."}
           </p>
         </div>
 

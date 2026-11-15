@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
   Disc3,
   Sparkles,
@@ -25,6 +27,7 @@ interface LoginPageProps {
 
 export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
   const { login, register } = useAuth();
+  const { t, language } = useLanguage();
   const [tab, setTab] = useState<"login" | "register">("login");
 
   const [username, setUsername] = useState("");
@@ -44,21 +47,21 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
       if (tab === "login") {
         const res = await login(username, password);
         if (!res.success) {
-          setError(res.error || "Tên đăng nhập hoặc mật khẩu không chính xác.");
+          setError(res.error || (language === "vi" ? "Tên đăng nhập hoặc mật khẩu không chính xác." : "Incorrect username or password."));
         }
       } else {
         if (!displayName.trim()) {
-          setError("Vui lòng nhập tên hiển thị.");
+          setError(language === "vi" ? "Vui lòng nhập tên hiển thị." : "Please enter a display name.");
           setLoading(false);
           return;
         }
         const res = await register(username, password, displayName);
         if (!res.success) {
-          setError(res.error || "Đăng ký không thành công. Vui lòng thử lại.");
+          setError(res.error || (language === "vi" ? "Đăng ký không thành công. Vui lòng thử lại." : "Registration failed. Please try again."));
         }
       }
     } catch (err: any) {
-      setError(err.message || "Đã xảy ra lỗi kết nối");
+      setError(err.message || (language === "vi" ? "Đã xảy ra lỗi kết nối" : "Connection error occurred"));
     } finally {
       setLoading(false);
     }
@@ -96,18 +99,29 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
           <div className="my-auto space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-[#1db954]">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Chuẩn giao diện Spotify • 100% Không quảng cáo</span>
+              <span>{t.auth.noAdsBadge}</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
-              Dòng chảy âm nhạc{" "}
-              <span className="bg-gradient-to-r from-[#1db954] to-emerald-300 bg-clip-text text-transparent">
-                cho riêng bạn.
-              </span>
+              {language === "vi" ? (
+                <>
+                  Dòng chảy âm nhạc{" "}
+                  <span className="bg-gradient-to-r from-[#1db954] to-emerald-300 bg-clip-text text-transparent">
+                    cho riêng bạn.
+                  </span>
+                </>
+              ) : (
+                <>
+                  Your personal{" "}
+                  <span className="bg-gradient-to-r from-[#1db954] to-emerald-300 bg-clip-text text-transparent">
+                    music flow.
+                  </span>
+                </>
+              )}
             </h1>
 
             <p className="text-xs sm:text-sm text-gray-400 leading-relaxed max-w-md">
-              Tìm kiếm và phát nhạc trực tiếp từ YouTube, khám phá trang cá nhân của mọi nghệ sĩ yêu thích và tự do lưu trữ bài hát theo tài khoản cá nhân.
+              {t.auth.loginHeroDesc}
             </p>
 
             {/* Feature List */}
@@ -116,21 +130,21 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                 <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-[#1db954] flex-shrink-0">
                   <Headphones className="w-4 h-4" />
                 </div>
-                <span>Phát nhạc YouTube trực tiếp, không dính quảng cáo</span>
+                <span>{language === "vi" ? "Phát nhạc YouTube trực tiếp, không dính quảng cáo" : "Direct YouTube music playback, zero ads"}</span>
               </div>
 
               <div className="flex items-center gap-3 text-xs sm:text-sm text-gray-300">
                 <div className="w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 flex-shrink-0">
                   <Radio className="w-4 h-4" />
                 </div>
-                <span>Trang cá nhân nghệ sĩ với toàn bộ bài hát & MV</span>
+                <span>{language === "vi" ? "Trang cá nhân nghệ sĩ với toàn bộ bài hát & MV" : "Artist profile pages with all tracks & music videos"}</span>
               </div>
 
               <div className="flex items-center gap-3 text-xs sm:text-sm text-gray-300">
                 <div className="w-7 h-7 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 flex-shrink-0">
                   <Heart className="w-4 h-4" />
                 </div>
-                <span>Kho "Bài hát đã thích" độc lập cho từng người dùng</span>
+                <span>{language === "vi" ? 'Kho "Bài hát đã thích" độc lập cho từng người dùng' : 'Independent "Liked Songs" library for each user'}</span>
               </div>
             </div>
           </div>
@@ -139,7 +153,9 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
           <div className="mt-8 pt-6 border-t border-white/10">
             <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-sm">
               <p className="text-xs text-gray-300 italic mb-3">
-                “Nơi bạn tự do tận hưởng âm nhạc đỉnh cao cùng bạn bè mà không bị làm phiền bởi quảng cáo hay phí thuê bao.”
+                {language === "vi"
+                  ? "“Nơi bạn tự do tận hưởng âm nhạc đỉnh cao cùng bạn bè mà không bị làm phiền bởi quảng cáo hay phí thuê bao.”"
+                  : '"Where you freely enjoy top-tier music with friends without ad interruptions or subscriptions."'}
               </p>
               <div className="flex items-center gap-2.5">
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#1db954] to-emerald-700 flex items-center justify-center text-[10px] font-bold text-black">
@@ -147,7 +163,9 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-white">TrackFlow Community</p>
-                  <p className="text-[10px] text-gray-500">Dành riêng cho bạn bè & cá nhân</p>
+                  <p className="text-[10px] text-gray-500">
+                    {language === "vi" ? "Dành riêng cho bạn bè & cá nhân" : "For friends & personal use"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -172,8 +190,8 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
               </div>
             </div>
             
-            {/* Pill Tab Switcher */}
-            <div className="flex items-center justify-between mb-8">
+            {/* Pill Tab Switcher & Language Switcher */}
+            <div className="flex items-center justify-between mb-8 gap-3">
               <div className="flex p-1 bg-[#222222] rounded-full border border-white/5">
                 <button
                   type="button"
@@ -187,7 +205,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                       : "text-gray-400 hover:text-white"
                   }`}
                 >
-                  Đăng nhập
+                  {t.auth.loginTitle}
                 </button>
                 <button
                   type="button"
@@ -201,24 +219,24 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                       : "text-gray-400 hover:text-white"
                   }`}
                 >
-                  Đăng ký
+                  {t.auth.registerTitle}
                 </button>
               </div>
 
-              <span className="text-xs text-gray-500">
-                {tab === "login" ? "Chào mừng trở lại" : "Tài khoản mới"}
-              </span>
+              <LanguageSwitcher variant="pill" />
             </div>
 
             {/* Title */}
             <div className="mb-6">
               <h2 className="text-2xl font-extrabold text-white tracking-tight">
-                {tab === "login" ? "Đăng nhập vào TrackFlow" : "Tạo tài khoản của bạn"}
+                {tab === "login"
+                  ? (language === "vi" ? "Đăng nhập vào TrackFlow" : "Sign in to TrackFlow")
+                  : (language === "vi" ? "Tạo tài khoản của bạn" : "Create your account")}
               </h2>
               <p className="text-xs text-gray-400 mt-1">
                 {tab === "login"
-                  ? "Nhập tên đăng nhập và mật khẩu để mở kho nhạc cá nhân"
-                  : "Đăng ký chỉ mất 5 giây để lưu bài hát yêu thích"}
+                  ? (language === "vi" ? "Nhập tên đăng nhập và mật khẩu để mở kho nhạc cá nhân" : "Enter username and password to open your personal library")
+                  : (language === "vi" ? "Đăng ký chỉ mất 5 giây để lưu bài hát yêu thích" : "Sign up in 5 seconds to save your favorite songs")}
               </p>
             </div>
 
@@ -237,7 +255,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
               {tab === "register" && (
                 <div>
                   <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
-                    Tên hiển thị của bạn
+                    {t.auth.displayName}
                   </label>
                   <div className="relative">
                     <Sparkles className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -257,7 +275,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
               {/* Username */}
               <div>
                 <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
-                  Tên đăng nhập
+                  {t.auth.username}
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -277,7 +295,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
               {/* Password */}
               <div>
                 <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
-                  Mật khẩu
+                  {t.auth.password}
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -309,11 +327,11 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-black" />
-                    <span>Đang xác thực...</span>
+                    <span>{t.auth.processing}</span>
                   </>
                 ) : (
                   <>
-                    <span>{tab === "login" ? "Đăng nhập ngay" : "Tạo tài khoản miễn phí"}</span>
+                    <span>{tab === "login" ? t.auth.submitLogin : t.auth.submitRegister}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -328,7 +346,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                   onClick={onContinueAsGuest}
                   className="text-xs text-gray-400 hover:text-[#1db954] transition hover:underline"
                 >
-                  Tiếp tục duyệt thử với tư cách khách →
+                  {t.auth.continueAsGuest}
                 </button>
               </div>
             )}
@@ -337,7 +355,7 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
             <div className="mt-8 pt-5 border-t border-white/10 text-center">
               {tab === "login" ? (
                 <p className="text-xs text-gray-400">
-                  Chưa có tài khoản?{" "}
+                  {language === "vi" ? "Chưa có tài khoản?" : "Don't have an account?"}{" "}
                   <button
                     type="button"
                     onClick={() => {
@@ -346,12 +364,12 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                     }}
                     className="text-[#1db954] font-bold hover:underline"
                   >
-                    Đăng ký ngay
+                    {language === "vi" ? "Đăng ký ngay" : "Sign up now"}
                   </button>
                 </p>
               ) : (
                 <p className="text-xs text-gray-400">
-                  Đã có tài khoản rồi?{" "}
+                  {language === "vi" ? "Đã có tài khoản rồi?" : "Already have an account?"}{" "}
                   <button
                     type="button"
                     onClick={() => {
@@ -360,22 +378,22 @@ export default function LoginPage({ onContinueAsGuest }: LoginPageProps) {
                     }}
                     className="text-[#1db954] font-bold hover:underline"
                   >
-                    Đăng nhập tại đây
+                    {language === "vi" ? "Đăng nhập tại đây" : "Sign in here"}
                   </button>
                 </p>
               )}
               {/* Legal disclaimer link */}
               <p className="text-[11px] text-gray-500 mt-4 leading-relaxed">
-                Bằng việc tiếp tục, bạn đồng ý với{" "}
+                {language === "vi" ? "Bằng việc tiếp tục, bạn đồng ý với" : "By continuing, you agree to"}{" "}
                 <a
                   href="/terms"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white underline decoration-dotted underline-offset-2"
                 >
-                  Điều khoản Dịch vụ & Pháp lý
+                  {t.footer.legalLink}
                 </a>{" "}
-                của TrackFlow.
+                {language === "vi" ? "của TrackFlow." : "of TrackFlow."}
               </p>
             </div>
 

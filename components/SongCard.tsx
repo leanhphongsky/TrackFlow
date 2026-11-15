@@ -6,6 +6,7 @@ import { Play, Pause, Music, Heart, Plus } from "lucide-react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface SongCardProps {
   song: Song;
@@ -16,6 +17,7 @@ export default function SongCard({ song, songsList }: SongCardProps) {
   const { currentSong, isPlaying, playSong, togglePlay } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
+  const { t } = useLanguage();
 
   const isCurrent = currentSong?.id === song.id;
   const favorited = isFavorite(song);
@@ -63,7 +65,7 @@ export default function SongCard({ song, songsList }: SongCardProps) {
               openAddToPlaylist(song);
             }}
             className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 text-white/80 hover:text-white bg-black/50 hover:bg-black/70 transition"
-            title="Thêm vào danh sách phát"
+            title={t.player.addToPlaylist}
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -75,7 +77,7 @@ export default function SongCard({ song, songsList }: SongCardProps) {
                 ? "opacity-100 text-[#1db954] bg-black/40"
                 : "opacity-0 group-hover:opacity-100 text-white/70 hover:text-white bg-black/40 hover:bg-black/60"
             }`}
-            title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+            title={favorited ? t.player.unfavorite : t.player.favorite}
           >
             <Heart
               className={`w-4 h-4 ${favorited ? "fill-[#1db954] text-[#1db954]" : ""}`}

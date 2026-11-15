@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { usePlayer } from "@/context/PlayerContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Song } from "@/lib/db";
 import {
   Mic,
@@ -198,9 +199,19 @@ export default function PodcastsSection({
   const { currentSong, isPlaying } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
+  const { t, language } = useLanguage();
 
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const categoryLabels: Record<string, string> = {
+    "Tất cả": t.podcasts.categories.all,
+    "Trò chuyện": t.podcasts.categories.chat,
+    "Tâm lý & Cuộc sống": t.podcasts.categories.psychology,
+    "Kinh doanh & Tài chính": t.podcasts.categories.business,
+    "Triết lý & Nghệ thuật": t.podcasts.categories.philosophy,
+    "Khoa học & Giáo dục": t.podcasts.categories.science,
+  };
 
   // Convert episode to standard Song object for playback
   const playEpisode = (ep: any, show: PodcastShow) => {
@@ -242,10 +253,10 @@ export default function PodcastsSection({
             <span>TrackFlow Podcasts & Shows</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-2 tracking-tight">
-            Podcasts & Chương trình truyền cảm hứng
+            {t.podcasts.heroTitle}
           </h1>
           <p className="text-gray-300 text-sm max-w-xl leading-relaxed">
-            Khám phá các tập podcast sâu sắc về cuộc sống, tâm lý, sự nghiệp và tài chính. Nghe hoàn toàn không quảng cáo.
+            {t.podcasts.heroDesc}
           </p>
         </div>
       </div>
@@ -256,7 +267,11 @@ export default function PodcastsSection({
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-purple-400" />
-              <span>Chương trình bạn đang theo dõi ({followedShows.length})</span>
+              <span>
+                {language === "vi"
+                  ? `Chương trình bạn đang theo dõi (${followedShows.length})`
+                  : `Shows you follow (${followedShows.length})`}
+              </span>
             </h2>
           </div>
 
@@ -266,10 +281,12 @@ export default function PodcastsSection({
                 <Mic className="w-7 h-7" />
               </div>
               <h3 className="text-lg font-bold text-white mb-1">
-                Bạn chưa theo dõi podcast nào
+                {language === "vi" ? "Bạn chưa theo dõi podcast nào" : "You haven't followed any podcasts yet"}
               </h3>
               <p className="text-xs text-gray-400 mb-6">
-                Bấm vào nút &quot;Theo dõi&quot; ở các podcast bên dưới để nhận thông báo các tập mới nhất!
+                {language === "vi"
+                  ? 'Bấm vào nút "Theo dõi" ở các podcast bên dưới để nhận thông báo các tập mới nhất!'
+                  : 'Click "Follow" on podcasts below to get notifications for the latest episodes!'}
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {FEATURED_PODCASTS.slice(0, 4).map((p) => (
@@ -314,7 +331,7 @@ export default function PodcastsSection({
                           className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/10 hover:bg-red-500/20 text-white hover:text-red-400 transition flex items-center gap-1 flex-shrink-0"
                         >
                           <Check className="w-3 h-3 text-[#1db954]" />
-                          <span>Đang theo dõi</span>
+                          <span>{t.artist.following}</span>
                         </button>
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">{show.host}</p>
@@ -368,7 +385,7 @@ export default function PodcastsSection({
                     : "bg-[#222222] text-gray-300 hover:bg-[#2c2c2c]"
                 }`}
               >
-                {cat}
+                {categoryLabels[cat] || cat}
               </button>
             ))}
           </div>
@@ -395,7 +412,7 @@ export default function PodcastsSection({
                             {show.title}
                           </h4>
                           <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full font-medium flex-shrink-0">
-                            {show.category}
+                            {categoryLabels[show.category] || show.category}
                           </span>
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">{show.host}</p>
@@ -448,12 +465,12 @@ export default function PodcastsSection({
                       {following ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-[#1db954]" />
-                          <span>Đang theo dõi</span>
+                          <span>{t.artist.following}</span>
                         </>
                       ) : (
                         <>
                           <UserPlus className="w-3.5 h-3.5" />
-                          <span>Theo dõi</span>
+                          <span>{t.artist.follow}</span>
                         </>
                       )}
                     </button>
@@ -462,7 +479,7 @@ export default function PodcastsSection({
                       onClick={() => playEpisode(show.episodes[0], show)}
                       className="text-xs font-semibold text-gray-400 hover:text-white transition flex items-center gap-1"
                     >
-                      <span>Nghe ngay</span>
+                      <span>{t.podcasts.listenNow}</span>
                       <span>→</span>
                     </button>
                   </div>

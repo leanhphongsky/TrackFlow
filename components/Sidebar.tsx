@@ -112,7 +112,7 @@ export default function Sidebar({
           <button
             onClick={() => handleNav(() => setActiveTab("home"))}
             className="group relative flex items-center justify-center w-12 h-12 rounded-2xl bg-white/[0.04] hover:bg-white/10 border border-white/5 transition"
-            title="TrackFlow Trang chủ"
+            title={`TrackFlow - ${t.nav.home}`}
           >
             <Disc3 className="w-6 h-6 text-[#1db954] animate-spin-slow group-hover:scale-110 transition-transform" />
           </button>

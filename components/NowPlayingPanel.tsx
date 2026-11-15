@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   X,
   Heart,
@@ -60,6 +61,7 @@ export default function NowPlayingPanel({
   } = usePlayer();
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
+  const { t } = useLanguage();
 
   const activeLineRef = useRef<HTMLParagraphElement | null>(null);
   const lyricsContainerRef = useRef<HTMLDivElement | null>(null);
@@ -103,7 +105,7 @@ export default function NowPlayingPanel({
           <button
             onClick={onClose}
             className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-            title="Đóng panel"
+            title={t.nowPlayingPanel.close}
           >
             <X className="w-5 h-5" />
           </button>
@@ -221,19 +223,19 @@ export default function NowPlayingPanel({
                     className="bg-black/70 hover:bg-black/90 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full border border-white/20 transition flex items-center gap-1.5 shadow-lg"
                     title={
                       showVideo
-                        ? "Chuyển sang xem ảnh bìa tĩnh"
-                        : "Chuyển sang xem video Canvas"
+                        ? t.nowPlayingPanel.switchToArtwork
+                        : t.nowPlayingPanel.switchToCanvas
                     }
                   >
                     {showVideo ? (
                       <>
                         <ImageIcon className="w-3 h-3 text-gray-300" />
-                        <span>Ảnh bìa</span>
+                        <span>{t.nowPlayingPanel.artwork}</span>
                       </>
                     ) : (
                       <>
                         <Sparkles className="w-3 h-3 text-[#1db954]" />
-                        <span>Canvas</span>
+                        <span>{t.nowPlayingPanel.canvas}</span>
                       </>
                     )}
                   </button>
@@ -261,14 +263,14 @@ export default function NowPlayingPanel({
                   <button
                     onClick={() => openAddToPlaylist(currentSong)}
                     className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition"
-                    title="Thêm vào danh sách phát"
+                    title={t.player.addToPlaylist}
                   >
                     <Plus className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => toggleFavorite(currentSong)}
                     className="p-2 rounded-full hover:bg-white/5 transition"
-                    title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+                    title={favorited ? t.player.unfavorite : t.player.favorite}
                   >
                     <Heart
                       className={`w-6 h-6 transition ${
@@ -293,11 +295,11 @@ export default function NowPlayingPanel({
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-extrabold text-sm text-white flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-[#1db954]" />
-                  <span>Lời bài hát</span>
+                  <span>{t.nowPlayingPanel.lyricsTitle}</span>
                 </span>
                 {isSyncedLyrics && (
                   <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                    {lyricsSource === "youtube-captions" ? "Khớp chuẩn video" : "Đồng bộ thời gian"}
+                    {lyricsSource === "youtube-captions" ? t.nowPlayingPanel.syncedExact : t.nowPlayingPanel.syncedTime}
                   </span>
                 )}
               </div>
@@ -306,12 +308,12 @@ export default function NowPlayingPanel({
                 {isSyncedLyrics && (
                   <div
                     className="flex items-center gap-0.5 text-[10px] bg-white/5 border border-white/10 rounded-lg px-1.5 py-0.5 mr-1"
-                    title="Điều chỉnh độ trễ lời bài hát"
+                    title={t.nowPlayingPanel.offsetAdjust}
                   >
                     <button
                       onClick={() => setLyricsOffset((prev) => Math.round((prev - 0.5) * 10) / 10)}
                       className="px-1 text-gray-400 hover:text-white transition font-mono hover:bg-white/10 rounded"
-                      title="Chạy sớm hơn 0.5s"
+                      title={t.nowPlayingPanel.offsetEarlier}
                     >
                       -0.5s
                     </button>
@@ -319,7 +321,7 @@ export default function NowPlayingPanel({
                       <span
                         onClick={() => setLyricsOffset(0)}
                         className="text-[10px] font-bold text-[#1db954] cursor-pointer hover:underline px-0.5"
-                        title="Bấm để đặt lại về 0s"
+                        title={t.nowPlayingPanel.offsetReset}
                       >
                         {lyricsOffset > 0 ? `+${lyricsOffset}s` : `${lyricsOffset}s`}
                       </span>
@@ -327,7 +329,7 @@ export default function NowPlayingPanel({
                     <button
                       onClick={() => setLyricsOffset((prev) => Math.round((prev + 0.5) * 10) / 10)}
                       className="px-1 text-gray-400 hover:text-white transition font-mono hover:bg-white/10 rounded"
-                      title="Chạy trễ hơn 0.5s"
+                      title={t.nowPlayingPanel.offsetLater}
                     >
                       +0.5s
                     </button>
@@ -338,7 +340,7 @@ export default function NowPlayingPanel({
                 <button
                   onClick={toggleLyricsFullscreen}
                   className="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition border border-white/5 shadow-sm"
-                  title="Mở toàn màn hình Karaoke"
+                  title={t.nowPlayingPanel.fullscreenKaraoke}
                 >
                   <Maximize2 className="w-4 h-4" />
                 </button>
@@ -349,12 +351,12 @@ export default function NowPlayingPanel({
             {loadingLyrics ? (
               <div className="py-8 flex flex-col items-center justify-center text-gray-400 gap-2">
                 <Loader2 className="w-5 h-5 animate-spin text-[#1db954]" />
-                <span className="text-xs">Đang tải lời bài hát...</span>
+                <span className="text-xs">{t.nowPlayingPanel.loadingLyrics}</span>
               </div>
             ) : !hasLyrics ? (
               <div className="py-6 text-center">
                 <p className="text-xs text-gray-400 italic font-medium">
-                  {lyricsMessage || "Hiện bài hát này chưa có lời"}
+                  {lyricsMessage || t.nowPlayingPanel.noLyricsAvailable}
                 </p>
               </div>
             ) : (
@@ -376,7 +378,7 @@ export default function NowPlayingPanel({
                       className={`group/line flex items-start gap-2.5 transition-all duration-200 ${
                         isSyncedLyrics ? "cursor-pointer" : ""
                       }`}
-                      title={isSyncedLyrics ? "Bấm để phát từ đoạn này" : undefined}
+                      title={isSyncedLyrics ? t.nowPlayingPanel.clickToSeek : undefined}
                     >
                       {/* Active Indicator Bar & Wave */}
                       {isActive && (
@@ -416,7 +418,7 @@ export default function NowPlayingPanel({
                 className="mt-3 w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 text-gray-300 hover:text-white text-xs font-bold transition flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#1db954]" />
-                <span>Xem toàn màn hình Karaoke</span>
+                <span>{t.nowPlayingPanel.fullscreenKaraoke}</span>
               </button>
             )}
           </div>
@@ -437,7 +439,7 @@ export default function NowPlayingPanel({
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1c181a] via-transparent to-black/30" />
                 <span className="absolute top-3 left-3 text-xs font-bold text-white uppercase tracking-wider drop-shadow">
-                  About the artist
+                  {t.nowPlayingPanel.aboutArtist}
                 </span>
               </div>
 
@@ -449,7 +451,7 @@ export default function NowPlayingPanel({
                   <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-white transition" />
                 </div>
                 <p className="text-xs text-gray-400 line-clamp-2">
-                  Bấm để xem tất cả bài hát và thông tin chi tiết trên trang nghệ sĩ.
+                  {t.nowPlayingPanel.aboutArtistDesc}
                 </p>
               </div>
             </div>

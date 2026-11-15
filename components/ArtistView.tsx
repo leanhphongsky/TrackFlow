@@ -17,6 +17,7 @@ import {
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Song } from "@/lib/db";
 
 interface Artist {
@@ -38,20 +39,20 @@ interface ArtistViewProps {
   onSongSaved?: (song: Song) => void;
 }
 
-function formatSongViews(views?: number | string): string {
+function formatSongViews(views?: number | string, lang: "vi" | "en" = "vi"): string {
   if (!views) return "";
   const num = typeof views === "string" ? parseInt(views.replace(/[^0-9]/g, ""), 10) : Number(views);
   if (isNaN(num) || num <= 0) return String(views);
   if (num >= 1_000_000_000) {
-    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + " Tỷ";
+    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + (lang === "vi" ? " Tỷ" : "B");
   }
   if (num >= 1_000_000) {
-    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + " Tr";
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + (lang === "vi" ? " Tr" : "M");
   }
   if (num >= 1_000) {
-    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + " N";
+    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + (lang === "vi" ? " N" : "K");
   }
-  return num.toLocaleString("vi-VN");
+  return num.toLocaleString(lang === "vi" ? "vi-VN" : "en-US");
 }
 
 export default function ArtistView({
@@ -59,6 +60,7 @@ export default function ArtistView({
   artistName,
   onBack,
 }: ArtistViewProps) {
+  const { t, language } = useLanguage();
   const [artist, setArtist] = useState<Artist | null>(null);
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +98,7 @@ export default function ArtistView({
     return (
       <div className="flex flex-col items-center justify-center py-32 text-gray-400 gap-3">
         <Loader2 className="w-10 h-10 animate-spin text-[#1db954]" />
-        <p className="text-sm">Đang tải trang cá nhân nghệ sĩ...</p>
+        <p className="text-sm">{t.artist.loadingProfile}</p>
       </div>
     );
   }
@@ -104,12 +106,12 @@ export default function ArtistView({
   if (!artist) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-400 mb-4">Không tìm thấy thông tin nghệ sĩ.</p>
+        <p className="text-gray-400 mb-4">{t.artist.notFound}</p>
         <button
           onClick={onBack}
           className="text-xs bg-white text-black px-4 py-2 rounded-full font-bold"
         >
-          Quay lại
+          {t.artist.back}
         </button>
       </div>
     );
@@ -127,7 +129,7 @@ export default function ArtistView({
           className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full transition"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Quay lại</span>
+          <span>{t.artist.back}</span>
         </button>
       </div>
 
@@ -174,7 +176,7 @@ export default function ArtistView({
           <div className="flex-1 text-center md:text-left min-w-0">
             <div className="flex items-center justify-center md:justify-start gap-1.5 text-xs text-sky-400 font-bold uppercase tracking-wider mb-2">
               <CheckCircle2 className="w-4 h-4 fill-sky-400 text-black" />
-              <span>Nghệ sĩ đã xác minh trên YouTube</span>
+              <span>{t.artist.verifiedOnYoutube}</span>
             </div>
             <h1 className="text-3xl md:text-5xl font-black text-white mb-2.5 tracking-tight truncate">
               {artist.name}
@@ -182,12 +184,12 @@ export default function ArtistView({
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-gray-300 font-medium">
               <span className="flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-[#1db954]" />
-                {artist.subscribers} người đăng ký
+                {artist.subscribers} {t.artist.subscribers}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1.5">
                 <Eye className="w-4 h-4 text-sky-400" />
-                {artist.views} lượt xem
+                {artist.views} {t.artist.views}
               </span>
               {artist.customUrl && (
                 <>
@@ -216,7 +218,7 @@ export default function ArtistView({
                 }
               }}
               className="w-14 h-14 rounded-full bg-[#1db954] hover:bg-[#1ed760] hover:scale-105 flex items-center justify-center text-black shadow-xl transition"
-              title="Phát tất cả"
+              title={t.artist.playAll}
             >
               {isCurrentArtistPlaying && isPlaying ? (
                 <Pause className="w-7 h-7 fill-black" />
@@ -242,7 +244,7 @@ export default function ArtistView({
                 : "border-gray-500 text-white hover:border-white hover:scale-105"
             }`}
           >
-            {isFollowing ? "Đang theo dõi" : "Theo dõi"}
+            {isFollowing ? t.artist.following : t.artist.follow}
           </button>
         </div>
       </div>
@@ -251,7 +253,7 @@ export default function ArtistView({
       <div className="mb-10">
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-[#1db954]" />
-          <span>Bài hát phổ biến nhất ({songs.length})</span>
+          <span>{t.artist.popularSongs} ({songs.length})</span>
         </h2>
 
         <div className="flex flex-col gap-1">
@@ -304,13 +306,13 @@ export default function ArtistView({
                     className="flex items-center gap-1.5 text-xs text-gray-400 group-hover:text-gray-200 transition flex-shrink-0 mr-2 sm:mr-4 font-medium tabular-nums"
                     title={
                       typeof song.views === "number"
-                        ? `${song.views.toLocaleString("vi-VN")} lượt xem`
+                        ? `${song.views.toLocaleString("vi-VN")} ${t.artist.viewsCount}`
                         : song.viewsFormatted || String(song.views)
                     }
                   >
                     <Eye className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#1db954] transition" />
                     <span>
-                      {song.viewsFormatted || `${formatSongViews(song.views)} lượt xem`}
+                      {song.viewsFormatted || `${formatSongViews(song.views, language)} ${t.artist.viewsCount}`}
                     </span>
                   </div>
                 )}
@@ -321,7 +323,7 @@ export default function ArtistView({
                     e.stopPropagation();
                     openAddToPlaylist(song);
                   }}
-                  title="Thêm vào danh sách phát"
+                  title={t.player.addToPlaylist}
                   className="p-2 rounded-full text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 hover:bg-white/10 transition"
                 >
                   <Plus className="w-5 h-5" />
@@ -333,7 +335,7 @@ export default function ArtistView({
                     e.stopPropagation();
                     toggleFavorite(song);
                   }}
-                  title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+                  title={favorited ? t.player.unfavorite : t.player.favorite}
                   className={`p-2 rounded-full transition ${
                     favorited
                       ? "text-[#1db954]"
@@ -351,7 +353,7 @@ export default function ArtistView({
       {/* About Section */}
       {artist.description && (
         <div className="bg-[#181818] p-6 rounded-2xl border border-white/5">
-          <h3 className="text-lg font-bold mb-3">Giới thiệu về nghệ sĩ</h3>
+          <h3 className="text-lg font-bold mb-3">{t.nowPlayingPanel.aboutArtist}</h3>
           <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line max-w-3xl">
             {artist.description}
           </p>

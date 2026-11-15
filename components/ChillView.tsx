@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   X,
   Play,
@@ -270,6 +271,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
 
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
+  const { t, language } = useLanguage();
 
   // Customization States with localStorage persistence
   const [currentTheme, setCurrentTheme] = useState<string>("bloom-dark");
@@ -727,7 +729,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
 
         <div className="flex-1 min-w-0">
           <p className="text-xs sm:text-sm font-extrabold text-white truncate hover:underline cursor-pointer drop-shadow-sm">
-            {currentSong?.title || "Chưa phát bài hát nào"}
+            {currentSong?.title || (language === "vi" ? "Chưa phát bài hát nào" : "No song playing")}
           </p>
           <p
             onClick={() => currentSong?.artist && onOpenArtist?.(currentSong.artist)}
@@ -751,27 +753,21 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                   ? "text-amber-400 bg-white/15"
                   : "text-gray-300 hover:text-white hover:bg-white/15"
               }`}
-              title={`Lời bài hát: ${
-                lyricsMode === "subtitle"
-                  ? "Đang bật Phụ đề (Nhấn để mở Bảng lời)"
-                  : lyricsMode === "panel"
-                  ? "Đang mở Bảng lời (Nhấn để tắt)"
-                  : "Đang tắt (Nhấn để bật Phụ đề)"
-              }`}
+              title={t.chillView.lyricsTooltip}
             >
               <Mic2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => openAddToPlaylist(currentSong)}
               className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
-              title="Thêm vào danh sách phát"
+              title={t.player.addToPlaylist}
             >
               <Plus className="w-4 h-4" />
             </button>
             <button
               onClick={() => toggleFavorite(currentSong)}
               className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/15 transition backdrop-blur-sm"
-              title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+              title={favorited ? t.player.unfavorite : t.player.favorite}
             >
               <Heart
                 className={`w-4 h-4 transition ${
@@ -807,7 +803,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           className={`p-1.5 rounded-full transition ${
             isLooping ? "text-[#1db954]" : "text-gray-300 hover:text-white hover:bg-white/10"
           }`}
-          title="Lặp lại"
+          title={t.player.loop}
         >
           <Repeat className="w-3.5 h-3.5" />
         </button>
@@ -817,7 +813,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           <button
             onClick={prevSong}
             className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
-            title="Bài trước"
+            title={t.player.previous}
           >
             <SkipBack className="w-4 h-4 fill-current" />
           </button>
@@ -825,7 +821,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           <button
             onClick={togglePlay}
             className="w-9 h-9 rounded-full bg-white hover:scale-105 active:scale-95 flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.45)] transition"
-            title={isPlaying ? "Tạm dừng" : "Phát"}
+            title={isPlaying ? t.player.pause : t.player.play}
           >
             {isPlaying ? (
               <Pause className="w-4 h-4 fill-black" />
@@ -837,7 +833,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           <button
             onClick={nextSong}
             className="text-gray-300 hover:text-white transition hover:scale-110 active:scale-95"
-            title="Bài tiếp theo"
+            title={t.player.next}
           >
             <SkipForward className="w-4 h-4 fill-current" />
           </button>
@@ -847,7 +843,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
         <button
           onClick={toggleMute}
           className="p-1.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition"
-          title={isMuted ? "Bật âm thanh" : "Tắt tiếng"}
+          title={isMuted ? t.player.unmute : t.player.mute}
         >
           {isMuted || volume === 0 ? (
             <VolumeX className="w-3.5 h-3.5" />
@@ -994,7 +990,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
             >
               <Mic2 className={`w-3.5 h-3.5 ${lyricsMode !== "off" ? "text-amber-300" : "text-gray-300"}`} />
               <span className="hidden sm:inline">
-                {lyricsMode === "subtitle" ? "Phụ đề" : lyricsMode === "panel" ? "Bảng lời" : "Lời bài hát"}
+                {lyricsMode === "subtitle" ? t.chillView.lyricsSubtitle : lyricsMode === "panel" ? t.chillView.lyricsPanel : t.chillView.lyricsOff}
               </span>
             </button>
 
@@ -1003,7 +999,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
               <div className="absolute right-0 top-full mt-2 w-60 bg-[#181424]/95 border border-white/15 rounded-2xl p-2.5 shadow-2xl backdrop-blur-xl z-40 space-y-1 animate-fadeIn">
                 <p className="text-[11px] font-bold text-gray-400 px-3 py-1 uppercase tracking-wider flex items-center gap-1.5">
                   <Mic2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Hiệu ứng lời bài hát</span>
+                  <span>{t.chillView.lyricsEffectsTitle}</span>
                 </p>
 
                 <button
@@ -1015,8 +1011,8 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                   }`}
                 >
                   <div className="flex flex-col">
-                    <span className="font-bold">Phụ đề dạ quang</span>
-                    <span className="text-[10px] text-gray-400 font-normal">Dòng karaoke bay bổng dưới đĩa</span>
+                    <span className="font-bold">{t.chillView.subtitleTitle}</span>
+                    <span className="text-[10px] text-gray-400 font-normal">{t.chillView.subtitleDesc}</span>
                   </div>
                   {lyricsMode === "subtitle" && <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
                 </button>
@@ -1030,8 +1026,8 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                   }`}
                 >
                   <div className="flex flex-col">
-                    <span className="font-bold">Bảng lời cuộn</span>
-                    <span className="text-[10px] text-gray-400 font-normal">Phong cách Apple Music kính mờ</span>
+                    <span className="font-bold">{t.chillView.panelTitle}</span>
+                    <span className="text-[10px] text-gray-400 font-normal">{t.chillView.panelDesc}</span>
                   </div>
                   {lyricsMode === "panel" && <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
                 </button>
@@ -1045,8 +1041,8 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
                   }`}
                 >
                   <div className="flex flex-col">
-                    <span className="font-bold">Tắt lời bài hát</span>
-                    <span className="text-[10px] text-gray-400 font-normal">Chỉ hiện đĩa than & sóng âm</span>
+                    <span className="font-bold">{t.chillView.offTitle}</span>
+                    <span className="text-[10px] text-gray-400 font-normal">{t.chillView.offDesc}</span>
                   </div>
                   {lyricsMode === "off" && <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
                 </button>
@@ -1180,7 +1176,7 @@ export default function ChillView({ onBack, onOpenArtist }: ChillViewProps) {
           <button
             onClick={onBack}
             className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition shadow backdrop-blur-md hover:scale-105 active:scale-95 ml-1"
-            title="Thoát chế độ Chill (Phím Esc)"
+            title={t.chillView.exitChillTooltip}
           >
             <X className="w-5 h-5" />
           </button>

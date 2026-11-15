@@ -12,8 +12,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { usePlaylist, PlaylistSummary } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AddToPlaylistModal() {
+  const { t } = useLanguage();
   const {
     isAddToPlaylistOpen,
     songForPlaylist,
@@ -86,7 +88,7 @@ export default function AddToPlaylistModal() {
                 : p
             )
           );
-          showToast(`Đã xoá khỏi "${playlist.name}"`);
+          showToast(`${t.addToPlaylistModal.toastRemoved} "${playlist.name}"`);
         }
       } else {
         // Add
@@ -99,7 +101,7 @@ export default function AddToPlaylistModal() {
                 : p
             )
           );
-          showToast(`Đã thêm vào "${playlist.name}"`);
+          showToast(`${t.addToPlaylistModal.toastAdded} "${playlist.name}"`);
         }
       }
     } finally {
@@ -121,7 +123,7 @@ export default function AddToPlaylistModal() {
           { ...created, hasSong: true, song_count: 1 },
           ...prev,
         ]);
-        showToast(`Đã tạo và thêm vào "${created.name}"`);
+        showToast(`${t.addToPlaylistModal.toastCreatedAndAdded} "${created.name}"`);
         setNewPlaylistName("");
         setIsCreatingNew(false);
       }
@@ -149,7 +151,7 @@ export default function AddToPlaylistModal() {
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FolderPlus className="w-5 h-5 text-[#1db954]" />
-            <h2 className="text-base font-bold text-white">Thêm vào danh sách phát</h2>
+            <h2 className="text-base font-bold text-white">{t.addToPlaylistModal.title}</h2>
           </div>
           <button
             onClick={closeAddToPlaylist}
@@ -177,7 +179,7 @@ export default function AddToPlaylistModal() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-white truncate">{songForPlaylist.title}</p>
             <p className="text-xs text-gray-400 truncate">
-              {songForPlaylist.artist || songForPlaylist.author?.name || "Nghệ sĩ"}
+              {songForPlaylist.artist || songForPlaylist.author?.name || t.addToPlaylistModal.artistFallback}
             </p>
           </div>
         </div>
@@ -198,14 +200,14 @@ export default function AddToPlaylistModal() {
               className="w-full py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs flex items-center justify-center gap-2 transition border border-white/10"
             >
               <Plus className="w-4 h-4 text-[#1db954]" />
-              <span>Tạo danh sách phát mới</span>
+              <span>{t.addToPlaylistModal.createNew}</span>
             </button>
           ) : (
             <form onSubmit={handleCreateNewPlaylist} className="flex gap-2">
               <input
                 type="text"
                 autoFocus
-                placeholder="Tên danh sách phát mới..."
+                placeholder={t.addToPlaylistModal.newPlaylistPlaceholder}
                 value={newPlaylistName}
                 onChange={(e) => setNewPlaylistName(e.target.value)}
                 className="flex-1 bg-black/60 border border-white/20 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-[#1db954]"
@@ -218,7 +220,7 @@ export default function AddToPlaylistModal() {
                 {actionLoadingId === -1 ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <span>Tạo</span>
+                  <span>{t.addToPlaylistModal.create}</span>
                 )}
               </button>
               <button
@@ -229,7 +231,7 @@ export default function AddToPlaylistModal() {
                 }}
                 className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-xs transition"
               >
-                Huỷ
+                {t.addToPlaylistModal.cancel}
               </button>
             </form>
           )}
@@ -240,7 +242,7 @@ export default function AddToPlaylistModal() {
               <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Tìm danh sách phát..."
+                placeholder={t.addToPlaylistModal.searchPlaceholder}
                 value={filterQuery}
                 onChange={(e) => setFilterQuery(e.target.value)}
                 className="w-full bg-black/40 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-white/30"
@@ -254,17 +256,17 @@ export default function AddToPlaylistModal() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 text-gray-400 gap-2">
               <Loader2 className="w-6 h-6 animate-spin text-[#1db954]" />
-              <span className="text-xs">Đang tải danh sách phát...</span>
+              <span className="text-xs">{t.addToPlaylistModal.loading}</span>
             </div>
           ) : filteredPlaylists.length === 0 ? (
             <div className="text-center py-10 px-4">
               <p className="text-xs text-gray-400 mb-2">
                 {filterQuery
-                  ? "Không tìm thấy danh sách phát phù hợp"
-                  : "Bạn chưa có danh sách phát nào"}
+                  ? t.addToPlaylistModal.noMatching
+                  : t.addToPlaylistModal.noPlaylistsYet}
               </p>
               <p className="text-[11px] text-gray-500">
-                Hãy bấm nút &quot;Tạo danh sách phát mới&quot; ở trên để bắt đầu!
+                {t.addToPlaylistModal.getStartedHint}
               </p>
             </div>
           ) : (
@@ -302,7 +304,7 @@ export default function AddToPlaylistModal() {
                         {pl.name}
                       </p>
                       <p className="text-[11px] text-gray-400 truncate">
-                        {pl.song_count} bài hát
+                        {pl.song_count} {t.common.songsCount}
                       </p>
                     </div>
                   </div>
@@ -333,7 +335,7 @@ export default function AddToPlaylistModal() {
             onClick={closeAddToPlaylist}
             className="px-5 py-2 rounded-full bg-white text-black font-bold text-xs hover:scale-105 transition shadow"
           >
-            Xong
+            {t.addToPlaylistModal.done}
           </button>
         </div>
       </div>

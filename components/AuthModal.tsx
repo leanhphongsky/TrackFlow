@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { X, Lock, User, Sparkles, Loader2, Disc3 } from "lucide-react";
 
 export default function AuthModal() {
@@ -13,6 +14,7 @@ export default function AuthModal() {
     login,
     register,
   } = useAuth();
+  const { t, language } = useLanguage();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -31,20 +33,20 @@ export default function AuthModal() {
       if (authModalTab === "login") {
         const res = await login(username, password);
         if (!res.success) {
-          setError(res.error || "Đăng nhập thất bại");
+          setError(res.error || (language === "vi" ? "Đăng nhập thất bại" : "Login failed"));
         } else {
           setUsername("");
           setPassword("");
         }
       } else {
         if (!displayName.trim()) {
-          setError("Vui lòng nhập tên hiển thị");
+          setError(language === "vi" ? "Vui lòng nhập tên hiển thị" : "Please enter a display name");
           setLoading(false);
           return;
         }
         const res = await register(username, password, displayName);
         if (!res.success) {
-          setError(res.error || "Đăng ký thất bại");
+          setError(res.error || (language === "vi" ? "Đăng ký thất bại" : "Registration failed"));
         } else {
           setUsername("");
           setPassword("");
@@ -89,7 +91,7 @@ export default function AuthModal() {
                 : "border-transparent text-gray-400 hover:text-white"
             }`}
           >
-            Đăng nhập
+            {t.auth.loginTitle}
           </button>
           <button
             type="button"
@@ -103,7 +105,7 @@ export default function AuthModal() {
                 : "border-transparent text-gray-400 hover:text-white"
             }`}
           >
-            Tạo tài khoản mới
+            {t.auth.registerTitle}
           </button>
         </div>
 
@@ -119,7 +121,7 @@ export default function AuthModal() {
           {authModalTab === "register" && (
             <div>
               <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-                Tên của bạn / Tên hiển thị
+                {t.auth.displayName}
               </label>
               <div className="relative">
                 <Sparkles className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -139,7 +141,7 @@ export default function AuthModal() {
           {/* Username */}
           <div>
             <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-              Tên đăng nhập
+              {t.auth.username}
             </label>
             <div className="relative">
               <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -158,7 +160,7 @@ export default function AuthModal() {
           {/* Password */}
           <div>
             <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-              Mật khẩu
+              {t.auth.password}
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -182,18 +184,18 @@ export default function AuthModal() {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-black" />
-                <span>Đang xử lý...</span>
+                <span>{t.auth.processing}</span>
               </>
             ) : authModalTab === "login" ? (
-              "Đăng nhập"
+              t.auth.submitLogin
             ) : (
-              "Tạo tài khoản"
+              t.auth.submitRegister
             )}
           </button>
         </form>
 
         <p className="text-[11px] text-gray-500 text-center mt-4">
-          Mỗi tài khoản có danh sách bài hát yêu thích riêng biệt.
+          {t.auth.separateFavHint}
         </p>
       </div>
     </div>

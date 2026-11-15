@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { usePlayer } from "@/context/PlayerContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   X,
   Play,
@@ -78,6 +79,7 @@ export default function FullscreenLyricsView({
 
   const { isFavorite, toggleFavorite } = useAuth();
   const { openAddToPlaylist } = usePlaylist();
+  const { t, language } = useLanguage();
 
   // Customization States
   const [fontSize, setFontSize] = useState<"normal" | "large" | "huge">("large");
@@ -162,7 +164,13 @@ export default function FullscreenLyricsView({
   const adjustOffset = (delta: number) => {
     setLyricsOffset((prev) => {
       const next = Math.round((prev + delta) * 10) / 10;
-      setOffsetToast(next > 0 ? `Độ trễ: +${next}s` : next < 0 ? `Độ trễ: ${next}s` : "Độ trễ: 0s (Mặc định)");
+      setOffsetToast(
+        next > 0
+          ? `${t.lyricsView.offsetLabel}: +${next}s`
+          : next < 0
+          ? `${t.lyricsView.offsetLabel}: ${next}s`
+          : `${t.lyricsView.offsetLabel}: 0s`
+      );
       setTimeout(() => setOffsetToast(null), 1800);
       return next;
     });
@@ -220,7 +228,7 @@ export default function FullscreenLyricsView({
 
           <div className="min-w-0">
             <h2 className="font-extrabold text-base md:text-lg text-white truncate hover:underline cursor-pointer">
-              {currentSong?.title || "Không có bài hát"}
+              {currentSong?.title || (language === "vi" ? "Không có bài hát" : "No song playing")}
             </h2>
             <div className="flex items-center gap-2 mt-0.5">
               <span
@@ -232,7 +240,7 @@ export default function FullscreenLyricsView({
               {isSyncedLyrics && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-[#1db954]" />
-                  <span>{lyricsSource === "youtube-captions" ? "Khớp chuẩn video" : "LRC Đồng bộ"}</span>
+                  <span>{lyricsSource === "youtube-captions" ? t.nowPlayingPanel.syncedExact : t.nowPlayingPanel.syncedTime}</span>
                 </span>
               )}
             </div>
@@ -244,14 +252,14 @@ export default function FullscreenLyricsView({
               <button
                 onClick={() => openAddToPlaylist(currentSong)}
                 className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-                title="Thêm vào danh sách phát"
+                title={t.player.addToPlaylist}
               >
                 <Plus className="w-4 h-4" />
               </button>
               <button
                 onClick={() => toggleFavorite(currentSong)}
                 className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-                title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+                title={favorited ? t.player.unfavorite : t.player.favorite}
               >
                 <Heart
                   className={`w-4 h-4 transition ${
@@ -268,11 +276,11 @@ export default function FullscreenLyricsView({
           {/* Offset Tuning Pills */}
           {isSyncedLyrics && (
             <div className="hidden sm:flex items-center bg-white/5 border border-white/10 rounded-full px-2 py-1 text-xs">
-              <span className="text-[11px] text-gray-400 mr-1.5 font-medium">Độ lệch:</span>
+              <span className="text-[11px] text-gray-400 mr-1.5 font-medium">{t.lyricsView.offsetLabel}:</span>
               <button
                 onClick={() => adjustOffset(-0.5)}
                 className="px-2 py-0.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 font-mono transition"
-                title="Chạy sớm hơn 0.5s"
+                title={t.lyricsView.offsetEarlier}
               >
                 -0.5s
               </button>
@@ -280,11 +288,11 @@ export default function FullscreenLyricsView({
                 <button
                   onClick={() => {
                     setLyricsOffset(0);
-                    setOffsetToast("Đã đặt lại về 0s");
+                    setOffsetToast(t.lyricsView.offsetResetToast);
                     setTimeout(() => setOffsetToast(null), 1500);
                   }}
                   className="px-2 py-0.5 rounded-full text-xs font-bold text-[#1db954] hover:bg-[#1db954]/20 transition"
-                  title="Đặt lại về 0s"
+                  title={t.lyricsView.offsetResetToast}
                 >
                   {lyricsOffset > 0 ? `+${lyricsOffset}s` : `${lyricsOffset}s`}
                 </button>
@@ -292,7 +300,7 @@ export default function FullscreenLyricsView({
               <button
                 onClick={() => adjustOffset(0.5)}
                 className="px-2 py-0.5 rounded-full text-gray-300 hover:text-white hover:bg-white/10 font-mono transition"
-                title="Chạy trễ hơn 0.5s"
+                title={t.lyricsView.offsetLater}
               >
                 +0.5s
               </button>
@@ -303,7 +311,7 @@ export default function FullscreenLyricsView({
           <button
             onClick={() => setAlignment((prev) => (prev === "left" ? "center" : "left"))}
             className="p-2 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition"
-            title={alignment === "left" ? "Căn giữa lời bài hát" : "Căn trái lời bài hát"}
+            title={alignment === "left" ? t.lyricsView.alignCenterTooltip : t.lyricsView.alignLeftTooltip}
           >
             {alignment === "left" ? (
               <AlignCenter className="w-5 h-5" />
@@ -320,7 +328,7 @@ export default function FullscreenLyricsView({
               )
             }
             className="p-2 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition flex items-center gap-0.5"
-            title="Đổi cỡ chữ"
+            title={t.lyricsView.fontSizeTooltip}
           >
             <Type className="w-5 h-5" />
             <span className="text-[10px] font-bold uppercase">{fontSize}</span>
@@ -336,8 +344,8 @@ export default function FullscreenLyricsView({
             }`}
             title={
               isAutoScrollLocked
-                ? "Bật lại tự động cuộn theo bài hát"
-                : "Tạm khóa tự động cuộn để đọc lời tự do"
+                ? t.lyricsView.autoScrollUnlockTooltip
+                : t.lyricsView.autoScrollLockTooltip
             }
           >
             {isAutoScrollLocked ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
@@ -347,7 +355,7 @@ export default function FullscreenLyricsView({
           <button
             onClick={handleCopyLyrics}
             className="p-2 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition relative"
-            title="Sao chép toàn bộ lời bài hát"
+            title={language === "vi" ? "Sao chép toàn bộ lời bài hát" : "Copy full lyrics"}
           >
             {copied ? <Check className="w-5 h-5 text-[#1db954]" /> : <Copy className="w-5 h-5" />}
           </button>
@@ -356,7 +364,11 @@ export default function FullscreenLyricsView({
           <button
             onClick={toggleBrowserFullscreen}
             className="p-2 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition"
-            title={isBrowserFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình trình duyệt"}
+            title={
+              isBrowserFullscreen
+                ? (language === "vi" ? "Thoát toàn màn hình" : "Exit full screen")
+                : (language === "vi" ? "Toàn màn hình trình duyệt" : "Browser full screen")
+            }
           >
             {isBrowserFullscreen ? (
               <Minimize className="w-5 h-5" />
@@ -369,7 +381,7 @@ export default function FullscreenLyricsView({
           <button
             onClick={onClose}
             className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition hover:scale-105 active:scale-95 ml-2"
-            title="Đóng (phím Esc)"
+            title={t.lyricsView.exitFullscreenTooltip}
           >
             <X className="w-5 h-5" />
           </button>
@@ -395,7 +407,7 @@ export default function FullscreenLyricsView({
               <Radio className="w-6 h-6 text-[#1db954]" />
             </div>
             <p className="text-sm font-semibold tracking-wide">
-              Đang tải lời bài hát và khớp nhịp điệu...
+              {t.lyricsView.loadingLyrics}
             </p>
           </div>
         ) : !hasLyrics ? (
@@ -407,11 +419,10 @@ export default function FullscreenLyricsView({
               </div>
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">
-              {currentSong?.title || "Chưa có bài hát"}
+              {currentSong?.title || (language === "vi" ? "Chưa có bài hát" : "No song playing")}
             </h3>
             <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-              {lyricsMessage ||
-                "Hiện ca khúc này chưa có bản lời đồng bộ trên hệ thống. Hãy thả mình vào giai điệu nhé!"}
+              {lyricsMessage || t.lyricsView.noLyricsAvailable}
             </p>
           </div>
         ) : (
@@ -482,7 +493,7 @@ export default function FullscreenLyricsView({
                       }`}
                     >
                       <Play className="w-3 h-3 fill-current" />
-                      <span>Nhấn để phát từ đoạn này ({formatTime(line.start)})</span>
+                      <span>{t.lyricsView.clickToSeek} ({formatTime(line.start)})</span>
                     </div>
                   )}
                 </div>
@@ -523,7 +534,7 @@ export default function FullscreenLyricsView({
             className={`p-2 rounded-full transition ${
               isLooping ? "text-[#1db954]" : "text-gray-400 hover:text-white"
             }`}
-            title="Lặp lại"
+            title={t.player.loop}
           >
             <Repeat className="w-4 h-4" />
           </button>
@@ -531,7 +542,7 @@ export default function FullscreenLyricsView({
           <button
             onClick={prevSong}
             className="p-2 rounded-full text-gray-300 hover:text-white hover:scale-105 transition"
-            title="Bài trước"
+            title={t.player.previous}
           >
             <SkipBack className="w-5 h-5 fill-current" />
           </button>
@@ -539,7 +550,7 @@ export default function FullscreenLyricsView({
           <button
             onClick={togglePlay}
             className="w-12 h-12 rounded-full bg-white hover:scale-105 active:scale-95 flex items-center justify-center text-black shadow-[0_0_20px_rgba(255,255,255,0.4)] transition"
-            title={isPlaying ? "Tạm dừng" : "Phát"}
+            title={isPlaying ? t.player.pause : t.player.play}
           >
             {isPlaying ? (
               <Pause className="w-6 h-6 fill-black" />
@@ -551,7 +562,7 @@ export default function FullscreenLyricsView({
           <button
             onClick={nextSong}
             className="p-2 rounded-full text-gray-300 hover:text-white hover:scale-105 transition"
-            title="Bài tiếp theo"
+            title={t.player.next}
           >
             <SkipForward className="w-5 h-5 fill-current" />
           </button>
@@ -565,7 +576,7 @@ export default function FullscreenLyricsView({
               className={`p-2 rounded-full transition ${
                 showVideo ? "text-[#1db954] bg-white/10" : "text-gray-400 hover:text-white"
               }`}
-              title={showVideo ? "Tắt Canvas video" : "Bật Canvas video"}
+              title={showVideo ? t.nowPlayingPanel.switchToArtwork : t.nowPlayingPanel.switchToCanvas}
             >
               <Tv className="w-4 h-4" />
             </button>
@@ -574,6 +585,7 @@ export default function FullscreenLyricsView({
           <button
             onClick={toggleMute}
             className="p-2 rounded-full text-gray-400 hover:text-white transition"
+            title={isMuted ? t.player.unmute : t.player.mute}
           >
             {isMuted || volume === 0 ? (
               <VolumeX className="w-4 h-4" />

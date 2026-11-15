@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useLanguage } from "@/context/LanguageContext";
 import {
   Sparkles,
   PlusCircle,
@@ -31,6 +32,8 @@ interface ChangelogViewProps {
 }
 
 export default function ChangelogView({ onBack }: ChangelogViewProps) {
+  const { t, language } = useLanguage();
+
   return (
     <div className="max-w-4xl mx-auto pb-24 animate-in fade-in duration-300">
       {/* Back button */}
@@ -40,7 +43,7 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white transition group py-1.5 px-3 rounded-lg hover:bg-white/5"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          <span>Quay lại</span>
+          <span>{t.common.back}</span>
         </button>
       </div>
 
@@ -50,22 +53,24 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
             <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#1db954] text-black shadow-md flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Phiên bản Beta v3.5</span>
+              <span>{language === "vi" ? "Phiên bản Beta v3.5" : "Version Beta v3.5"}</span>
             </span>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-gray-300 flex items-center gap-1.5 border border-white/5">
               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Cập nhật ngày 15/11/2026</span>
+              <span>{language === "vi" ? "Cập nhật ngày 15/11/2026" : "Updated November 15, 2026"}</span>
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              Đang trong giai đoạn phát triển (Active Development)
+              {language === "vi" ? "Đang trong giai đoạn phát triển (Active Development)" : "Active Development"}
             </span>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">
-            Nhật ký cập nhật hệ thống — Beta v3.5
+            {language === "vi" ? "Nhật ký cập nhật hệ thống — Beta v3.5" : "System Changelog & Release Notes — Beta v3.5"}
           </h1>
           <p className="text-gray-300 text-sm max-w-2xl leading-relaxed">
-            Phiên bản nâng cấp giao diện toàn diện lấy cảm hứng từ ứng dụng Liner: Thu gọn thanh điều hướng thành Slim Icon Rail 72px, phân tách Bảng xếp hạng thành tab riêng biệt, hệ thống 4 Playlist Daily Mixes theo chủ đề được trộn ngẫu nhiên với ảnh bìa nhận diện độc quyền, trang chi tiết MixDetailView và tối ưu hóa trải nghiệm nghe nhạc không gián đoạn.
+            {language === "vi"
+              ? "Phiên bản nâng cấp giao diện toàn diện lấy cảm hứng từ ứng dụng Liner: Thu gọn thanh điều hướng thành Slim Icon Rail 72px, phân tách Bảng xếp hạng thành tab riêng biệt, hệ thống 4 Playlist Daily Mixes theo chủ đề được trộn ngẫu nhiên với ảnh bìa nhận diện độc quyền, trang chi tiết MixDetailView và tối ưu hóa trải nghiệm nghe nhạc không gián đoạn."
+              : "Comprehensive UI redesign inspired by Liner: Slim Icon Rail 72px, independent Charts tab, 4 curated randomized Daily Mixes with exclusive cover art, MixDetailView page, and bilingual Tiếng Việt & English UI localization."}
           </p>
         </div>
       </div>

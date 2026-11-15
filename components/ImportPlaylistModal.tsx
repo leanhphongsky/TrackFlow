@@ -19,6 +19,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { usePlaylist } from "@/context/PlaylistContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface TrackPreview {
   videoId?: string;
@@ -37,6 +38,7 @@ interface ImportPlaylistModalProps {
 export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalProps) {
   const { isImportModalOpen, closeImportModal, refreshPlaylists, setSelectedPlaylistId } =
     usePlaylist();
+  const { t, language } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<"url" | "text">("url");
   const [urlInput, setUrlInput] = useState("");
@@ -109,11 +111,11 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
         : { action: "preview", text: textInput.trim() };
 
     if (activeTab === "url" && !urlInput.trim()) {
-      setScanError("Vui lòng dán đường link playlist từ Spotify hoặc YouTube.");
+      setScanError(language === "vi" ? "Vui lòng dán đường link playlist từ Spotify hoặc YouTube." : "Please paste a Spotify or YouTube playlist URL.");
       return;
     }
     if (activeTab === "text" && !textInput.trim()) {
-      setScanError("Vui lòng dán danh sách bài hát (mỗi bài một dòng).");
+      setScanError(language === "vi" ? "Vui lòng dán danh sách bài hát (mỗi bài một dòng)." : "Please paste a song list (one song per line).");
       return;
     }
 
@@ -127,11 +129,11 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Không thể quét danh sách bài hát này.");
+        throw new Error(data.error || (language === "vi" ? "Không thể quét danh sách bài hát này." : "Failed to scan this song list."));
       }
 
       setScannedPlatform(data.platform);
-      setPlaylistTitle(data.title || "Playlist đã nhập");
+      setPlaylistTitle(data.title || (language === "vi" ? "Playlist đã nhập" : "Imported Playlist"));
       setPlaylistDesc(data.description || "");
       setCoverImage(data.cover_image || null);
       setTracks(data.tracks || []);
@@ -141,7 +143,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
       (data.tracks || []).forEach((_: any, idx: number) => allSet.add(idx));
       setSelectedIndices(allSet);
     } catch (err: any) {
-      setScanError(err.message || "Đã xảy ra lỗi khi quét playlist.");
+      setScanError(err.message || (language === "vi" ? "Đã xảy ra lỗi khi quét playlist." : "An error occurred while scanning playlist."));
     } finally {
       setIsScanning(false);
     }
@@ -182,7 +184,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
   // Step 2: Confirm & Save to Supabase
   const handleConfirmImport = async () => {
     if (selectedIndices.size === 0) {
-      setImportError("Vui lòng chọn ít nhất 1 bài hát để nhập vào playlist.");
+      setImportError(language === "vi" ? "Vui lòng chọn ít nhất 1 bài hát để nhập vào playlist." : "Please select at least 1 song to import.");
       return;
     }
 
@@ -191,8 +193,8 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
     setImportError(null);
     setImportProgressText(
       scannedPlatform === "youtube"
-        ? `Đang lưu ${selectedTracks.length} bài hát vào tài khoản...`
-        : `Đang tìm kiếm và đồng bộ ${selectedTracks.length} bài hát từ YouTube...`
+        ? (language === "vi" ? `Đang lưu ${selectedTracks.length} bài hát vào tài khoản...` : `Saving ${selectedTracks.length} tracks to your account...`)
+        : (language === "vi" ? `Đang tìm kiếm và đồng bộ ${selectedTracks.length} bài hát từ YouTube...` : `Searching and syncing ${selectedTracks.length} tracks from YouTube...`)
     );
 
     try {
@@ -201,7 +203,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "confirm",
-          name: playlistTitle.trim() || "Playlist đã nhập",
+          name: playlistTitle.trim() || (language === "vi" ? "Playlist đã nhập" : "Imported Playlist"),
           description: playlistDesc.trim(),
           cover_image: coverImage,
           tracks: selectedTracks,
@@ -210,7 +212,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Lỗi khi lưu danh sách phát.");
+        throw new Error(data.error || (language === "vi" ? "Lỗi khi lưu danh sách phát." : "Error saving playlist."));
       }
 
       // Success! Refresh playlists list
@@ -224,7 +226,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
 
       handleClose();
     } catch (err: any) {
-      setImportError(err.message || "Đã xảy ra lỗi khi nhập danh sách phát.");
+      setImportError(err.message || (language === "vi" ? "Đã xảy ra lỗi khi nhập danh sách phát." : "An error occurred while importing playlist."));
       setIsImporting(false);
     }
   };
@@ -240,13 +242,13 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                <span>Nhập danh sách phát</span>
+                <span>{t.importModal.title}</span>
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-[#1db954] border border-[#1db954]/30 uppercase tracking-wider">
                   1-Click
                 </span>
               </h2>
               <p className="text-xs text-gray-400">
-                Chuyển kho nhạc từ Spotify, YouTube Music hoặc danh sách bài hát
+                {t.importModal.subtitle}
               </p>
             </div>
           </div>
@@ -279,7 +281,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                   }`}
                 >
                   <Link2 className="w-4 h-4 text-[#1db954]" />
-                  <span>Dán đường link (URL)</span>
+                  <span>{t.importModal.tabUrl}</span>
                 </button>
                 <button
                   type="button"
@@ -294,7 +296,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                   }`}
                 >
                   <FileText className="w-4 h-4 text-sky-400" />
-                  <span>Danh sách bài hát (Text)</span>
+                  <span>{t.importModal.tabText}</span>
                 </button>
               </div>
 
@@ -302,7 +304,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                 <div className="space-y-3">
                   {/* Platform Badges */}
                   <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="text-gray-400 text-[11px]">Hỗ trợ:</span>
+                    <span className="text-gray-400 text-[11px]">{t.importModal.supportedLabel}:</span>
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold text-[11px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                       Spotify Playlist / Album
@@ -319,7 +321,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                       type="url"
                       value={urlInput}
                       onChange={(e) => setUrlInput(e.target.value)}
-                      placeholder="Dán link Spotify hoặc YouTube playlist vào đây..."
+                      placeholder={t.importModal.urlPlaceholder}
                       className="w-full bg-[#121212] border border-white/15 focus:border-[#1db954] text-white placeholder-gray-500 text-xs sm:text-sm rounded-xl px-4 py-3 pr-24 focus:outline-none transition shadow-inner font-mono"
                       autoFocus
                     />
@@ -328,16 +330,16 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                       onClick={handlePasteClipboard}
                       className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-gray-200 text-xs font-semibold rounded-lg transition"
                     >
-                      Dán link
+                      {t.importModal.pasteButton}
                     </button>
                   </div>
 
                   <p className="text-[11px] text-gray-500 leading-relaxed">
-                    💡 <strong>Ví dụ:</strong>{" "}
+                    💡 <strong>{t.importModal.exampleLabel}:</strong>{" "}
                     <code className="text-gray-400">
                       https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M
                     </code>{" "}
-                    hoặc{" "}
+                    {language === "vi" ? "hoặc" : "or"}{" "}
                     <code className="text-gray-400">
                       https://music.youtube.com/playlist?list=PL...
                     </code>
@@ -347,15 +349,17 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">
-                      Mỗi bài một dòng theo định dạng:{" "}
-                      <strong className="text-gray-200">Tên bài - Ca sĩ</strong>
+                      {t.importModal.textFormatHint}{" "}
+                      <strong className="text-gray-200">
+                        {language === "vi" ? "Tên bài - Ca sĩ" : "Track Name - Artist"}
+                      </strong>
                     </span>
                     <button
                       type="button"
                       onClick={handlePasteClipboard}
                       className="text-xs text-[#1db954] hover:underline font-semibold"
                     >
-                      Dán từ bộ nhớ tạm
+                      {t.importModal.pasteFromClipboard}
                     </button>
                   </div>
 
@@ -363,7 +367,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                     rows={6}
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    placeholder={`Chúng ta của tương lai - Sơn Tùng M-TP\nWaiting For Never - Post Malone\nDie With A Smile - Lady Gaga, Bruno Mars`}
+                    placeholder={t.importModal.textPlaceholder}
                     className="w-full bg-[#121212] border border-white/15 focus:border-[#1db954] text-white placeholder-gray-500 text-xs sm:text-sm rounded-xl p-3 focus:outline-none transition shadow-inner font-mono"
                   />
                 </div>
@@ -387,12 +391,12 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                 {isScanning ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-black" />
-                    <span>Đang quét danh sách bài hát...</span>
+                    <span>{t.importModal.scanningStatus}</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-black" />
-                    <span>Quét danh sách bài hát</span>
+                    <span>{t.importModal.scanButton}</span>
                   </>
                 )}
               </button>
@@ -423,21 +427,21 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                         : "📝 Text List"}
                     </span>
                     <span className="text-xs text-gray-400 font-medium">
-                      {selectedIndices.size} / {tracks.length} bài được chọn
+                      {selectedIndices.size} / {tracks.length} {t.importModal.selectedCount}
                     </span>
                   </div>
                   <input
                     type="text"
                     value={playlistTitle}
                     onChange={(e) => setPlaylistTitle(e.target.value)}
-                    placeholder="Tên danh sách phát..."
+                    placeholder={t.importModal.playlistNamePlaceholder}
                     className="w-full bg-transparent text-sm sm:text-base font-extrabold text-white border-b border-white/10 focus:border-[#1db954] focus:outline-none transition py-0.5"
                   />
                   <input
                     type="text"
                     value={playlistDesc}
                     onChange={(e) => setPlaylistDesc(e.target.value)}
-                    placeholder="Thêm mô tả danh sách phát (tùy chọn)..."
+                    placeholder={t.importModal.playlistDescPlaceholder}
                     className="w-full bg-transparent text-xs text-gray-400 border-b border-transparent focus:border-white/20 focus:outline-none transition py-0.5 truncate"
                   />
                 </div>
@@ -455,7 +459,11 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                   ) : (
                     <Square className="w-4 h-4 text-gray-500" />
                   )}
-                  <span>Chọn tất cả ({tracks.length} bài)</span>
+                  <span>
+                    {language === "vi"
+                      ? `Chọn tất cả (${tracks.length} bài)`
+                      : `Select all (${tracks.length} songs)`}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -465,7 +473,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                   }}
                   className="text-xs text-gray-400 hover:text-white hover:underline"
                 >
-                  Quét link khác
+                  {t.importModal.scanAnotherLink}
                 </button>
               </div>
 
@@ -531,7 +539,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                     <span>{importProgressText}</span>
                   </div>
                   <p className="text-[11px] text-gray-400">
-                    Vui lòng không tắt trang trong giây lát...
+                    {t.importModal.importingNotice}
                   </p>
                 </div>
               ) : (
@@ -544,7 +552,7 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                     }}
                     className="px-4 py-3 bg-[#242424] hover:bg-[#2e2e2e] text-white text-xs font-bold rounded-xl transition"
                   >
-                    Quay lại
+                    {t.common.back}
                   </button>
                   <button
                     type="button"
@@ -552,7 +560,11 @@ export default function ImportPlaylistModal({ onSuccess }: ImportPlaylistModalPr
                     disabled={selectedIndices.size === 0}
                     className="flex-1 py-3 bg-[#1db954] hover:bg-[#1ed760] disabled:bg-gray-700 text-black font-extrabold rounded-xl transition flex items-center justify-center gap-2 shadow-lg hover:scale-[1.01]"
                   >
-                    <span>Lưu {selectedIndices.size} bài vào TrackFlow</span>
+                    <span>
+                      {language === "vi"
+                        ? `Lưu ${selectedIndices.size} bài vào TrackFlow`
+                        : `Save ${selectedIndices.size} tracks to TrackFlow`}
+                    </span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>

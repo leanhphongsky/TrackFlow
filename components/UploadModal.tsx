@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { X, UploadCloud, Music, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Song } from "@/lib/db";
+import { useLanguage } from "@/context/LanguageContext";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const { t, language } = useLanguage();
 
   const audioInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +49,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !artist || !audioFile) {
-      alert("Vui lòng nhập tên bài hát, nghệ sĩ và chọn file âm thanh!");
+      alert(t.uploadModal.alertFillFields);
       return;
     }
 
@@ -55,7 +57,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
       setIsLoading(true);
 
       // 1. Upload audio to Cloudinary via /api/upload
-      setStatusMessage("Đang tải file nhạc lên Cloudinary (có thể mất vài giây)...");
+      setStatusMessage(t.uploadModal.uploadingAudioStatus);
       const audioFormData = new FormData();
       audioFormData.append("file", audioFile);
       audioFormData.append("type", "audio");
@@ -67,7 +69,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
 
       if (!audioRes.ok) {
         const errorData = await audioRes.json();
-        throw new Error(errorData.details || "Không thể tải lên file nhạc");
+        throw new Error(errorData.details || (language === "vi" ? "Không thể tải lên file nhạc" : "Failed to upload audio"));
       }
 
       const audioData = await audioRes.json();
@@ -75,7 +77,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
       // 2. Upload image (if selected)
       let imageUrl = null;
       if (imageFile) {
-        setStatusMessage("Đang tải ảnh bìa lên...");
+        setStatusMessage(t.uploadModal.uploadingCoverStatus);
         const imageFormData = new FormData();
         imageFormData.append("file", imageFile);
         imageFormData.append("type", "image");
@@ -92,7 +94,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
       }
 
       // 3. Save song record to Neon DB via /api/songs
-      setStatusMessage("Đang lưu bài hát vào Neon Database...");
+      setStatusMessage(t.uploadModal.savingDbStatus);
       const songRes = await fetch("/api/songs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -106,7 +108,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
       });
 
       if (!songRes.ok) {
-        throw new Error("Không thể lưu bài hát vào cơ sở dữ liệu");
+        throw new Error(language === "vi" ? "Không thể lưu bài hát vào cơ sở dữ liệu" : "Failed to save song to database");
       }
 
       const { song } = await songRes.json();
@@ -121,7 +123,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
       onClose();
     } catch (err: any) {
       console.error(err);
-      alert("Lỗi khi đăng bài hát: " + err.message);
+      alert((language === "vi" ? "Lỗi khi đăng bài hát: " : "Error uploading song: ") + err.message);
     } finally {
       setIsLoading(false);
       setStatusMessage("");
@@ -142,20 +144,20 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
 
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <UploadCloud className="w-6 h-6 text-[#1db954]" />
-          Đăng bài hát mới
+          {t.uploadModal.title}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Tên bài hát */}
           <div>
             <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-              Tên bài hát *
+              {t.uploadModal.songTitleLabel}
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ví dụ: Nơi Này Có Anh"
+              placeholder={t.uploadModal.songTitlePlaceholder}
               disabled={isLoading}
               required
               className="w-full bg-[#121212] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1db954]"
@@ -165,13 +167,13 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
           {/* Nghệ sĩ */}
           <div>
             <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-              Nghệ sĩ / Ca sĩ *
+              {t.uploadModal.artistLabel}
             </label>
             <input
               type="text"
               value={artist}
               onChange={(e) => setArtist(e.target.value)}
-              placeholder="Ví dụ: Sơn Tùng M-TP"
+              placeholder={t.uploadModal.artistPlaceholder}
               disabled={isLoading}
               required
               className="w-full bg-[#121212] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#1db954]"
@@ -181,7 +183,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
           {/* Chọn File Âm thanh */}
           <div>
             <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-              File âm thanh (MP3, M4A, WAV) *
+              {t.uploadModal.audioFileLabel}
             </label>
             <div
               onClick={() => audioInputRef.current?.click()}
@@ -189,7 +191,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
             >
               <Music className="w-5 h-5 text-[#1db954]" />
               <span className="text-xs text-gray-300 truncate max-w-[280px]">
-                {audioFile ? audioFile.name : "Nhấn để chọn file nhạc (.mp3)"}
+                {audioFile ? audioFile.name : t.uploadModal.audioFilePlaceholder}
               </span>
             </div>
             <input
@@ -204,7 +206,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
           {/* Chọn Ảnh bìa (Cover art) */}
           <div>
             <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">
-              Ảnh bìa album (Không bắt buộc)
+              {t.uploadModal.coverArtLabel}
             </label>
             <div className="flex items-center gap-3">
               {imagePreview ? (
@@ -224,7 +226,7 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
                 disabled={isLoading}
                 className="text-xs bg-[#333] hover:bg-[#444] px-3 py-2 rounded-lg text-white font-medium transition"
               >
-                {imageFile ? "Đổi ảnh" : "Chọn ảnh bìa"}
+                {imageFile ? t.uploadModal.changeCover : t.uploadModal.chooseCover}
               </button>
             </div>
             <input
@@ -254,10 +256,10 @@ export default function UploadModal({ isOpen, onClose, onSongUploaded }: UploadM
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Đang xử lý...
+                  {t.uploadModal.processing}
                 </>
               ) : (
-                "Đăng bài hát"
+                t.uploadModal.uploadButton
               )}
             </button>
           </div>

@@ -5,6 +5,30 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 export type Language = "vi" | "en";
 
 export interface Translations {
+  common: {
+    loading: string;
+    back: string;
+    cancel: string;
+    save: string;
+    create: string;
+    close: string;
+    done: string;
+    delete: string;
+    edit: string;
+    refresh: string;
+    playAll: string;
+    pause: string;
+    play: string;
+    search: string;
+    views: string;
+    subscribers: string;
+    followers: string;
+    songsCount: string;
+    artist: string;
+    hoursAgo: string;
+    daysAgo: string;
+    weeksAgo: string;
+  };
   nav: {
     home: string;
     charts: string;
@@ -46,6 +70,8 @@ export interface Translations {
     login: string;
     logout: string;
     guest: string;
+    openNavMenu: string;
+    connecting: string;
   };
   mixes: {
     title: string;
@@ -54,15 +80,19 @@ export interface Translations {
     playMix: string;
     dailyMix: string;
     mix1Theme: string;
+    mix1Badge: string;
     mix1Desc: string;
     mix1Artists: string;
     mix2Theme: string;
+    mix2Badge: string;
     mix2Desc: string;
     mix2Artists: string;
     mix3Theme: string;
+    mix3Badge: string;
     mix3Desc: string;
     mix3Artists: string;
     mix4Theme: string;
+    mix4Badge: string;
     mix4Desc: string;
     mix4Artists: string;
     backToHome: string;
@@ -94,6 +124,7 @@ export interface Translations {
     refresh24h: string;
     collapseTop10: string;
     expandAll: string;
+    datePrefix: string;
     regions: {
       all: string;
       vpop: string;
@@ -101,6 +132,171 @@ export interface Translations {
       usuk: string;
       asia: string;
     };
+  };
+  trendingArtists: {
+    title: string;
+    liveBadge: string;
+    allSubtitle: string;
+    defaultSubtitle: string;
+    refresh: string;
+    refreshTooltip: string;
+    allTab: string;
+    followers: string;
+  };
+  artist: {
+    loadingProfile: string;
+    notFound: string;
+    back: string;
+    verifiedOnYoutube: string;
+    subscribers: string;
+    views: string;
+    playAll: string;
+    following: string;
+    follow: string;
+    popularSongs: string;
+    viewsCount: string;
+  };
+  playlist: {
+    loadingPlaylist: string;
+    notFound: string;
+    publicPlaylistBadge: string;
+    clickToRename: string;
+    placeholderName: string;
+    placeholderDesc: string;
+    save: string;
+    cancel: string;
+    editInfo: string;
+    importMore: string;
+    deletePlaylist: string;
+    confirmDelete: string;
+    confirmRemoveSong: string;
+    emptyTitle: string;
+    emptyDesc: string;
+    exploreSongs: string;
+    importFromSpotifyYt: string;
+    tableIndex: string;
+    tableTitle: string;
+    tableArtist: string;
+    tableDuration: string;
+    approxMinutes: string;
+    userDefault: string;
+    addToAnotherPlaylist: string;
+    removeFromPlaylist: string;
+  };
+  favorites: {
+    playlistType: string;
+    title: string;
+    playAllTooltip: string;
+    emptyTitle: string;
+    emptyDesc: string;
+    you: string;
+  };
+  addToPlaylistModal: {
+    title: string;
+    artistFallback: string;
+    createNew: string;
+    newPlaylistPlaceholder: string;
+    create: string;
+    cancel: string;
+    searchPlaceholder: string;
+    loading: string;
+    noMatching: string;
+    noPlaylistsYet: string;
+    getStartedHint: string;
+    done: string;
+    toastRemoved: string;
+    toastAdded: string;
+    toastCreatedAndAdded: string;
+  };
+  uploadModal: {
+    title: string;
+    songTitleLabel: string;
+    songTitlePlaceholder: string;
+    artistLabel: string;
+    artistPlaceholder: string;
+    audioFileLabel: string;
+    audioFilePlaceholder: string;
+    coverArtLabel: string;
+    chooseCover: string;
+    changeCover: string;
+    processing: string;
+    uploadButton: string;
+    uploadingAudioStatus: string;
+    uploadingCoverStatus: string;
+    savingDbStatus: string;
+    alertFillFields: string;
+  };
+  importModal: {
+    title: string;
+    subtitle: string;
+    tabUrl: string;
+    tabText: string;
+    supportedLabel: string;
+    urlPlaceholder: string;
+    pasteButton: string;
+    exampleLabel: string;
+    textFormatHint: string;
+    pasteFromClipboard: string;
+    textPlaceholder: string;
+    scanButton: string;
+    scanningStatus: string;
+    selectedCount: string;
+    playlistNamePlaceholder: string;
+    playlistDescPlaceholder: string;
+    selectAll: string;
+    scanAnotherLink: string;
+    importingNotice: string;
+    saveToTrackFlow: string;
+  };
+  nowPlayingPanel: {
+    close: string;
+    artwork: string;
+    canvas: string;
+    switchToArtwork: string;
+    switchToCanvas: string;
+    lyricsTitle: string;
+    syncedExact: string;
+    syncedTime: string;
+    offsetAdjust: string;
+    offsetEarlier: string;
+    offsetLater: string;
+    offsetReset: string;
+    fullscreenKaraoke: string;
+    loadingLyrics: string;
+    noLyricsAvailable: string;
+    clickToSeek: string;
+    aboutArtist: string;
+    aboutArtistDesc: string;
+  };
+  lyricsView: {
+    offsetLabel: string;
+    offsetEarlier: string;
+    offsetLater: string;
+    offsetResetToast: string;
+    alignCenterTooltip: string;
+    alignLeftTooltip: string;
+    fontSizeTooltip: string;
+    autoScrollUnlockTooltip: string;
+    autoScrollLockTooltip: string;
+    exitFullscreenTooltip: string;
+    loadingLyrics: string;
+    noLyricsAvailable: string;
+    clickToSeek: string;
+  };
+  chillView: {
+    chillTitle: string;
+    lyricsTooltip: string;
+    lyricsSubtitle: string;
+    lyricsPanel: string;
+    lyricsOff: string;
+    lyricsEffectsTitle: string;
+    subtitleTitle: string;
+    subtitleDesc: string;
+    panelTitle: string;
+    panelDesc: string;
+    offTitle: string;
+    offDesc: string;
+    exitChillTooltip: string;
   };
   home: {
     recentLiked: string;
@@ -142,11 +338,56 @@ export interface Translations {
     displayName: string;
     continueAsGuest: string;
     noAdsBadge: string;
+    submitLogin: string;
+    submitRegister: string;
+    processing: string;
+    separateFavHint: string;
+    loginHeroDesc: string;
+  };
+  podcasts: {
+    heroBadge: string;
+    heroTitle: string;
+    heroDesc: string;
+    categories: {
+      all: string;
+      chat: string;
+      psychology: string;
+      business: string;
+      philosophy: string;
+      science: string;
+    };
+    episodesCount: string;
+    playEpisode: string;
+    listenNow: string;
   };
 }
 
 const translations: Record<Language, Translations> = {
   vi: {
+    common: {
+      loading: "Đang tải...",
+      back: "Quay lại",
+      cancel: "Huỷ",
+      save: "Lưu",
+      create: "Tạo",
+      close: "Đóng",
+      done: "Xong",
+      delete: "Xoá",
+      edit: "Chỉnh sửa",
+      refresh: "Làm mới",
+      playAll: "Phát tất cả",
+      pause: "Tạm dừng",
+      play: "Phát",
+      search: "Tìm kiếm",
+      views: "lượt xem",
+      subscribers: "người đăng ký",
+      followers: "theo dõi",
+      songsCount: "bài hát",
+      artist: "Nghệ sĩ",
+      hoursAgo: "giờ trước",
+      daysAgo: "ngày trước",
+      weeksAgo: "tuần trước",
+    },
     nav: {
       home: "Trang chủ",
       charts: "Bảng xếp hạng",
@@ -188,6 +429,8 @@ const translations: Record<Language, Translations> = {
       login: "Đăng nhập",
       logout: "Đăng xuất",
       guest: "Khách",
+      openNavMenu: "Mở menu điều hướng",
+      connecting: "Đang kết nối TrackFlow...",
     },
     mixes: {
       title: "Your Mixes",
@@ -196,17 +439,21 @@ const translations: Record<Language, Translations> = {
       playMix: "Phát trộn",
       dailyMix: "Daily Mix",
       mix1Theme: "V-Pop & Indie Việt",
-      mix1Desc: "Tuyển chọn các giai điệu V-Pop, Indie và Ballad Việt Nam được chọn lọc dành riêng cho bạn.",
-      mix1Artists: "Sơn Tùng M-TP, Vũ., Hoàng Dũng, Ngọt, Grey D",
+      mix1Badge: "Việt Nam 🇻🇳",
+      mix1Desc: "Tuyển chọn các giai điệu V-Pop, Indie và Ballad Việt Nam từ Sơn Tùng M-TP, Vũ., Hoàng Dũng, Ngọt, Grey D và nhiều nghệ sĩ khác.",
+      mix1Artists: "Sơn Tùng M-TP, Vũ., Hoàng Dũng, Ngọt...",
       mix2Theme: "Chill, Lo-Fi & Coffee Acoustic",
+      mix2Badge: "Thư giãn ☕",
       mix2Desc: "Giai điệu lofi êm dịu, acoustic mộc mạc và chillout nhẹ nhàng giúp bạn tập trung và thư giãn.",
-      mix2Artists: "Lofi Girl, Joji, Keshi, Wave to Earth",
+      mix2Artists: "Lofi Girl, Joji, Keshi, Wave to Earth...",
       mix3Theme: "US-UK Pop & Hip-Hop",
+      mix3Badge: "Âu Mỹ 🌎",
       mix3Desc: "Bùng nổ cùng những bản hit US-UK, Rap/Hip-hop và Pop đỉnh cao 24h qua.",
-      mix3Artists: "The Weeknd, Drake, Travis Scott, Billie Eilish",
+      mix3Artists: "The Weeknd, Drake, Travis Scott, Billie Eilish...",
       mix4Theme: "K-Pop & Asian Vibes",
+      mix4Badge: "Châu Á 🌸",
       mix4Desc: "Giai điệu K-Pop & J-Pop bùng nổ năng lượng, vũ đạo và âm nhạc Châu Á.",
-      mix4Artists: "NewJeans, IVE, Jung Kook, YOASOBI, Aespa",
+      mix4Artists: "NewJeans, IVE, Jung Kook, YOASOBI, Aespa...",
       backToHome: "Quay lại Trang chủ",
       updatedDaily: "Cập nhật mỗi ngày • TrackFlow Mix Engine",
       badgeShuffle: "Tuyển tập trộn ngẫu nhiên",
@@ -236,6 +483,7 @@ const translations: Record<Language, Translations> = {
       refresh24h: "Làm mới 24h",
       collapseTop10: "Thu gọn bảng xếp hạng (Hiện Top 10)",
       expandAll: "Xem toàn bộ bảng xếp hạng",
+      datePrefix: "Ngày",
       regions: {
         all: "Toàn cầu",
         vpop: "Việt Nam 🇻🇳",
@@ -243,6 +491,171 @@ const translations: Record<Language, Translations> = {
         usuk: "Âu Mỹ 🌎",
         asia: "Châu Á 🏮",
       },
+    },
+    trendingArtists: {
+      title: "Nghệ sĩ thịnh hành",
+      liveBadge: "Live YouTube",
+      allSubtitle: "Tuyển tập nghệ sĩ nổi bật toàn cầu (V-Pop, K-Pop, US-UK, Châu Á) • Tự động cập nhật số liệu thật",
+      defaultSubtitle: "Cập nhật số liệu & avatar từ YouTube",
+      refresh: "Làm mới",
+      refreshTooltip: "Làm mới dữ liệu từ YouTube Data API",
+      allTab: "Tất cả (Trộn toàn cầu)",
+      followers: "theo dõi",
+    },
+    artist: {
+      loadingProfile: "Đang tải trang cá nhân nghệ sĩ...",
+      notFound: "Không tìm thấy thông tin nghệ sĩ.",
+      back: "Quay lại",
+      verifiedOnYoutube: "Nghệ sĩ đã xác minh trên YouTube",
+      subscribers: "người đăng ký",
+      views: "lượt xem",
+      playAll: "Phát tất cả",
+      following: "Đang theo dõi",
+      follow: "Theo dõi",
+      popularSongs: "Bài hát phổ biến nhất",
+      viewsCount: "lượt xem",
+    },
+    playlist: {
+      loadingPlaylist: "Đang tải danh sách phát...",
+      notFound: "Không tìm thấy danh sách phát hoặc đã bị xoá.",
+      publicPlaylistBadge: "Danh sách phát công khai",
+      clickToRename: "Bấm để đổi tên",
+      placeholderName: "Tên danh sách phát...",
+      placeholderDesc: "Thêm mô tả tuỳ chọn...",
+      save: "Lưu",
+      cancel: "Huỷ",
+      editInfo: "Chỉnh sửa thông tin",
+      importMore: "Nhập thêm bài hát từ Spotify hoặc YouTube",
+      deletePlaylist: "Xoá danh sách phát",
+      confirmDelete: "Bạn có chắc chắn muốn xoá danh sách phát này?",
+      confirmRemoveSong: "Xoá bài hát này khỏi danh sách phát?",
+      emptyTitle: "Danh sách phát này đang trống",
+      emptyDesc: "Bạn có thể tìm kiếm bài hát mới, hoặc chuyển toàn bộ playlist yêu thích từ Spotify hay YouTube vào đây chỉ với 1 click!",
+      exploreSongs: "Khám phá bài hát",
+      importFromSpotifyYt: "Nhập từ Spotify / YouTube",
+      tableIndex: "#",
+      tableTitle: "Tiêu đề",
+      tableArtist: "Nghệ sĩ",
+      tableDuration: "Thời lượng",
+      approxMinutes: "khoảng",
+      userDefault: "Người dùng",
+      addToAnotherPlaylist: "Thêm vào danh sách phát khác",
+      removeFromPlaylist: "Xoá khỏi danh sách phát này",
+    },
+    favorites: {
+      playlistType: "Danh sách phát",
+      title: "Bài hát đã thích",
+      playAllTooltip: "Phát tất cả bài hát yêu thích",
+      emptyTitle: "Chưa có bài hát yêu thích nào",
+      emptyDesc: "Nhấn vào biểu tượng trái tim ở bất kỳ bài hát nào để lưu vào danh sách riêng của bạn!",
+      you: "Bạn",
+    },
+    addToPlaylistModal: {
+      title: "Thêm vào danh sách phát",
+      artistFallback: "Nghệ sĩ",
+      createNew: "Tạo danh sách phát mới",
+      newPlaylistPlaceholder: "Tên danh sách phát mới...",
+      create: "Tạo",
+      cancel: "Huỷ",
+      searchPlaceholder: "Tìm danh sách phát...",
+      loading: "Đang tải danh sách phát...",
+      noMatching: "Không tìm thấy danh sách phát phù hợp",
+      noPlaylistsYet: "Bạn chưa có danh sách phát nào",
+      getStartedHint: "Hãy bấm nút \"Tạo danh sách phát mới\" ở trên để bắt đầu!",
+      done: "Xong",
+      toastRemoved: "Đã xoá khỏi",
+      toastAdded: "Đã thêm vào",
+      toastCreatedAndAdded: "Đã tạo và thêm vào",
+    },
+    uploadModal: {
+      title: "Đăng bài hát mới",
+      songTitleLabel: "Tên bài hát *",
+      songTitlePlaceholder: "Ví dụ: Nơi Này Có Anh",
+      artistLabel: "Nghệ sĩ / Ca sĩ *",
+      artistPlaceholder: "Ví dụ: Sơn Tùng M-TP",
+      audioFileLabel: "File âm thanh (MP3, M4A, WAV) *",
+      audioFilePlaceholder: "Nhấn để chọn file nhạc (.mp3)",
+      coverArtLabel: "Ảnh bìa album (Không bắt buộc)",
+      chooseCover: "Chọn ảnh bìa",
+      changeCover: "Đổi ảnh",
+      processing: "Đang xử lý...",
+      uploadButton: "Đăng bài hát",
+      uploadingAudioStatus: "Đang tải file nhạc lên Cloudinary (có thể mất vài giây)...",
+      uploadingCoverStatus: "Đang tải ảnh bìa lên...",
+      savingDbStatus: "Đang lưu bài hát vào Neon Database...",
+      alertFillFields: "Vui lòng nhập tên bài hát, nghệ sĩ và chọn file âm thanh!",
+    },
+    importModal: {
+      title: "Nhập danh sách phát",
+      subtitle: "Chuyển kho nhạc từ Spotify, YouTube Music hoặc danh sách bài hát",
+      tabUrl: "Dán đường link (URL)",
+      tabText: "Danh sách bài hát (Text)",
+      supportedLabel: "Hỗ trợ:",
+      urlPlaceholder: "Dán link Spotify hoặc YouTube playlist vào đây...",
+      pasteButton: "Dán link",
+      exampleLabel: "Ví dụ:",
+      textFormatHint: "Mỗi bài một dòng theo định dạng: Tên bài - Ca sĩ",
+      pasteFromClipboard: "Dán từ bộ nhớ tạm",
+      textPlaceholder: "Chúng ta của tương lai - Sơn Tùng M-TP\nWaiting For Never - Post Malone\nDie With A Smile - Lady Gaga, Bruno Mars",
+      scanButton: "Quét danh sách bài hát",
+      scanningStatus: "Đang quét danh sách bài hát...",
+      selectedCount: "bài được chọn",
+      playlistNamePlaceholder: "Tên danh sách phát...",
+      playlistDescPlaceholder: "Thêm mô tả danh sách phát (tùy chọn)...",
+      selectAll: "Chọn tất cả",
+      scanAnotherLink: "Quét link khác",
+      importingNotice: "Vui lòng không tắt trang trong giây lát...",
+      saveToTrackFlow: "Lưu bài vào TrackFlow",
+    },
+    nowPlayingPanel: {
+      close: "Đóng panel",
+      artwork: "Ảnh bìa",
+      canvas: "Canvas",
+      switchToArtwork: "Chuyển sang xem ảnh bìa tĩnh",
+      switchToCanvas: "Chuyển sang xem video Canvas",
+      lyricsTitle: "Lời bài hát",
+      syncedExact: "Khớp chuẩn video",
+      syncedTime: "Đồng bộ thời gian",
+      offsetAdjust: "Điều chỉnh độ trễ lời bài hát",
+      offsetEarlier: "Chạy sớm hơn 0.5s",
+      offsetLater: "Chạy trễ hơn 0.5s",
+      offsetReset: "Bấm để đặt lại về 0s",
+      fullscreenKaraoke: "Xem toàn màn hình Karaoke",
+      loadingLyrics: "Đang tải lời bài hát...",
+      noLyricsAvailable: "Hiện bài hát này chưa có lời đồng bộ",
+      clickToSeek: "Bấm để phát từ đoạn này",
+      aboutArtist: "About the artist",
+      aboutArtistDesc: "Bấm để xem tất cả bài hát và thông tin chi tiết trên trang nghệ sĩ.",
+    },
+    lyricsView: {
+      offsetLabel: "Độ lệch:",
+      offsetEarlier: "Chạy sớm hơn 0.5s",
+      offsetLater: "Chạy trễ hơn 0.5s",
+      offsetResetToast: "Đã đặt lại về 0s",
+      alignCenterTooltip: "Căn giữa lời bài hát",
+      alignLeftTooltip: "Căn trái lời bài hát",
+      fontSizeTooltip: "Đổi cỡ chữ",
+      autoScrollUnlockTooltip: "Bật lại tự động cuộn theo bài hát",
+      autoScrollLockTooltip: "Tạm khóa tự động cuộn để đọc lời tự do",
+      exitFullscreenTooltip: "Thoát toàn màn hình",
+      loadingLyrics: "Đang tải lời bài hát...",
+      noLyricsAvailable: "Bài hát này chưa có lời đồng bộ",
+      clickToSeek: "Bấm để chuyển tới đoạn này",
+    },
+    chillView: {
+      chillTitle: "TrackFlow Chill",
+      lyricsTooltip: "Tuỳ chỉnh lời bài hát (Lyrics)",
+      lyricsSubtitle: "Phụ đề",
+      lyricsPanel: "Bảng lời",
+      lyricsOff: "Tắt lời",
+      lyricsEffectsTitle: "Hiệu ứng lời bài hát",
+      subtitleTitle: "Phụ đề dạ quang",
+      subtitleDesc: "Dòng karaoke bay bổng dưới đĩa",
+      panelTitle: "Bảng lời cuộn",
+      panelDesc: "Phong cách Apple Music kính mờ",
+      offTitle: "Tắt lời bài hát",
+      offDesc: "Chỉ hiển thị đĩa xoay và sóng âm",
+      exitChillTooltip: "Thoát chế độ Chill (Esc)",
     },
     home: {
       recentLiked: "Bài hát bạn đã thích gần đây",
@@ -281,12 +694,57 @@ const translations: Record<Language, Translations> = {
       registerTitle: "Đăng ký tài khoản",
       username: "Tên đăng nhập",
       password: "Mật khẩu",
-      displayName: "Tên hiển thị",
+      displayName: "Tên của bạn / Tên hiển thị",
       continueAsGuest: "Dùng thử với tư cách Khách",
       noAdsBadge: "Chuẩn giao diện Spotify • 100% Không quảng cáo",
+      submitLogin: "Đăng nhập",
+      submitRegister: "Tạo tài khoản",
+      processing: "Đang xử lý...",
+      separateFavHint: "Mỗi tài khoản có danh sách bài hát yêu thích riêng biệt.",
+      loginHeroDesc: "Đăng nhập để trải nghiệm nghe nhạc cá nhân hóa, lưu bài hát yêu thích và đồng bộ danh sách phát trên mọi thiết bị.",
+    },
+    podcasts: {
+      heroBadge: "TrackFlow Podcasts & Shows",
+      heroTitle: "Podcasts & Chương trình truyền cảm hứng",
+      heroDesc: "Khám phá các tập podcast sâu sắc về cuộc sống, tâm lý, sự nghiệp và tài chính. Nghe hoàn toàn không quảng cáo.",
+      categories: {
+        all: "Tất cả",
+        chat: "Trò chuyện",
+        psychology: "Tâm lý & Cuộc sống",
+        business: "Kinh doanh & Tài chính",
+        philosophy: "Triết lý & Nghệ thuật",
+        science: "Khoa học & Giáo dục",
+      },
+      episodesCount: "tập phát",
+      playEpisode: "Phát tập podcast này",
+      listenNow: "Nghe ngay",
     },
   },
   en: {
+    common: {
+      loading: "Loading...",
+      back: "Back",
+      cancel: "Cancel",
+      save: "Save",
+      create: "Create",
+      close: "Close",
+      done: "Done",
+      delete: "Delete",
+      edit: "Edit",
+      refresh: "Refresh",
+      playAll: "Play All",
+      pause: "Pause",
+      play: "Play",
+      search: "Search",
+      views: "views",
+      subscribers: "subscribers",
+      followers: "followers",
+      songsCount: "songs",
+      artist: "Artist",
+      hoursAgo: "hours ago",
+      daysAgo: "days ago",
+      weeksAgo: "weeks ago",
+    },
     nav: {
       home: "Home",
       charts: "Charts",
@@ -328,6 +786,8 @@ const translations: Record<Language, Translations> = {
       login: "Log in",
       logout: "Log out",
       guest: "Guest",
+      openNavMenu: "Open navigation menu",
+      connecting: "Connecting to TrackFlow...",
     },
     mixes: {
       title: "Your Mixes",
@@ -336,17 +796,21 @@ const translations: Record<Language, Translations> = {
       playMix: "Shuffle Play",
       dailyMix: "Daily Mix",
       mix1Theme: "V-Pop & Indie Vietnam",
-      mix1Desc: "Handpicked Vietnamese Pop, Indie, and Ballad melodies curated just for you.",
-      mix1Artists: "Son Tung M-TP, Vu., Hoang Dung, Ngot, Grey D",
+      mix1Badge: "Vietnam 🇻🇳",
+      mix1Desc: "Handpicked Vietnamese Pop, Indie, and Ballad melodies from Son Tung M-TP, Vu., Hoang Dung, Ngot, Grey D and more.",
+      mix1Artists: "Sơn Tùng M-TP, Vũ., Hoàng Dũng, Ngọt...",
       mix2Theme: "Chill, Lo-Fi & Coffee Acoustic",
+      mix2Badge: "Relax ☕",
       mix2Desc: "Mellow lo-fi beats, rustic acoustic ballads, and ambient chillout to help you focus and unwind.",
-      mix2Artists: "Lofi Girl, Joji, Keshi, Wave to Earth",
+      mix2Artists: "Lofi Girl, Joji, Keshi, Wave to Earth...",
       mix3Theme: "US-UK Pop & Hip-Hop",
+      mix3Badge: "US-UK 🌎",
       mix3Desc: "High-energy US-UK chart toppers, trap, hip-hop, and global hits trending over the last 24 hours.",
-      mix3Artists: "The Weeknd, Drake, Travis Scott, Billie Eilish",
+      mix3Artists: "The Weeknd, Drake, Travis Scott, Billie Eilish...",
       mix4Theme: "K-Pop & Asian Vibes",
+      mix4Badge: "Asia 🌸",
       mix4Desc: "High-voltage K-Pop & J-Pop anthems, dance performances, and vibrant East Asian melodies.",
-      mix4Artists: "NewJeans, IVE, Jung Kook, YOASOBI, Aespa",
+      mix4Artists: "NewJeans, IVE, Jung Kook, YOASOBI, Aespa...",
       backToHome: "Back to Home",
       updatedDaily: "Updated Daily • TrackFlow Mix Engine",
       badgeShuffle: "Auto-Shuffled Collection",
@@ -376,6 +840,7 @@ const translations: Record<Language, Translations> = {
       refresh24h: "Refresh 24h",
       collapseTop10: "Collapse Chart (Show Top 10)",
       expandAll: "View Complete Chart",
+      datePrefix: "Date",
       regions: {
         all: "Global",
         vpop: "Vietnam 🇻🇳",
@@ -383,6 +848,171 @@ const translations: Record<Language, Translations> = {
         usuk: "US-UK 🌎",
         asia: "Asia 🏮",
       },
+    },
+    trendingArtists: {
+      title: "Trending Artists",
+      liveBadge: "Live YouTube",
+      allSubtitle: "Global spotlight artists (V-Pop, K-Pop, US-UK, Asian Vibes) • Real-time metrics",
+      defaultSubtitle: "Live YouTube stats & official avatars",
+      refresh: "Refresh",
+      refreshTooltip: "Refresh data from YouTube Data API",
+      allTab: "All (Global Mix)",
+      followers: "followers",
+    },
+    artist: {
+      loadingProfile: "Loading artist profile...",
+      notFound: "Artist profile not found.",
+      back: "Back",
+      verifiedOnYoutube: "Verified Artist on YouTube",
+      subscribers: "subscribers",
+      views: "views",
+      playAll: "Play All",
+      following: "Following",
+      follow: "Follow",
+      popularSongs: "Popular Songs",
+      viewsCount: "views",
+    },
+    playlist: {
+      loadingPlaylist: "Loading playlist...",
+      notFound: "Playlist not found or has been deleted.",
+      publicPlaylistBadge: "Public Playlist",
+      clickToRename: "Click to rename",
+      placeholderName: "Playlist name...",
+      placeholderDesc: "Add an optional description...",
+      save: "Save",
+      cancel: "Cancel",
+      editInfo: "Edit details",
+      importMore: "Import more tracks from Spotify or YouTube",
+      deletePlaylist: "Delete playlist",
+      confirmDelete: "Are you sure you want to delete this playlist?",
+      confirmRemoveSong: "Remove this song from the playlist?",
+      emptyTitle: "This playlist is currently empty",
+      emptyDesc: "You can search for new tracks, or transfer an entire playlist from Spotify or YouTube in 1 click!",
+      exploreSongs: "Explore Songs",
+      importFromSpotifyYt: "Import from Spotify / YouTube",
+      tableIndex: "#",
+      tableTitle: "Title",
+      tableArtist: "Artist",
+      tableDuration: "Duration",
+      approxMinutes: "about",
+      userDefault: "User",
+      addToAnotherPlaylist: "Add to another playlist",
+      removeFromPlaylist: "Remove from this playlist",
+    },
+    favorites: {
+      playlistType: "Playlist",
+      title: "Liked Songs",
+      playAllTooltip: "Play all liked songs",
+      emptyTitle: "No liked songs yet",
+      emptyDesc: "Click the heart icon on any track to save it to your personal favorites!",
+      you: "You",
+    },
+    addToPlaylistModal: {
+      title: "Add to Playlist",
+      artistFallback: "Artist",
+      createNew: "Create new playlist",
+      newPlaylistPlaceholder: "New playlist name...",
+      create: "Create",
+      cancel: "Cancel",
+      searchPlaceholder: "Search playlists...",
+      loading: "Loading playlists...",
+      noMatching: "No matching playlists found",
+      noPlaylistsYet: "You have no playlists yet",
+      getStartedHint: "Click \"Create new playlist\" above to get started!",
+      done: "Done",
+      toastRemoved: "Removed from",
+      toastAdded: "Added to",
+      toastCreatedAndAdded: "Created and added to",
+    },
+    uploadModal: {
+      title: "Upload New Track",
+      songTitleLabel: "Song Title *",
+      songTitlePlaceholder: "e.g. Blinding Lights",
+      artistLabel: "Artist / Performer *",
+      artistPlaceholder: "e.g. The Weeknd",
+      audioFileLabel: "Audio File (MP3, M4A, WAV) *",
+      audioFilePlaceholder: "Click to select audio file (.mp3)",
+      coverArtLabel: "Album Artwork (Optional)",
+      chooseCover: "Choose artwork",
+      changeCover: "Change artwork",
+      processing: "Processing...",
+      uploadButton: "Upload Song",
+      uploadingAudioStatus: "Uploading audio to Cloudinary (may take a few seconds)...",
+      uploadingCoverStatus: "Uploading cover artwork...",
+      savingDbStatus: "Saving track to Neon Database...",
+      alertFillFields: "Please enter song title, artist, and select an audio file!",
+    },
+    importModal: {
+      title: "Import Playlist",
+      subtitle: "Transfer your music library from Spotify, YouTube Music, or plain text tracklists",
+      tabUrl: "Paste link (URL)",
+      tabText: "Tracklist (Text)",
+      supportedLabel: "Supported:",
+      urlPlaceholder: "Paste Spotify or YouTube playlist link here...",
+      pasteButton: "Paste link",
+      exampleLabel: "Example:",
+      textFormatHint: "One song per line in format: Song Title - Artist",
+      pasteFromClipboard: "Paste from clipboard",
+      textPlaceholder: "Starboy - The Weeknd\nWaiting For Never - Post Malone\nDie With A Smile - Lady Gaga, Bruno Mars",
+      scanButton: "Scan Playlist",
+      scanningStatus: "Scanning tracklist...",
+      selectedCount: "tracks selected",
+      playlistNamePlaceholder: "Playlist name...",
+      playlistDescPlaceholder: "Add an optional playlist description...",
+      selectAll: "Select all",
+      scanAnotherLink: "Scan another link",
+      importingNotice: "Please do not close this page while importing...",
+      saveToTrackFlow: "Save tracks to TrackFlow",
+    },
+    nowPlayingPanel: {
+      close: "Close panel",
+      artwork: "Artwork",
+      canvas: "Canvas",
+      switchToArtwork: "Switch to static cover artwork",
+      switchToCanvas: "Switch to video Canvas",
+      lyricsTitle: "Lyrics",
+      syncedExact: "Exact Video Sync",
+      syncedTime: "Time-Synced",
+      offsetAdjust: "Adjust lyrics sync offset",
+      offsetEarlier: "0.5s earlier",
+      offsetLater: "0.5s later",
+      offsetReset: "Click to reset to 0s",
+      fullscreenKaraoke: "View Fullscreen Karaoke",
+      loadingLyrics: "Loading lyrics...",
+      noLyricsAvailable: "No synchronized lyrics available for this song",
+      clickToSeek: "Click to jump to this line",
+      aboutArtist: "About the artist",
+      aboutArtistDesc: "Click to view full discography and details on the artist profile page.",
+    },
+    lyricsView: {
+      offsetLabel: "Offset:",
+      offsetEarlier: "-0.5s",
+      offsetLater: "+0.5s",
+      offsetResetToast: "Reset to 0s",
+      alignCenterTooltip: "Center-align lyrics",
+      alignLeftTooltip: "Left-align lyrics",
+      fontSizeTooltip: "Change font size",
+      autoScrollUnlockTooltip: "Resume auto-scrolling with music",
+      autoScrollLockTooltip: "Lock auto-scrolling to browse freely",
+      exitFullscreenTooltip: "Exit Fullscreen",
+      loadingLyrics: "Loading lyrics...",
+      noLyricsAvailable: "No synchronized lyrics available for this song",
+      clickToSeek: "Click to jump to this line",
+    },
+    chillView: {
+      chillTitle: "TrackFlow Chill",
+      lyricsTooltip: "Customize Lyrics",
+      lyricsSubtitle: "Subtitles",
+      lyricsPanel: "Lyrics Panel",
+      lyricsOff: "Lyrics Off",
+      lyricsEffectsTitle: "Lyrics Display Mode",
+      subtitleTitle: "Glowing Subtitles",
+      subtitleDesc: "Floating karaoke line below the vinyl",
+      panelTitle: "Scrolling Panel",
+      panelDesc: "Frosted glass Apple Music style",
+      offTitle: "Lyrics Off",
+      offDesc: "Show vinyl disk and audio visualizer only",
+      exitChillTooltip: "Exit Chill Mode (Esc)",
     },
     home: {
       recentLiked: "Recently Liked Songs",
@@ -421,9 +1051,30 @@ const translations: Record<Language, Translations> = {
       registerTitle: "Create an Account",
       username: "Username",
       password: "Password",
-      displayName: "Display Name",
+      displayName: "Your Name / Display Name",
       continueAsGuest: "Continue as Guest",
       noAdsBadge: "Spotify Standard Interface • 100% Ad-Free",
+      submitLogin: "Log In",
+      submitRegister: "Create Account",
+      processing: "Processing...",
+      separateFavHint: "Each account has its own personal liked songs and library.",
+      loginHeroDesc: "Log in for a personalized listening experience, saving favorites, and syncing playlists across all your devices.",
+    },
+    podcasts: {
+      heroBadge: "TrackFlow Podcasts & Shows",
+      heroTitle: "Podcasts & Inspiring Shows",
+      heroDesc: "Explore insightful podcasts about life, psychology, career, and finance. Completely ad-free.",
+      categories: {
+        all: "All",
+        chat: "Talk Shows",
+        psychology: "Psychology & Life",
+        business: "Business & Finance",
+        philosophy: "Philosophy & Art",
+        science: "Science & Education",
+      },
+      episodesCount: "episodes",
+      playEpisode: "Play this episode",
+      listenNow: "Listen now",
     },
   },
 };
@@ -465,7 +1116,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleLanguage = () => {
-    setLanguage(language === "vi" ? "en" : "vi");
+    const next = language === "vi" ? "en" : "vi";
+    setLanguage(next);
   };
 
   const t = translations[language];

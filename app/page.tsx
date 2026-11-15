@@ -134,6 +134,42 @@ export default function Home() {
   ]);
   const [selectedDailyMix, setSelectedDailyMix] = useState<DailyMixItem | null>(null);
 
+  const localizedDailyMixes: DailyMixItem[] = dailyMixes.map((mix) => {
+    if (mix.mixNumber === 1) {
+      return {
+        ...mix,
+        theme: t.mixes.mix1Theme,
+        badge: t.mixes.mix1Badge,
+        description: t.mixes.mix1Desc,
+      };
+    }
+    if (mix.mixNumber === 2) {
+      return {
+        ...mix,
+        theme: t.mixes.mix2Theme,
+        badge: t.mixes.mix2Badge,
+        description: t.mixes.mix2Desc,
+      };
+    }
+    if (mix.mixNumber === 3) {
+      return {
+        ...mix,
+        theme: t.mixes.mix3Theme,
+        badge: t.mixes.mix3Badge,
+        description: t.mixes.mix3Desc,
+      };
+    }
+    if (mix.mixNumber === 4) {
+      return {
+        ...mix,
+        theme: t.mixes.mix4Theme,
+        badge: t.mixes.mix4Badge,
+        description: t.mixes.mix4Desc,
+      };
+    }
+    return mix;
+  });
+
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
 
@@ -231,7 +267,7 @@ export default function Home() {
         <div className="w-16 h-16 rounded-2xl bg-black border border-white/10 flex items-center justify-center shadow-2xl mb-4 animate-pulse">
           <Disc3 className="w-9 h-9 text-[#1db954] animate-spin-slow" />
         </div>
-        <p className="text-sm font-bold text-gray-400 tracking-wide">Đang kết nối TrackFlow...</p>
+        <p className="text-sm font-bold text-gray-400 tracking-wide">{t.nav.connecting}</p>
       </div>
     );
   }
@@ -265,7 +301,7 @@ export default function Home() {
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
               className="p-2 rounded-full text-gray-300 hover:text-white hover:bg-white/10 transition flex-shrink-0"
-              title="Mở menu điều hướng"
+              title={t.nav.openNavMenu}
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -585,14 +621,14 @@ export default function Home() {
                 </div>
                 <div className="flex-1 text-center md:text-left">
                   <span className="text-xs font-extrabold uppercase tracking-wider text-purple-300">
-                    Danh sách phát
+                    {t.favorites.playlistType}
                   </span>
                   <h1 className="text-3xl md:text-5xl font-black text-white mt-1 mb-3">
-                    Bài hát đã thích
+                    {t.favorites.title}
                   </h1>
                   <p className="text-xs text-gray-300 font-medium">
-                    <span className="text-white font-bold">{user?.display_name || "Bạn"}</span> •{" "}
-                    {favoriteSongs.length} bài hát
+                    <span className="text-white font-bold">{user?.display_name || t.favorites.you}</span> •{" "}
+                    {favoriteSongs.length} {t.common.songsCount}
                   </p>
                 </div>
               </div>
@@ -603,7 +639,7 @@ export default function Home() {
                   <button
                     onClick={() => handlePlaySong(favoriteSongs[0], favoriteSongs, true)}
                     className="w-12 h-12 rounded-full bg-[#1db954] hover:bg-[#1ed760] hover:scale-105 flex items-center justify-center text-black shadow-xl transition"
-                    title="Phát tất cả bài hát yêu thích"
+                    title={t.favorites.playAllTooltip}
                   >
                     <Play className="w-6 h-6 fill-black ml-0.5" />
                   </button>
@@ -615,10 +651,10 @@ export default function Home() {
                 <div className="text-center py-20 bg-[#181818]/60 border border-white/5 rounded-2xl">
                   <Heart className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                   <h3 className="text-lg font-bold text-white mb-1">
-                    Chưa có bài hát yêu thích nào
+                    {t.favorites.emptyTitle}
                   </h3>
                   <p className="text-sm text-gray-400 max-w-sm mx-auto">
-                    Nhấn vào biểu tượng trái tim ở bất kỳ bài hát nào để lưu vào danh sách riêng của bạn!
+                    {t.favorites.emptyDesc}
                   </p>
                 </div>
               ) : (
@@ -658,7 +694,7 @@ export default function Home() {
                             e.stopPropagation();
                             openAddToPlaylist(song);
                           }}
-                          title="Thêm vào danh sách phát"
+                          title={t.player.addToPlaylist}
                           className="p-2 rounded-full text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 hover:bg-white/10 transition"
                         >
                           <Plus className="w-5 h-5" />
@@ -670,7 +706,7 @@ export default function Home() {
                             e.stopPropagation();
                             toggleFavorite(song);
                           }}
-                          title="Bỏ yêu thích"
+                          title={t.player.unfavorite}
                           className="p-2 text-[#1db954] hover:scale-110 transition"
                         >
                           <Heart className="w-5 h-5 fill-[#1db954]" />
@@ -700,7 +736,9 @@ export default function Home() {
               {isSearchingYt ? (
                 <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
                   <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
-                  <p className="text-sm">Đang tìm kiếm bài hát và nghệ sĩ...</p>
+                  <p className="text-sm">
+                    {language === "vi" ? "Đang tìm kiếm bài hát và nghệ sĩ..." : "Searching for songs and artists..."}
+                  </p>
                 </div>
               ) : (
                 <>
@@ -731,7 +769,7 @@ export default function Home() {
                               <p className="font-bold text-white text-base group-hover:text-[#1db954] transition truncate flex items-center gap-1.5">
                                 <span>{ch.title}</span>
                                 {ch.verified && (
-                                  <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0" title="Nghệ sĩ đã xác minh">
+                                  <span className="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0" title={t.artist.verifiedOnYoutube}>
                                     ✓
                                   </span>
                                 )}
@@ -806,7 +844,7 @@ export default function Home() {
                             {/* Add to Playlist Button */}
                             <button
                               onClick={() => openAddToPlaylist(item)}
-                              title="Thêm vào danh sách phát"
+                              title={t.player.addToPlaylist}
                               className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition flex-shrink-0"
                             >
                               <Plus className="w-5 h-5" />
@@ -815,7 +853,7 @@ export default function Home() {
                             {/* Heart Favorite Button */}
                             <button
                               onClick={() => toggleFavorite(item)}
-                              title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+                              title={favorited ? t.player.unfavorite : t.player.favorite}
                               className={`p-2 rounded-full transition flex-shrink-0 ${
                                 favorited
                                   ? "text-[#1db954]"
@@ -875,7 +913,7 @@ export default function Home() {
                       </div>
 
                       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        {dailyMixes.map((mix) => (
+                        {localizedDailyMixes.map((mix) => (
                           <div
                             key={mix.id}
                             onClick={() => {
@@ -994,7 +1032,7 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
                       <Music2 className="w-5 h-5 text-[#1db954]" />
-                      <span>Bài hát bạn đã tải lên ({songs.length})</span>
+                      <span>{t.home.uploadedSongs} ({songs.length})</span>
                     </h2>
                   </div>
 
@@ -1002,7 +1040,7 @@ export default function Home() {
                   {loading ? (
                     <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
                       <Loader2 className="w-8 h-8 animate-spin text-[#1db954]" />
-                      <p className="text-sm">Đang tải thư viện...</p>
+                      <p className="text-sm">{t.common.loading}</p>
                     </div>
                   ) : songs.length === 0 ? (
                     /* Empty State */
@@ -1010,16 +1048,16 @@ export default function Home() {
                       <div className="w-16 h-16 rounded-full bg-[#242424] flex items-center justify-center text-gray-500 mb-4">
                         <Music2 className="w-8 h-8" />
                       </div>
-                      <h3 className="text-lg font-bold text-white mb-1">Bạn chưa tải lên bài hát nào</h3>
+                      <h3 className="text-lg font-bold text-white mb-1">{t.home.noUploadedSongs}</h3>
                       <p className="text-sm text-gray-400 max-w-md mb-6">
-                        Bấm nút Đăng nhạc để tải file MP3 của riêng bạn lên thư viện cá nhân!
+                        {t.home.noUploadedDesc}
                       </p>
                       <button
                         onClick={() => setIsUploadOpen(true)}
                         className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-sm py-2.5 px-6 rounded-full transition shadow-lg hover:scale-105 flex items-center gap-2"
                       >
                         <Plus className="w-4 h-4" />
-                        <span>Đăng bài hát MP3</span>
+                        <span>{t.nav.uploadMp3}</span>
                       </button>
                     </div>
                   ) : (

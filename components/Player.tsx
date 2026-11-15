@@ -296,7 +296,7 @@ export default function Player({
               <button
                 onClick={onOpenChill}
                 className="p-2 rounded-full text-purple-400 hover:text-purple-300 hover:bg-purple-500/15 transition active:scale-95"
-                title="Mở Visualizer Chill"
+                title={t.player.chillMode}
               >
                 <Waves className="w-4 h-4" />
               </button>
@@ -308,7 +308,7 @@ export default function Player({
               className={`p-2 rounded-full transition active:scale-95 ${
                 isCurrentFav ? "text-[#1db954]" : "text-gray-400 hover:text-white"
               }`}
-              title={isCurrentFav ? "Bỏ thích" : "Yêu thích"}
+              title={isCurrentFav ? t.player.unfavorite : t.player.favorite}
             >
               <Heart className={`w-4 h-4 ${isCurrentFav ? "fill-current" : ""}`} />
             </button>
@@ -317,7 +317,7 @@ export default function Player({
             <button
               onClick={togglePlay}
               className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-black shadow-md hover:scale-105 active:scale-90 transition"
-              title={isPlaying ? "Tạm dừng" : "Phát"}
+              title={isPlaying ? t.player.pause : t.player.play}
             >
               {isPlaying ? (
                 <Pause className="w-4 h-4 fill-black" />
@@ -330,7 +330,7 @@ export default function Player({
             <button
               onClick={nextSong}
               className="p-1.5 rounded-full text-gray-400 hover:text-white transition active:scale-95"
-              title="Bài tiếp theo"
+              title={t.player.next}
             >
               <SkipForward className="w-4 h-4 fill-current" />
             </button>
