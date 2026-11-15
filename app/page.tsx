@@ -43,6 +43,7 @@ import {
   Download,
   Flame,
   Shuffle,
+  ShieldCheck,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
@@ -978,6 +979,30 @@ export default function Home() {
                   )}
                 </div>
               )}
+
+              {/* App Footer: Legal Disclaimer & Version */}
+              <footer className="mt-16 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 pb-8">
+                <div className="flex items-center gap-2">
+                  <Disc3 className="w-4 h-4 text-[#1db954]" />
+                  <span>TrackFlow Beta v3.0 • Nền tảng nghe nhạc trực tuyến</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => setActiveTab("changelog")}
+                    className="hover:text-white transition flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Nhật ký cập nhật</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("terms")}
+                    className="hover:text-white transition flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Điều khoản &amp; Pháp lý bản quyền</span>
+                  </button>
+                </div>
+              </footer>
             </div>
           )}
         </div>

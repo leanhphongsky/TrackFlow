@@ -190,7 +190,7 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {/* Bottom: Quick Upload & Settings / Changelog */}
+        {/* Bottom: Quick Upload & Settings / Legal / Changelog */}
         <div className="flex flex-col items-center gap-2 w-full px-2">
           {/* Quick Upload MP3 */}
           <button
@@ -199,6 +199,22 @@ export default function Sidebar({
             title="Đăng bài hát MP3"
           >
             <Upload className="w-4 h-4 text-current" />
+          </button>
+
+          {/* Legal / Terms & Disclaimer */}
+          <button
+            onClick={() => handleNav(() => setActiveTab("terms"))}
+            className={`group relative flex items-center justify-center w-10 h-10 rounded-xl transition ${
+              activeTab === "terms"
+                ? "bg-[#282828] text-[#1db954] shadow"
+                : "text-gray-400 hover:text-white hover:bg-white/5"
+            }`}
+            title="Điều khoản dịch vụ & Tuyên bố pháp lý bản quyền"
+          >
+            <ShieldCheck className="w-4 h-4 text-current" />
+            {activeTab === "terms" && (
+              <span className="absolute left-0 w-1 h-5 bg-[#1db954] rounded-r-full" />
+            )}
           </button>
 
           {/* Version / Changelog Badge */}
@@ -367,6 +383,26 @@ export default function Sidebar({
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Flyout Footer Links: Changelog & Legal Terms */}
+            <div className="pt-3 border-t border-white/10 mt-2 flex items-center justify-between text-xs text-gray-400">
+              <button
+                onClick={() => handleNav(() => setActiveTab("changelog"))}
+                className="flex items-center gap-1.5 hover:text-white transition"
+                title="Nhật ký phiên bản"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#1db954]" />
+                <span>Beta v3.0</span>
+              </button>
+              <button
+                onClick={() => handleNav(() => setActiveTab("terms"))}
+                className="flex items-center gap-1.5 hover:text-white transition"
+                title="Điều khoản pháp lý bản quyền"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-gray-400 hover:text-white" />
+                <span>Pháp lý</span>
+              </button>
             </div>
           </div>
         </>
