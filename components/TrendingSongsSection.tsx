@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  MoreVertical,
 } from "lucide-react";
 import { Song } from "@/lib/db";
 import { usePlayer } from "@/context/PlayerContext";
@@ -133,17 +134,17 @@ export default function TrendingSongsSection({
             <TrendingUp className="w-5 h-5 text-[#1db954]" />
           </div>
           <div>
-            <h3 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span>Bảng xếp hạng bài hát thịnh hành</span>
+            <h3 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+              <span className="text-xl">🔥</span>
+              <span>Listening right now</span>
               <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                <Flame className="w-3 h-3 text-emerald-400 fill-emerald-400" />
-                24h Velocity Growth
+                24h Growth
               </span>
             </h3>
             <p className="text-xs text-gray-400">
               {activeTab === "all"
-                ? "Xếp hạng dựa trên số view tăng trưởng trong 24 giờ qua trên toàn cầu"
-                : currentCategory?.description || "Xếp hạng theo độ tăng trưởng lượt xem trong 24 giờ qua"}
+                ? "Bảng xếp hạng bài hát đang được nghe nhiều nhất và tăng trưởng nhanh nhất"
+                : currentCategory?.description || "Xếp hạng theo độ tăng trưởng lượt xem"}
               {chartDate && (
                 <span className="text-gray-300 ml-1.5 font-medium inline-flex items-center gap-1">
                   • <Calendar className="w-3 h-3 inline text-gray-400" /> Ngày {chartDate}
@@ -316,26 +317,14 @@ export default function TrendingSongsSection({
                     </div>
                   </div>
 
-                  {/* Right: Growth Badge / Duration & Actions */}
+                  {/* Right: Duration & Actions (Liner 3-dots style) */}
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     {/* Duration */}
                     {durStr && (
-                      <span className="text-[11px] font-mono text-gray-500 mr-1 hidden sm:inline-block">
+                      <span className="text-[12px] font-mono text-gray-400 mr-1">
                         {durStr}
                       </span>
                     )}
-
-                    {/* Add to Playlist Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openAddToPlaylist(song);
-                      }}
-                      className="p-1.5 rounded-full hover:bg-white/10 text-gray-500 hover:text-white transition opacity-0 group-hover:opacity-100"
-                      title="Thêm vào danh sách phát"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
 
                     {/* Favorite Button */}
                     <button
@@ -351,6 +340,18 @@ export default function TrendingSongsSection({
                       <Heart
                         className={`w-3.5 h-3.5 ${favorited ? "fill-[#1db954]" : ""}`}
                       />
+                    </button>
+
+                    {/* Liner 3-dots Menu / Add to Playlist */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openAddToPlaylist(song);
+                      }}
+                      className="p-1.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition"
+                      title="Tùy chọn bài hát"
+                    >
+                      <MoreVertical className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

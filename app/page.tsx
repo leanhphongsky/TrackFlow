@@ -711,60 +711,80 @@ export default function Home() {
                 <div>
                   {/* Your Mixes / Tuyển chọn cho bạn (Liner Style Square Card Row) */}
                   {homeCategory === "all" && (
-                    <div className="mb-8">
-                      <div className="flex items-center gap-2 mb-3.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                    <div className="mb-9">
+                      <div className="flex items-center gap-2.5 mb-4">
+                        <span className="w-5 h-5 rounded-lg bg-gradient-to-br from-rose-500 to-orange-400 shadow-sm flex-shrink-0" />
                         <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                          Tuyển chọn cho bạn
+                          Your Mixes
                         </h2>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         {/* Mix 1: Liked Songs Mix */}
                         <div
                           onClick={() => {
                             if (!user) openAuthModal("login");
                             else setActiveTab("favorites");
                           }}
-                          className="group relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-indigo-900/80 via-purple-900/60 to-black border border-white/10 hover:border-purple-500/40 transition-all cursor-pointer flex flex-col justify-between overflow-hidden shadow-xl hover:scale-[1.02]"
+                          className="group cursor-pointer flex flex-col gap-2"
                         >
-                          <div className="flex items-center justify-between z-10">
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-white/10 text-purple-300">
-                              MIX 1
-                            </span>
-                            <Heart className="w-5 h-5 text-purple-300 fill-current" />
+                          <div className="relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-[#1a1426] via-[#120d1c] to-black border border-white/10 group-hover:border-purple-500/40 transition-all overflow-hidden shadow-xl group-hover:scale-[1.02] flex flex-col justify-between">
+                            {/* Top Left Mini Logo */}
+                            <div className="flex items-center justify-between z-10">
+                              <span className="w-5 h-5 rounded-md bg-white/10 flex items-center justify-center text-xs font-black text-purple-300">
+                                ♫
+                              </span>
+                              <Heart className="w-4 h-4 text-purple-400/80 fill-purple-400/30" />
+                            </div>
+
+                            {/* Bottom Giant MIX Typography */}
+                            <div className="z-10">
+                              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none group-hover:text-purple-300 transition">
+                                MIX 1
+                              </h3>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                           </div>
-                          <div className="z-10">
-                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-purple-300 transition">
-                              Bài hát đã thích
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-0.5 truncate">
-                              {user ? `${favoriteSongs.length} bài hát riêng` : "Đăng nhập ngay"}
+                          <div>
+                            <h4 className="text-sm font-bold text-white group-hover:text-purple-300 transition truncate">
+                              Daily Mix 1
+                            </h4>
+                            <p className="text-xs text-gray-400 truncate mt-0.5">
+                              {favoriteSongs.length > 0
+                                ? favoriteSongs.slice(0, 3).map((s) => s.artist).join(", ")
+                                : "Bài hát yêu thích riêng của bạn"}
                             </p>
                           </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                         </div>
 
                         {/* Mix 2: Chill Visualizer Mix */}
                         <div
                           onClick={() => setActiveTab("chill")}
-                          className="group relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-purple-950 via-[#181024] to-black border border-purple-500/20 hover:border-purple-400/50 transition-all cursor-pointer flex flex-col justify-between overflow-hidden shadow-xl hover:scale-[1.02]"
+                          className="group cursor-pointer flex flex-col gap-2"
                         >
-                          <div className="flex items-center justify-between z-10">
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
-                              MIX 2
-                            </span>
-                            <Waves className="w-5 h-5 text-purple-400" />
+                          <div className="relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-[#141d24] via-[#0d161d] to-black border border-sky-500/20 group-hover:border-sky-400/50 transition-all overflow-hidden shadow-xl group-hover:scale-[1.02] flex flex-col justify-between">
+                            <div className="flex items-center justify-between z-10">
+                              <span className="w-5 h-5 rounded-md bg-sky-500/20 flex items-center justify-center text-xs font-black text-sky-300">
+                                ♫
+                              </span>
+                              <Waves className="w-4 h-4 text-sky-400" />
+                            </div>
+
+                            <div className="z-10">
+                              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none group-hover:text-sky-300 transition">
+                                MIX 2
+                              </h3>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                           </div>
-                          <div className="z-10">
-                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-purple-300 transition">
-                              Chill Visualizer
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-0.5 truncate">
-                              Sóng âm 360° &amp; Lời bài hát
+                          <div>
+                            <h4 className="text-sm font-bold text-white group-hover:text-sky-300 transition truncate">
+                              Daily Mix 2
+                            </h4>
+                            <p className="text-xs text-gray-400 truncate mt-0.5">
+                              Chill, Visualizer 360°, Lofi & Acoustic
                             </p>
                           </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                         </div>
 
                         {/* Mix 3: Trending Chart Mix */}
@@ -774,45 +794,63 @@ export default function Home() {
                               handlePlaySong(songs[0], songs, true);
                             }
                           }}
-                          className="group relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-rose-950/80 via-amber-950/40 to-black border border-white/10 hover:border-rose-500/40 transition-all cursor-pointer flex flex-col justify-between overflow-hidden shadow-xl hover:scale-[1.02]"
+                          className="group cursor-pointer flex flex-col gap-2"
                         >
-                          <div className="flex items-center justify-between z-10">
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300">
-                              MIX 3
-                            </span>
-                            <Flame className="w-5 h-5 text-rose-400" />
+                          <div className="relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-[#241315] via-[#1a0c0e] to-black border border-rose-500/20 group-hover:border-rose-400/50 transition-all overflow-hidden shadow-xl group-hover:scale-[1.02] flex flex-col justify-between">
+                            <div className="flex items-center justify-between z-10">
+                              <span className="w-5 h-5 rounded-md bg-rose-500/20 flex items-center justify-center text-xs font-black text-rose-300">
+                                ♫
+                              </span>
+                              <Flame className="w-4 h-4 text-rose-400" />
+                            </div>
+
+                            <div className="z-10">
+                              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none group-hover:text-rose-300 transition">
+                                MIX 3
+                              </h3>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                           </div>
-                          <div className="z-10">
-                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-rose-300 transition">
-                              Top Hits Trending
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-0.5 truncate">
-                              Bảng xếp hạng YouTube Real-Time
+                          <div>
+                            <h4 className="text-sm font-bold text-white group-hover:text-rose-300 transition truncate">
+                              Daily Mix 3
+                            </h4>
+                            <p className="text-xs text-gray-400 truncate mt-0.5">
+                              {songs.length > 0
+                                ? songs.slice(0, 3).map((s) => s.artist).join(", ")
+                                : "Top Hits YouTube Trending"}
                             </p>
                           </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                         </div>
 
                         {/* Mix 4: 1-Click Import / Custom Playlist */}
                         <div
                           onClick={openImportModal}
-                          className="group relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-emerald-950 via-[#0e1d15] to-black border border-emerald-500/20 hover:border-emerald-400/50 transition-all cursor-pointer flex flex-col justify-between overflow-hidden shadow-xl hover:scale-[1.02]"
+                          className="group cursor-pointer flex flex-col gap-2"
                         >
-                          <div className="flex items-center justify-between z-10">
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                              MIX 4
-                            </span>
-                            <Download className="w-5 h-5 text-emerald-400" />
+                          <div className="relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-[#122218] via-[#0b1710] to-black border border-emerald-500/20 group-hover:border-emerald-400/50 transition-all overflow-hidden shadow-xl group-hover:scale-[1.02] flex flex-col justify-between">
+                            <div className="flex items-center justify-between z-10">
+                              <span className="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center text-xs font-black text-emerald-300">
+                                ♫
+                              </span>
+                              <Download className="w-4 h-4 text-emerald-400" />
+                            </div>
+
+                            <div className="z-10">
+                              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none group-hover:text-emerald-300 transition">
+                                MIX 4
+                              </h3>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                           </div>
-                          <div className="z-10">
-                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-emerald-300 transition">
-                              Nhập Playlist
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-0.5 truncate">
-                              Chuyển từ Spotify / YouTube
+                          <div>
+                            <h4 className="text-sm font-bold text-white group-hover:text-emerald-300 transition truncate">
+                              Daily Mix 4
+                            </h4>
+                            <p className="text-xs text-gray-400 truncate mt-0.5">
+                              Nhập playlist Spotify, YouTube & MP3
                             </p>
                           </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                         </div>
                       </div>
                     </div>
