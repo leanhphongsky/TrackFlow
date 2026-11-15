@@ -242,7 +242,7 @@ export default function Sidebar({
                 ? "bg-[#1db954] text-black font-extrabold shadow"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
             }`}
-            title="Nhật ký cập nhật Beta v3.0"
+            title="Nhật ký cập nhật Beta v3.5"
           >
             <Sparkles className="w-4 h-4 text-current" />
           </button>
@@ -410,7 +410,7 @@ export default function Sidebar({
                 title="Nhật ký phiên bản"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#1db954]" />
-                <span>Beta v3.0</span>
+                <span>Beta v3.5</span>
               </button>
               <button
                 onClick={() => handleNav(() => setActiveTab("terms"))}
@@ -548,7 +548,7 @@ export default function Sidebar({
               className="flex items-center gap-1 hover:text-white"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#1db954]" />
-              <span>Beta v3.0</span>
+              <span>Beta v3.5</span>
             </button>
             <button
               onClick={() => handleNav(() => setActiveTab("terms"))}

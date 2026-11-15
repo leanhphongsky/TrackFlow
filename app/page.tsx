@@ -1031,7 +1031,7 @@ export default function Home() {
               <footer className="mt-16 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500 pb-8">
                 <div className="flex items-center gap-2">
                   <Disc3 className="w-4 h-4 text-[#1db954]" />
-                  <span>TrackFlow Beta v3.0 • Nền tảng nghe nhạc trực tuyến</span>
+                  <span>TrackFlow Beta v3.5 • Nền tảng nghe nhạc trực tuyến</span>
                 </div>
                 <div className="flex items-center gap-4">
                   <button

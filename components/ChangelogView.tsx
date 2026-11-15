@@ -20,6 +20,10 @@ import {
   Download,
   Smartphone,
   Radio,
+  Layout,
+  TrendingUp,
+  Shuffle,
+  Palette,
 } from "lucide-react";
 
 interface ChangelogViewProps {
@@ -46,11 +50,11 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
             <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#1db954] text-black shadow-md flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Phiên bản Beta v3.0</span>
+              <span>Phiên bản Beta v3.5</span>
             </span>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-gray-300 flex items-center gap-1.5 border border-white/5">
               <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Cập nhật ngày 14/11/2026</span>
+              <span>Cập nhật ngày 15/11/2026</span>
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
               Đang trong giai đoạn phát triển (Active Development)
@@ -58,18 +62,84 @@ export default function ChangelogView({ onBack }: ChangelogViewProps) {
           </div>
 
           <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">
-            Nhật ký cập nhật hệ thống — Beta v3.0
+            Nhật ký cập nhật hệ thống — Beta v3.5
           </h1>
           <p className="text-gray-300 text-sm max-w-2xl leading-relaxed">
-            Tổng hợp các tính năng mới, các cải tiến và toàn bộ sửa lỗi trong phiên bản TrackFlow Beta v3.0: Tính năng Nhập Playlist 1-chạm từ Spotify &amp; YouTube, cơ chế phát nhạc nền liên tục khi chuyển cửa sổ, tối ưu hóa giao diện di động và nâng cấp toàn diện chế độ Chill.
+            Phiên bản nâng cấp giao diện toàn diện lấy cảm hứng từ ứng dụng Liner: Thu gọn thanh điều hướng thành Slim Icon Rail 72px, phân tách Bảng xếp hạng thành tab riêng biệt, hệ thống 4 Playlist Daily Mixes theo chủ đề được trộn ngẫu nhiên với ảnh bìa nhận diện độc quyền, trang chi tiết MixDetailView và tối ưu hóa trải nghiệm nghe nhạc không gián đoạn.
           </p>
         </div>
       </div>
 
       {/* Main Release Notes Content */}
       <div className="space-y-8">
-        {/* SECTION 1: TÍNH NĂNG MỚI (WHAT'S NEW / ADDED) */}
+        {/* SECTION 1: TÍNH NĂNG MỚI TRONG V3.5 */}
         <div className="bg-[#181818] border border-emerald-500/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="flex items-center gap-3 mb-5 pb-3 border-b border-white/10">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-[#1db954] flex items-center justify-center">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <span>Tính năng mới &amp; Cải tiến nổi bật (Beta v3.5)</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                  + Mới v3.5
+                </span>
+              </h2>
+              <p className="text-xs text-gray-400">Các cải tiến giao diện Liner và tính năng Daily Mixes vừa được phát hành</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* V3.5 Feature 1: Liner-Inspired UI Redesign */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 to-[#202020] border border-emerald-500/30 space-y-1.5 shadow-md">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Layout className="w-4 h-4 text-[#1db954]" />
+                <h3 className="text-emerald-400">Cải tổ giao diện hiện đại lấy cảm hứng từ Liner</h3>
+              </div>
+              <p className="text-xs text-gray-200 leading-relaxed pl-6">
+                Thu gọn thanh điều hướng bên trái thành <strong>Slim Icon Rail 72px</strong> siêu gọn gàng, giải phóng gần 200px chiều ngang màn hình. Đi kèm <strong>Smart Library Flyout</strong> trượt ra mượt mà khi click biểu tượng Thư viện và thanh <strong>Player Dock</strong> bo tròn tối giản ở đáy màn hình.
+              </p>
+            </div>
+
+            {/* V3.5 Feature 2: Dedicated Charts Tab */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 to-[#202020] border border-emerald-500/30 space-y-1.5 shadow-md">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-emerald-400">Tách Bảng xếp hạng thành Tab riêng biệt</h3>
+              </div>
+              <p className="text-xs text-gray-200 leading-relaxed pl-6">
+                Chuyển toàn bộ Bảng xếp hạng bài hát và Top nghệ sĩ thịnh hành (24h Velocity Growth theo 4 khu vực: Việt Nam, Hàn Quốc, Âu Mỹ, Châu Á) thành <strong>Tab độc lập</strong> trên thanh Rail và thanh phân loại đầu trang. Trang chủ được dọn sạch hoàn toàn, mang lại không gian thoáng đãng và tốc độ tải trang vượt trội.
+              </p>
+            </div>
+
+            {/* V3.5 Feature 3: Authentic Thematic Daily Mixes */}
+            <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 to-[#202020] border border-emerald-500/30 space-y-1.5 shadow-md">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Shuffle className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-emerald-400">Hệ thống 4 Playlist Daily Mixes theo chủ đề được trộn ngẫu nhiên</h3>
+              </div>
+              <p className="text-xs text-gray-200 leading-relaxed pl-6">
+                Các MIX trên trang chủ là <strong>các playlist thực thụ được phân loại theo chủ đề âm nhạc</strong> (MIX 1: V-Pop &amp; Indie Việt, MIX 2: Chill, Lo-Fi &amp; Coffee Acoustic, MIX 3: US-UK Pop &amp; Hip-Hop, MIX 4: K-Pop &amp; Asian Vibes). Thuật toán Fisher-Yates tự động xáo trộn bài hát ngẫu nhiên. Đi kèm trang chi tiết <code>MixDetailView</code> với tính năng Phát trộn, Trộn lại và <strong>Lưu thành Playlist riêng</strong> vào Thư viện.
+              </p>
+            </div>
+
+            {/* V3.5 Feature 4: Fixed Signature Mix Visuals */}
+            <div className="p-4 rounded-xl bg-[#202020] border border-white/5 space-y-1.5">
+              <div className="flex items-center gap-2 text-sm font-bold text-white">
+                <Palette className="w-4 h-4 text-purple-400" />
+                <h3>Bộ ảnh bìa nhận diện cố định (Fixed Signature Covers)</h3>
+              </div>
+              <p className="text-xs text-gray-300 leading-relaxed pl-6">
+                Mỗi MIX được gắn một <strong>artwork nhận diện đặc trưng cố định</strong> lưu trữ cục bộ tại <code>public/mixes/</code> với phong cách hình ảnh riêng biệt, chữ typography Liner <code>MIX 1 - 4</code> cỡ lớn sắc nét và nút Play xanh tròn nổi lên khi rê chuột.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 2: BẢN CẬP NHẬT TRƯỚC (BETA V3.0) */}
+        <div className="bg-[#181818] border border-white/10 rounded-2xl p-6 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
           
           <div className="flex items-center gap-3 mb-5 pb-3 border-b border-white/10">
