@@ -106,7 +106,14 @@ export default function TrendingSongsSection({
     activeTab === "all" ? allTracks : currentCategory?.songs || [];
   const visibleTracks: TrendingSongItem[] = isExpanded
     ? displayedTracks
-    : displayedTracks.slice(0, 5);
+    : displayedTracks.slice(0, 10);
+
+  const formatSongDuration = (seconds?: number): string => {
+    if (!seconds || seconds <= 0) return "";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
 
   const handleTrackClick = (track: TrendingSongItem) => {
     const isCurrent = currentSong?.id === track.id || currentSong?.audio_url === track.audio_url;
@@ -221,147 +228,138 @@ export default function TrendingSongsSection({
           ))}
         </div>
       ) : (
-        /* Trending Songs List */
-        <div className="bg-[#181818]/60 border border-white/5 rounded-2xl overflow-hidden p-2 sm:p-3 shadow-xl">
-          <div className="flex flex-col gap-1">
+        /* Trending Songs List - Dual-Column Grid (Liner Style) */
+        <div className="bg-[#181818]/40 border border-white/5 rounded-2xl overflow-hidden p-2.5 sm:p-3.5 shadow-xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
             {visibleTracks.map((song, index) => {
               const isCurrent =
                 currentSong?.id === song.id || currentSong?.audio_url === song.audio_url;
               const favorited = isFavorite(song);
               const rank = song.globalRank || song.rank || index + 1;
+              const durStr = formatSongDuration(song.duration);
 
               return (
                 <div
                   key={song.id}
                   onClick={() => handleTrackClick(song)}
-                  className={`group flex items-center gap-3.5 p-2.5 rounded-xl hover:bg-[#252525] transition cursor-pointer border border-transparent hover:border-white/5 ${
-                    isCurrent ? "bg-[#252525] border-white/10" : ""
+                  className={`group flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-[#222222] transition cursor-pointer border border-transparent hover:border-white/5 ${
+                    isCurrent ? "bg-[#242424] border-white/10" : "bg-[#161616]/70"
                   }`}
                 >
-                  {/* Rank Number */}
-                  <div className="w-8 text-center flex-shrink-0">
-                    {isCurrent && isPlaying ? (
-                      <div className="flex items-center justify-center gap-0.5 h-4">
-                        <span className="w-1 bg-[#1db954] h-3 animate-bounce rounded-full" />
-                        <span className="w-1 bg-[#1db954] h-4 animate-bounce delay-75 rounded-full" />
-                        <span className="w-1 bg-[#1db954] h-2 animate-bounce delay-150 rounded-full" />
-                      </div>
-                    ) : (
-                      <span
-                        className={`text-sm font-black ${
-                          rank === 1
-                            ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] text-base"
-                            : rank === 2
-                            ? "text-slate-300 font-bold"
-                            : rank === 3
-                            ? "text-amber-600 font-bold"
-                            : "text-gray-500 font-semibold"
-                        }`}
-                      >
-                        #{rank}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Thumbnail */}
-                  <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-black flex-shrink-0 shadow border border-white/5 flex items-center justify-center">
-                    {song.image_url ? (
-                      <img
-                        src={song.image_url}
-                        alt={song.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <Music2 className="w-5 h-5 text-gray-500" />
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    {/* Rank Number */}
+                    <div className="w-6 text-center flex-shrink-0">
                       {isCurrent && isPlaying ? (
-                        <Pause className="w-4 h-4 fill-white text-white" />
+                        <div className="flex items-center justify-center gap-0.5 h-3.5">
+                          <span className="w-1 bg-[#1db954] h-2.5 animate-bounce rounded-full" />
+                          <span className="w-1 bg-[#1db954] h-3.5 animate-bounce delay-75 rounded-full" />
+                          <span className="w-1 bg-[#1db954] h-2 animate-bounce delay-150 rounded-full" />
+                        </div>
                       ) : (
-                        <Play className="w-4 h-4 fill-white text-white ml-0.5" />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Title & Artist */}
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-sm font-bold truncate transition ${
-                        isCurrent ? "text-[#1db954]" : "text-white group-hover:text-[#1db954]"
-                      }`}
-                    >
-                      {song.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5 truncate">
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenArtist({ name: song.artist, channelId: song.channelId });
-                        }}
-                        className="text-xs text-gray-400 hover:text-white hover:underline truncate cursor-pointer font-medium"
-                      >
-                        {song.artist}
-                      </span>
-
-                      {song.regionBadge && (
-                        <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.2 rounded-full border border-white/5 flex-shrink-0 hidden sm:inline-block">
-                          {song.regionBadge}
+                        <span
+                          className={`text-xs font-black ${
+                            rank === 1
+                              ? "text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] text-sm"
+                              : rank === 2
+                              ? "text-slate-300 font-bold"
+                              : rank === 3
+                              ? "text-amber-600 font-bold"
+                              : "text-gray-500 font-semibold"
+                          }`}
+                        >
+                          #{rank}
                         </span>
                       )}
                     </div>
+
+                    {/* Thumbnail */}
+                    <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-black flex-shrink-0 shadow border border-white/5 flex items-center justify-center">
+                      {song.image_url ? (
+                        <img
+                          src={song.image_url}
+                          alt={song.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Music2 className="w-5 h-5 text-gray-500" />
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                        {isCurrent && isPlaying ? (
+                          <Pause className="w-4 h-4 fill-white text-white" />
+                        ) : (
+                          <Play className="w-4 h-4 fill-white text-white ml-0.5" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Title & Artist */}
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`text-xs sm:text-sm font-bold truncate transition ${
+                          isCurrent ? "text-[#1db954]" : "text-white group-hover:text-[#1db954]"
+                        }`}
+                      >
+                        {song.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5 truncate">
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenArtist({ name: song.artist, channelId: song.channelId });
+                          }}
+                          className="text-xs text-gray-400 hover:text-white hover:underline truncate cursor-pointer font-medium"
+                        >
+                          {song.artist}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* 24-Hour View Gain Growth Badge (The Core Trending Definition) */}
-                  {(song.viewsGain24hFormatted || song.views_gain_24h) && (
-                    <div className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full font-bold flex-shrink-0 shadow-sm">
-                      <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>+{song.viewsGain24hFormatted || song.views_gain_24h} / 24h</span>
-                    </div>
-                  )}
+                  {/* Right: Growth Badge / Duration & Actions */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {/* Duration */}
+                    {durStr && (
+                      <span className="text-[11px] font-mono text-gray-500 mr-1 hidden sm:inline-block">
+                        {durStr}
+                      </span>
+                    )}
 
-                  {/* Total Views Count (Secondary) */}
-                  {(song.totalViewsFormatted || song.views) && (
-                    <div className="hidden lg:flex items-center gap-1 text-[11px] text-gray-500 flex-shrink-0">
-                      <Eye className="w-3 h-3 text-gray-600" />
-                      <span>{song.totalViewsFormatted || song.views} tổng</span>
-                    </div>
-                  )}
+                    {/* Add to Playlist Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openAddToPlaylist(song);
+                      }}
+                      className="p-1.5 rounded-full hover:bg-white/10 text-gray-500 hover:text-white transition opacity-0 group-hover:opacity-100"
+                      title="Thêm vào danh sách phát"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
 
-                  {/* Add to Playlist Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openAddToPlaylist(song);
-                    }}
-                    className="p-2 rounded-full hover:bg-white/10 text-gray-500 hover:text-white transition flex-shrink-0 opacity-0 group-hover:opacity-100"
-                    title="Thêm vào danh sách phát"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-
-                  {/* Favorite Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(song);
-                    }}
-                    className={`p-2 rounded-full hover:bg-white/10 transition flex-shrink-0 ${
-                      favorited ? "text-[#1db954]" : "text-gray-500 hover:text-white"
-                    }`}
-                    title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
-                  >
-                    <Heart
-                      className={`w-4 h-4 ${favorited ? "fill-[#1db954]" : ""}`}
-                    />
-                  </button>
+                    {/* Favorite Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(song);
+                      }}
+                      className={`p-1.5 rounded-full hover:bg-white/10 transition ${
+                        favorited ? "text-[#1db954]" : "text-gray-500 hover:text-white"
+                      }`}
+                      title={favorited ? "Bỏ yêu thích" : "Yêu thích"}
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 ${favorited ? "fill-[#1db954]" : ""}`}
+                      />
+                    </button>
+                  </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Toggle Expand / Collapse (Show Top 5 or Full List) */}
-          {displayedTracks.length > 5 && (
+          {/* Toggle Expand / Collapse (Show Top 10 or Full List) */}
+          {displayedTracks.length > 10 && (
             <div className="flex justify-center pt-3 pb-1 border-t border-white/5 mt-2">
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -369,7 +367,7 @@ export default function TrendingSongsSection({
               >
                 {isExpanded ? (
                   <>
-                    <span>Thu gọn bảng xếp hạng (Hiện Top 5)</span>
+                    <span>Thu gọn bảng xếp hạng (Hiện Top 10)</span>
                     <ChevronUp className="w-4 h-4 text-[#1db954]" />
                   </>
                 ) : (

@@ -69,48 +69,41 @@ export default function Player({
 
   return (
     <>
-      {/* 1. Desktop Spotify Bottom Player Bar */}
+      {/* 1. Desktop Modern Bottom Player Bar (Liner Style) */}
       {currentSong && (
-        <div className="fixed bottom-0 left-0 right-0 h-24 bg-[#181818] border-t border-[#282828] px-4 hidden md:flex items-center justify-between z-50 text-white select-none">
+        <div className="fixed bottom-0 left-0 right-0 h-20 bg-[#121212]/95 border-t border-white/10 backdrop-blur-2xl px-6 hidden md:flex items-center justify-between z-50 text-white select-none shadow-[0_-8px_30px_rgba(0,0,0,0.6)]">
           {/* Left: Song Info */}
-          <div className="flex items-center gap-3 w-1/4 min-w-[180px]">
-            <div className="relative group">
+          <div className="flex items-center gap-3.5 w-1/4 min-w-[200px]">
+            <div className="relative group flex-shrink-0">
               {currentSong.image_url ? (
                 <img
                   src={currentSong.image_url}
                   alt={currentSong.title}
-                  className="w-14 h-14 rounded-md object-cover shadow-md"
+                  className="w-12 h-12 rounded-xl object-cover shadow-md group-hover:scale-105 transition"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-md bg-[#282828] flex items-center justify-center">
-                  <Music className="w-6 h-6 text-gray-400" />
+                <div className="w-12 h-12 rounded-xl bg-[#202020] flex items-center justify-center">
+                  <Music className="w-5 h-5 text-gray-400" />
                 </div>
               )}
               {isYouTube && (
-                <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow">
-                  <YoutubeIcon className="w-3 h-3 text-white" />
+                <span className="absolute -top-1 -right-1 bg-red-600 text-[9px] font-black px-1.5 py-0.5 rounded-full flex items-center shadow">
+                  YT
                 </span>
               )}
             </div>
 
             <div className="overflow-hidden min-w-0 flex-1">
-              <p className="font-semibold text-sm text-white truncate hover:underline cursor-pointer">
+              <p className="font-bold text-sm text-white truncate hover:underline cursor-pointer">
                 {currentSong.title}
               </p>
-              <p className="text-xs text-gray-400 truncate hover:underline cursor-pointer">
+              <p className="text-xs text-gray-400 truncate hover:text-white transition cursor-pointer mt-0.5">
                 {currentSong.artist}
               </p>
             </div>
 
-            {/* Quick Actions: Add to Playlist & Heart */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                onClick={() => openAddToPlaylist(currentSong)}
-                className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
-                title="Thêm vào danh sách phát"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
+            {/* Quick Actions: Heart & Add to Playlist */}
+            <div className="flex items-center gap-0.5 flex-shrink-0">
               <button
                 onClick={() => toggleFavorite(currentSong)}
                 className={`p-1.5 rounded-full transition ${
@@ -122,12 +115,19 @@ export default function Player({
               >
                 <Heart className={`w-4 h-4 ${isCurrentFav ? "fill-current" : ""}`} />
               </button>
+              <button
+                onClick={() => openAddToPlaylist(currentSong)}
+                className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+                title="Thêm vào danh sách phát"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
           {/* Center: Controls & Scrubber */}
-          <div className="flex flex-col items-center justify-center w-2/4 max-w-[600px] gap-2">
-            <div className="flex items-center gap-5">
+          <div className="flex flex-col items-center justify-center w-2/4 max-w-[560px] gap-1.5">
+            <div className="flex items-center gap-6">
               <button
                 onClick={toggleLoop}
                 className={`transition ${isLooping ? "text-[#1db954]" : "text-gray-400 hover:text-white"}`}
@@ -138,7 +138,7 @@ export default function Player({
 
               <button
                 onClick={prevSong}
-                className="text-gray-400 hover:text-white transition"
+                className="text-gray-400 hover:text-white transition hover:scale-105 active:scale-95"
                 title="Bài trước"
               >
                 <SkipBack className="w-5 h-5 fill-current" />
@@ -146,7 +146,7 @@ export default function Player({
 
               <button
                 onClick={togglePlay}
-                className="w-9 h-9 rounded-full bg-white hover:scale-105 flex items-center justify-center text-black transition shadow"
+                className="w-10 h-10 rounded-full bg-white hover:bg-gray-100 hover:scale-105 active:scale-95 flex items-center justify-center text-black transition shadow-xl"
                 title={isPlaying ? "Tạm dừng" : "Phát"}
               >
                 {isPlaying ? (
@@ -158,7 +158,7 @@ export default function Player({
 
               <button
                 onClick={nextSong}
-                className="text-gray-400 hover:text-white transition"
+                className="text-gray-400 hover:text-white transition hover:scale-105 active:scale-95"
                 title="Bài tiếp theo"
               >
                 <SkipForward className="w-5 h-5 fill-current" />
@@ -166,8 +166,8 @@ export default function Player({
             </div>
 
             {/* Seek Progress Bar */}
-            <div className="flex items-center gap-2 w-full text-xs text-gray-400 font-mono">
-              <span className="w-10 text-right">{formatTime(currentTime)}</span>
+            <div className="flex items-center gap-2 w-full text-[11px] text-gray-400 font-mono">
+              <span className="w-9 text-right">{formatTime(currentTime)}</span>
               <div className="relative flex-1 group flex items-center cursor-pointer">
                 <input
                   type="range"
@@ -175,7 +175,7 @@ export default function Player({
                   max={duration || 100}
                   value={currentTime}
                   onChange={(e) => seekTo(Number(e.target.value))}
-                  className="w-full h-1 bg-[#4d4d4d] rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none"
+                  className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none"
                 />
               </div>
               <span className="w-10">{formatTime(duration)}</span>

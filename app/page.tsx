@@ -37,6 +37,8 @@ import {
   Waves,
   Menu,
   Home as HomeIcon,
+  Download,
+  Flame,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
@@ -79,7 +81,7 @@ export default function Home() {
     setIsLyricsFullscreen,
   } = usePlayer();
   const { user, loading: authLoading, openAuthModal, logout, favoriteSongs, isFavorite, toggleFavorite } = useAuth();
-  const { openAddToPlaylist, selectedPlaylistId, setSelectedPlaylistId } = usePlaylist();
+  const { openAddToPlaylist, selectedPlaylistId, setSelectedPlaylistId, openImportModal } = usePlaylist();
 
   const fetchSongs = async () => {
     try {
@@ -219,8 +221,17 @@ export default function Home() {
           {/* User Profile / Auth Area */}
           <div className="flex items-center gap-2 sm:gap-3 ml-2">
             <button
+              onClick={openImportModal}
+              className="hidden sm:flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs font-bold px-3 py-1.5 rounded-full hover:scale-105 transition shadow"
+              title="Nhập playlist từ Spotify hoặc YouTube"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Nhập playlist</span>
+            </button>
+
+            <button
               onClick={() => setIsUploadOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3.5 py-2 rounded-full hover:scale-105 transition shadow"
+              className="hidden sm:flex items-center gap-1.5 bg-white text-black text-xs font-bold px-3.5 py-1.5 rounded-full hover:scale-105 transition shadow"
             >
               <Plus className="w-4 h-4" />
               <span>Đăng nhạc</span>
@@ -698,30 +709,110 @@ export default function Home() {
               ) : (
                 /* STANDARD MUSIC / ALL CONTENT */
                 <div>
-                  {/* Welcome Banner (only on All) */}
+                  {/* Your Mixes / Tuyển chọn cho bạn (Liner Style Square Card Row) */}
                   {homeCategory === "all" && (
-                    <div className="rounded-2xl p-6 mb-8 bg-gradient-to-r from-emerald-900/60 via-green-950/40 to-[#121212] border border-white/10 relative overflow-hidden shadow-2xl">
-                      <div className="relative z-10 max-w-xl">
-                        <div className="flex items-center gap-2 text-[#1db954] text-xs font-bold uppercase tracking-wider mb-2">
-                          <Sparkles className="w-4 h-4" />
-                          <span>Không quảng cáo 100% • Tích hợp YouTube & Trang Nghệ Sĩ</span>
+                    <div className="mb-8">
+                      <div className="flex items-center gap-2 mb-3.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                        <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                          Tuyển chọn cho bạn
+                        </h2>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                        {/* Mix 1: Liked Songs Mix */}
+                        <div
+                          onClick={() => {
+                            if (!user) openAuthModal("login");
+                            else setActiveTab("favorites");
+                          }}
+                          className="group relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-indigo-900/80 via-purple-900/60 to-black border border-white/10 hover:border-purple-500/40 transition-all cursor-pointer flex flex-col justify-between overflow-hidden shadow-xl hover:scale-[1.02]"
+                        >
+                          <div className="flex items-center justify-between z-10">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-white/10 text-purple-300">
+                              MIX 1
+                            </span>
+                            <Heart className="w-5 h-5 text-purple-300 fill-current" />
+                          </div>
+                          <div className="z-10">
+                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-purple-300 transition">
+                              Bài hát đã thích
+                            </h3>
+                            <p className="text-xs text-gray-400 mt-0.5 truncate">
+                              {user ? `${favoriteSongs.length} bài hát riêng` : "Đăng nhập ngay"}
+                            </p>
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                         </div>
-                        <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight">
-                          Chào mừng đến với TrackFlow
-                        </h1>
-                        <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-                          Khám phá trang cá nhân nghệ sĩ, nghe toàn bộ bài hát từ YouTube, lưu danh sách bài hát yêu thích riêng biệt cho từng người.
-                        </p>
-                        <div className="flex items-center gap-3">
-                          {songs.length > 0 && (
-                            <button
-                              onClick={() => handlePlaySong(songs[0], songs, songs.length > 1)}
-                              className="bg-[#1db954] hover:bg-[#1ed760] text-black font-bold text-xs py-2.5 px-6 rounded-full flex items-center gap-2 transition hover:scale-105 shadow-lg"
-                            >
-                              <Play className="w-4 h-4 fill-black" />
-                              <span>Phát tất cả</span>
-                            </button>
-                          )}
+
+                        {/* Mix 2: Chill Visualizer Mix */}
+                        <div
+                          onClick={() => setActiveTab("chill")}
+                          className="group relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-purple-950 via-[#181024] to-black border border-purple-500/20 hover:border-purple-400/50 transition-all cursor-pointer flex flex-col justify-between overflow-hidden shadow-xl hover:scale-[1.02]"
+                        >
+                          <div className="flex items-center justify-between z-10">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+                              MIX 2
+                            </span>
+                            <Waves className="w-5 h-5 text-purple-400" />
+                          </div>
+                          <div className="z-10">
+                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-purple-300 transition">
+                              Chill Visualizer
+                            </h3>
+                            <p className="text-xs text-gray-400 mt-0.5 truncate">
+                              Sóng âm 360° &amp; Lời bài hát
+                            </p>
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                        </div>
+
+                        {/* Mix 3: Trending Chart Mix */}
+                        <div
+                          onClick={() => {
+                            if (songs.length > 0) {
+                              handlePlaySong(songs[0], songs, true);
+                            }
+                          }}
+                          className="group relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-rose-950/80 via-amber-950/40 to-black border border-white/10 hover:border-rose-500/40 transition-all cursor-pointer flex flex-col justify-between overflow-hidden shadow-xl hover:scale-[1.02]"
+                        >
+                          <div className="flex items-center justify-between z-10">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300">
+                              MIX 3
+                            </span>
+                            <Flame className="w-5 h-5 text-rose-400" />
+                          </div>
+                          <div className="z-10">
+                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-rose-300 transition">
+                              Top Hits Trending
+                            </h3>
+                            <p className="text-xs text-gray-400 mt-0.5 truncate">
+                              Bảng xếp hạng YouTube Real-Time
+                            </p>
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                        </div>
+
+                        {/* Mix 4: 1-Click Import / Custom Playlist */}
+                        <div
+                          onClick={openImportModal}
+                          className="group relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-emerald-950 via-[#0e1d15] to-black border border-emerald-500/20 hover:border-emerald-400/50 transition-all cursor-pointer flex flex-col justify-between overflow-hidden shadow-xl hover:scale-[1.02]"
+                        >
+                          <div className="flex items-center justify-between z-10">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                              MIX 4
+                            </span>
+                            <Download className="w-5 h-5 text-emerald-400" />
+                          </div>
+                          <div className="z-10">
+                            <h3 className="text-base sm:text-lg font-black text-white group-hover:text-emerald-300 transition">
+                              Nhập Playlist
+                            </h3>
+                            <p className="text-xs text-gray-400 mt-0.5 truncate">
+                              Chuyển từ Spotify / YouTube
+                            </p>
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                         </div>
                       </div>
                     </div>
