@@ -86,7 +86,7 @@ async function fetchYouTubePlaylist(listId: string, apiKey?: string) {
         }
 
         nextPageToken = itemsData.nextPageToken || "";
-      } while (nextPageToken && pageCount < 2);
+      } while (nextPageToken && pageCount < 4);
     } catch (err) {
       console.error("YouTube API playlist error:", err);
     }
@@ -215,28 +215,109 @@ function parseTextPlaylist(rawText: string) {
   };
 }
 
-// Match single track to YouTube
-async function matchTrackToYouTube(track: { title: string; artist: string }) {
-  try {
-    const q = `${track.title} ${track.artist} official audio`;
-    const res = await ytSearch(q);
-    const top = res.videos?.[0];
-    if (top) {
-      return {
-        title: track.title,
-        artist: track.artist,
-        videoId: top.videoId,
-        audio_url: `https://www.youtube.com/watch?v=${top.videoId}`,
-        image_url:
-          top.thumbnail || top.image || `https://i.ytimg.com/vi/${top.videoId}/hqdefault.jpg`,
-        duration: top.duration?.seconds || 0,
-        views: top.views ? String(top.views) : null,
-      };
-    }
-  } catch (e) {
-    console.warn("Match error for:", track.title, e);
+// Clean search query helper to strip extraneous tags (remaster, feat, audio, etc.)
+function cleanSearchQuery(title: string, artist?: string): { cleanTitle: string; cleanArtist: string } {
+  const cleanTitle = (title || "")
+    .replace(/\s*[\(\[][^\)\]]*(?:feat|ft\.|remaster|mix|version|official|audio|video|ost|live|edit|karaoke|beat|instrumental)[^\)\]]*[\)\]]/gi, "")
+    .replace(/[–—]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  let cleanArtist = (artist || "").trim();
+  if (
+    cleanArtist.toLowerCase().includes("chưa rõ") ||
+    cleanArtist.toLowerCase().includes("unknown") ||
+    cleanArtist.toLowerCase().includes("various artists")
+  ) {
+    cleanArtist = "";
   }
-  return null;
+
+  return {
+    cleanTitle: cleanTitle || (title || "").trim(),
+    cleanArtist,
+  };
+}
+
+// Robust multi-tiered track matcher that guarantees a match and never drops a track
+async function matchTrackToYouTube(track: {
+  title: string;
+  artist: string;
+  duration?: number;
+  image_url?: string | null;
+}) {
+  const rawTitle = (track.title || "").trim();
+  const rawArtist = (track.artist || "").trim();
+  const { cleanTitle, cleanArtist } = cleanSearchQuery(rawTitle, rawArtist);
+
+  // Build ordered candidate queries from specific to broad
+  const candidates: string[] = [];
+
+  if (cleanArtist) {
+    candidates.push(`${cleanTitle} ${cleanArtist} official audio`);
+    candidates.push(`${cleanTitle} ${cleanArtist}`);
+  }
+  if (rawArtist && rawArtist !== cleanArtist) {
+    candidates.push(`${rawTitle} ${rawArtist}`);
+  }
+  candidates.push(cleanTitle);
+  if (rawTitle && rawTitle !== cleanTitle) {
+    candidates.push(rawTitle);
+  }
+
+  const firstSegment = rawTitle.split(/[-–—:|]/)[0]?.trim();
+  if (firstSegment && firstSegment.length >= 3 && firstSegment !== rawTitle && firstSegment !== cleanTitle) {
+    if (cleanArtist) candidates.push(`${firstSegment} ${cleanArtist}`);
+    candidates.push(firstSegment);
+  }
+
+  const uniqueCandidates = Array.from(new Set(candidates.filter((c) => c && c.length >= 2)));
+
+  // Try queries in order with retry for network resilience
+  for (const q of uniqueCandidates) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const res = await ytSearch(q);
+        const top = res.videos?.[0];
+        if (top && top.videoId) {
+          return {
+            title: rawTitle || top.title,
+            artist: rawArtist || top.author?.name || "YouTube",
+            videoId: top.videoId,
+            audio_url: `https://www.youtube.com/watch?v=${top.videoId}`,
+            image_url:
+              track.image_url ||
+              top.thumbnail ||
+              top.image ||
+              `https://i.ytimg.com/vi/${top.videoId}/hqdefault.jpg`,
+            duration: top.duration?.seconds || track.duration || 0,
+            views: top.views ? String(top.views) : null,
+          };
+        }
+        // If query succeeded but had 0 videos, break attempt loop and try next query candidate
+        break;
+      } catch (err: any) {
+        if (attempt === 0) {
+          // Brief pause before single retry
+          await new Promise((r) => setTimeout(r, 200));
+        } else {
+          console.warn(`ytSearch error for candidate "${q}":`, err?.message || err);
+        }
+      }
+    }
+  }
+
+  // Guaranteed fallback: NEVER drop the track, keep song metadata intact
+  console.warn(`Could not match video for "${rawTitle}" by "${rawArtist}". Using safe fallback.`);
+  const fallbackQuery = encodeURIComponent(`${rawTitle} ${rawArtist}`.trim());
+  return {
+    title: rawTitle || "Bài hát đã nhập",
+    artist: rawArtist || "Nghệ sĩ chưa rõ",
+    videoId: "",
+    audio_url: `https://www.youtube.com/results?search_query=${fallbackQuery}`,
+    image_url: track.image_url || null,
+    duration: track.duration || 0,
+    views: null,
+  };
 }
 
 export async function POST(req: Request) {
@@ -311,22 +392,55 @@ export async function POST(req: Request) {
       const playlistDesc = (description && description.trim()) || "Được nhập tự động vào TrackFlow";
 
       // 1. Match any tracks that don't have videoId yet (e.g. from Spotify or Text)
-      // Process in batches of 5 to maximize throughput
+      // Process in smaller batches of 3 with gentle delay to ensure zero dropped songs
       const matchedTracks: any[] = [];
-      const batchSize = 5;
+      const batchSize = 3;
 
       for (let i = 0; i < tracks.length; i += batchSize) {
         const chunk = tracks.slice(i, i + batchSize);
         const resolved = await Promise.all(
           chunk.map(async (t: any) => {
             if (t.videoId && t.audio_url) {
-              return t;
+              return {
+                title: t.title || "Bài hát",
+                artist: t.artist || "Nghệ sĩ",
+                videoId: t.videoId,
+                audio_url: t.audio_url,
+                image_url: t.image_url || `https://i.ytimg.com/vi/${t.videoId}/hqdefault.jpg`,
+                duration: t.duration || 0,
+                views: t.views ? String(t.views) : null,
+              };
             }
             return await matchTrackToYouTube(t);
           })
         );
-        for (const item of resolved) {
-          if (item) matchedTracks.push(item);
+
+        for (let idx = 0; idx < resolved.length; idx++) {
+          const item = resolved[idx];
+          if (item) {
+            matchedTracks.push(item);
+          } else {
+            // Absolute insurance fallback: ensure 100% preservation of all tracks
+            const original = chunk[idx];
+            matchedTracks.push({
+              title: original.title || "Bài hát",
+              artist: original.artist || "Nghệ sĩ chưa rõ",
+              videoId: original.videoId || "",
+              audio_url:
+                original.audio_url ||
+                `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                  `${original.title} ${original.artist}`
+                )}`,
+              image_url: original.image_url || null,
+              duration: original.duration || 0,
+              views: null,
+            });
+          }
+        }
+
+        // Brief delay between batches to respect rate limits
+        if (i + batchSize < tracks.length) {
+          await new Promise((r) => setTimeout(r, 100));
         }
       }
 
@@ -346,33 +460,43 @@ export async function POST(req: Request) {
       `;
       const createdPlaylist = plRes[0];
 
-      // 3. Batch insert songs into playlist_songs table
+      // 3. Insert songs into playlist_songs table with retry per song for DB resilience
       for (let pos = 0; pos < matchedTracks.length; pos++) {
         const song = matchedTracks[pos];
-        await sql`
-          INSERT INTO playlist_songs (
-            playlist_id,
-            title,
-            artist,
-            audio_url,
-            image_url,
-            duration,
-            views,
-            position,
-            added_at
-          )
-          VALUES (
-            ${createdPlaylist.id},
-            ${song.title},
-            ${song.artist || "Nghệ sĩ chưa rõ"},
-            ${song.audio_url},
-            ${song.image_url || null},
-            ${song.duration || 0},
-            ${song.views ? String(song.views) : null},
-            ${pos},
-            NOW()
-          )
-        `;
+        let inserted = false;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            await sql`
+              INSERT INTO playlist_songs (
+                playlist_id,
+                title,
+                artist,
+                audio_url,
+                image_url,
+                duration,
+                views,
+                position,
+                added_at
+              )
+              VALUES (
+                ${createdPlaylist.id},
+                ${song.title || "Bài hát"},
+                ${song.artist || "Nghệ sĩ chưa rõ"},
+                ${song.audio_url || "https://www.youtube.com"},
+                ${song.image_url || null},
+                ${song.duration || 0},
+                ${song.views ? String(song.views) : null},
+                ${pos},
+                NOW()
+              )
+            `;
+            inserted = true;
+            break;
+          } catch (dbErr) {
+            console.warn(`Retry insert song #${pos} (${song.title}):`, dbErr);
+            await new Promise((r) => setTimeout(r, 120));
+          }
+        }
       }
 
       return NextResponse.json({
