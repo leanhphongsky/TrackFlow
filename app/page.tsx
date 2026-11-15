@@ -20,6 +20,8 @@ import FollowedArtistsFeed from "@/components/FollowedArtistsFeed";
 import PodcastsSection from "@/components/PodcastsSection";
 import FullscreenLyricsView from "@/components/FullscreenLyricsView";
 import ChillView from "@/components/ChillView";
+import MixDetailView from "@/components/MixDetailView";
+import { DailyMixItem } from "@/app/api/songs/mixes/route";
 import { Song } from "@/lib/db";
 import {
   Search,
@@ -28,6 +30,7 @@ import {
   Sparkles,
   Loader2,
   Play,
+  Pause,
   Heart,
   UserCheck,
   LogOut,
@@ -39,6 +42,7 @@ import {
   Home as HomeIcon,
   Download,
   Flame,
+  Shuffle,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
@@ -67,6 +71,63 @@ export default function Home() {
     channelId?: string;
     name?: string;
   } | null>(null);
+
+  // Daily Mixes (Your Mixes) state
+  const [dailyMixes, setDailyMixes] = useState<DailyMixItem[]>([
+    {
+      id: "mix-1",
+      mixNumber: 1,
+      name: "Daily Mix 1",
+      theme: "V-Pop & Indie Việt",
+      badge: "Việt Nam 🇻🇳",
+      description: "Tuyển chọn các giai điệu V-Pop, Indie và Ballad Việt Nam từ Sơn Tùng M-TP, Vũ., Hoàng Dũng, Ngọt, Grey D và nhiều nghệ sĩ khác.",
+      coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+      accentGradient: "from-purple-900/80 via-indigo-950 to-black",
+      accentColor: "#a855f7",
+      artistsSummary: "Sơn Tùng M-TP, Vũ., Hoàng Dũng, Ngọt...",
+      songs: [],
+    },
+    {
+      id: "mix-2",
+      mixNumber: 2,
+      name: "Daily Mix 2",
+      theme: "Chill, Lo-Fi & Acoustic",
+      badge: "Thư giãn ☕",
+      description: "Giai điệu lofi êm dịu, acoustic mộc mạc và chillout nhẹ nhàng giúp bạn tập trung và thư giãn.",
+      coverUrl: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+      accentGradient: "from-sky-950/90 via-slate-900 to-black",
+      accentColor: "#38bdf8",
+      artistsSummary: "Lofi Girl, Joji, Keshi, Wave to Earth...",
+      songs: [],
+    },
+    {
+      id: "mix-3",
+      mixNumber: 3,
+      name: "Daily Mix 3",
+      theme: "US-UK Pop & Hip-Hop",
+      badge: "Âu Mỹ 🌎",
+      description: "Bùng nổ cùng những bản hit US-UK, Rap/Hip-hop và Pop đỉnh cao 24h qua.",
+      coverUrl: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=80",
+      accentGradient: "from-rose-950/90 via-[#1f0d11] to-black",
+      accentColor: "#f43f5e",
+      artistsSummary: "The Weeknd, Drake, Travis Scott, Billie Eilish...",
+      songs: [],
+    },
+    {
+      id: "mix-4",
+      mixNumber: 4,
+      name: "Daily Mix 4",
+      theme: "K-Pop & Asian Energy",
+      badge: "Châu Á 🌸",
+      description: "Giai điệu K-Pop & J-Pop bùng nổ năng lượng, vũ đạo và âm nhạc Châu Á.",
+      coverUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80",
+      accentGradient: "from-emerald-950/90 via-[#0a1811] to-black",
+      accentColor: "#10b981",
+      artistsSummary: "NewJeans, IVE, Jung Kook, YOASOBI, Aespa...",
+      songs: [],
+    },
+  ]);
+  const [selectedDailyMix, setSelectedDailyMix] = useState<DailyMixItem | null>(null);
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
@@ -98,8 +159,23 @@ export default function Home() {
     }
   };
 
+  const fetchDailyMixes = async () => {
+    try {
+      const res = await fetch("/api/songs/mixes");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.mixes && data.mixes.length > 0) {
+          setDailyMixes(data.mixes);
+        }
+      }
+    } catch (err) {
+      console.warn("Lỗi khi tải daily mixes:", err);
+    }
+  };
+
   useEffect(() => {
     fetchSongs();
+    fetchDailyMixes();
   }, [user?.id]);
 
   const handlePlaySong = (song: any, queue?: any[], isPlaylistContext?: boolean) => {
@@ -409,6 +485,17 @@ export default function Home() {
               onBack={() => setSelectedArtist(null)}
               onSongSaved={(song) => setSongs((prev) => [song, ...prev])}
             />
+          ) : activeTab === "mix" && selectedDailyMix ? (
+            /* VIEW: DAILY MIX THEMATIC PLAYLIST VIEW */
+            <MixDetailView
+              mix={selectedDailyMix}
+              onBack={() => {
+                setSelectedDailyMix(null);
+                setActiveTab("home");
+              }}
+              onPlaySong={handlePlaySong}
+              onOpenArtist={openArtist}
+            />
           ) : activeTab === "terms" ? (
             /* VIEW: TERMS & LEGAL DISCLAIMER */
             <TermsView onBack={() => setActiveTab("home")} />
@@ -709,149 +796,92 @@ export default function Home() {
               ) : (
                 /* STANDARD MUSIC / ALL CONTENT */
                 <div>
-                  {/* Your Mixes / Tuyển chọn cho bạn (Liner Style Square Card Row) */}
+                  {/* Your Mixes / Tuyển chọn cho bạn (Liner Style Thematic Shuffled Playlists) */}
                   {homeCategory === "all" && (
                     <div className="mb-9">
-                      <div className="flex items-center gap-2.5 mb-4">
-                        <span className="w-5 h-5 rounded-lg bg-gradient-to-br from-rose-500 to-orange-400 shadow-sm flex-shrink-0" />
-                        <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                          Your Mixes
-                        </h2>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-5 h-5 rounded-lg bg-gradient-to-br from-rose-500 to-orange-400 shadow-sm flex-shrink-0" />
+                          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                            Your Mixes
+                          </h2>
+                          <span className="hidden sm:inline-block text-[11px] font-bold text-gray-400 bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-full">
+                            Playlist theo chủ đề &amp; Trộn ngẫu nhiên
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-400 hidden md:inline">
+                          Nhấn để xem danh sách hoặc rê chuột để phát ngay
+                        </span>
                       </div>
 
                       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        {/* Mix 1: Liked Songs Mix */}
-                        <div
-                          onClick={() => {
-                            if (!user) openAuthModal("login");
-                            else setActiveTab("favorites");
-                          }}
-                          className="group cursor-pointer flex flex-col gap-2"
-                        >
-                          <div className="relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-[#1a1426] via-[#120d1c] to-black border border-white/10 group-hover:border-purple-500/40 transition-all overflow-hidden shadow-xl group-hover:scale-[1.02] flex flex-col justify-between">
-                            {/* Top Left Mini Logo */}
-                            <div className="flex items-center justify-between z-10">
-                              <span className="w-5 h-5 rounded-md bg-white/10 flex items-center justify-center text-xs font-black text-purple-300">
-                                ♫
-                              </span>
-                              <Heart className="w-4 h-4 text-purple-400/80 fill-purple-400/30" />
+                        {dailyMixes.map((mix) => (
+                          <div
+                            key={mix.id}
+                            onClick={() => {
+                              setSelectedDailyMix(mix);
+                              setActiveTab("mix");
+                            }}
+                            className="group cursor-pointer flex flex-col gap-2"
+                          >
+                            {/* Square Artwork Card with Giant MIX Typography */}
+                            <div className="relative aspect-square rounded-2xl overflow-hidden shadow-2xl bg-black border border-white/10 group-hover:border-white/25 transition-all duration-300 group-hover:scale-[1.02] flex flex-col justify-between p-4">
+                              {/* Background Album Cover Image */}
+                              <img
+                                src={mix.coverUrl}
+                                alt={mix.name}
+                                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                loading="lazy"
+                              />
+
+                              {/* Gradient Shading Overlay for maximum text legibility */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/25 pointer-events-none" />
+
+                              {/* Top Left Mini Logo & Regional Badge */}
+                              <div className="flex items-center justify-between z-10">
+                                <span className="w-6 h-6 rounded-lg bg-black/60 backdrop-blur-md flex items-center justify-center text-xs font-black text-white border border-white/10 shadow">
+                                  ♫
+                                </span>
+                                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white border border-white/10">
+                                  {mix.badge}
+                                </span>
+                              </div>
+
+                              {/* Hover Floating Green Play/Shuffle Button */}
+                              <div className="absolute right-4 bottom-4 z-20 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (mix.songs && mix.songs.length > 0) {
+                                      handlePlaySong(mix.songs[0], mix.songs, true);
+                                    }
+                                  }}
+                                  className="w-11 h-11 rounded-full bg-[#1db954] hover:bg-[#1ed760] text-black shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition"
+                                  title={`Phát trộn ${mix.name}`}
+                                >
+                                  <Play className="w-5 h-5 fill-black ml-0.5" />
+                                </button>
+                              </div>
+
+                              {/* Bottom Giant MIX Typography */}
+                              <div className="z-10">
+                                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none drop-shadow-lg group-hover:text-emerald-400 transition">
+                                  MIX {mix.mixNumber}
+                                </h3>
+                              </div>
                             </div>
 
-                            {/* Bottom Giant MIX Typography */}
-                            <div className="z-10">
-                              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none group-hover:text-purple-300 transition">
-                                MIX 1
-                              </h3>
+                            {/* Subtitles outside the card (Liner style) */}
+                            <div>
+                              <h4 className="text-sm font-bold text-white group-hover:text-[#1db954] transition truncate">
+                                {mix.name}
+                              </h4>
+                              <p className="text-xs text-gray-400 truncate mt-0.5" title={mix.artistsSummary}>
+                                {mix.artistsSummary}
+                              </p>
                             </div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
                           </div>
-                          <div>
-                            <h4 className="text-sm font-bold text-white group-hover:text-purple-300 transition truncate">
-                              Daily Mix 1
-                            </h4>
-                            <p className="text-xs text-gray-400 truncate mt-0.5">
-                              {favoriteSongs.length > 0
-                                ? favoriteSongs.slice(0, 3).map((s) => s.artist).join(", ")
-                                : "Bài hát yêu thích riêng của bạn"}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Mix 2: Chill Visualizer Mix */}
-                        <div
-                          onClick={() => setActiveTab("chill")}
-                          className="group cursor-pointer flex flex-col gap-2"
-                        >
-                          <div className="relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-[#141d24] via-[#0d161d] to-black border border-sky-500/20 group-hover:border-sky-400/50 transition-all overflow-hidden shadow-xl group-hover:scale-[1.02] flex flex-col justify-between">
-                            <div className="flex items-center justify-between z-10">
-                              <span className="w-5 h-5 rounded-md bg-sky-500/20 flex items-center justify-center text-xs font-black text-sky-300">
-                                ♫
-                              </span>
-                              <Waves className="w-4 h-4 text-sky-400" />
-                            </div>
-
-                            <div className="z-10">
-                              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none group-hover:text-sky-300 transition">
-                                MIX 2
-                              </h3>
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-bold text-white group-hover:text-sky-300 transition truncate">
-                              Daily Mix 2
-                            </h4>
-                            <p className="text-xs text-gray-400 truncate mt-0.5">
-                              Chill, Visualizer 360°, Lofi & Acoustic
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Mix 3: Trending Chart Mix */}
-                        <div
-                          onClick={() => {
-                            if (songs.length > 0) {
-                              handlePlaySong(songs[0], songs, true);
-                            }
-                          }}
-                          className="group cursor-pointer flex flex-col gap-2"
-                        >
-                          <div className="relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-[#241315] via-[#1a0c0e] to-black border border-rose-500/20 group-hover:border-rose-400/50 transition-all overflow-hidden shadow-xl group-hover:scale-[1.02] flex flex-col justify-between">
-                            <div className="flex items-center justify-between z-10">
-                              <span className="w-5 h-5 rounded-md bg-rose-500/20 flex items-center justify-center text-xs font-black text-rose-300">
-                                ♫
-                              </span>
-                              <Flame className="w-4 h-4 text-rose-400" />
-                            </div>
-
-                            <div className="z-10">
-                              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none group-hover:text-rose-300 transition">
-                                MIX 3
-                              </h3>
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-bold text-white group-hover:text-rose-300 transition truncate">
-                              Daily Mix 3
-                            </h4>
-                            <p className="text-xs text-gray-400 truncate mt-0.5">
-                              {songs.length > 0
-                                ? songs.slice(0, 3).map((s) => s.artist).join(", ")
-                                : "Top Hits YouTube Trending"}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Mix 4: 1-Click Import / Custom Playlist */}
-                        <div
-                          onClick={openImportModal}
-                          className="group cursor-pointer flex flex-col gap-2"
-                        >
-                          <div className="relative aspect-square rounded-2xl p-4 bg-gradient-to-br from-[#122218] via-[#0b1710] to-black border border-emerald-500/20 group-hover:border-emerald-400/50 transition-all overflow-hidden shadow-xl group-hover:scale-[1.02] flex flex-col justify-between">
-                            <div className="flex items-center justify-between z-10">
-                              <span className="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center text-xs font-black text-emerald-300">
-                                ♫
-                              </span>
-                              <Download className="w-4 h-4 text-emerald-400" />
-                            </div>
-
-                            <div className="z-10">
-                              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-none group-hover:text-emerald-300 transition">
-                                MIX 4
-                              </h3>
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-bold text-white group-hover:text-emerald-300 transition truncate">
-                              Daily Mix 4
-                            </h4>
-                            <p className="text-xs text-gray-400 truncate mt-0.5">
-                              Nhập playlist Spotify, YouTube & MP3
-                            </p>
-                          </div>
-                        </div>
+                        ))}
                       </div>
                     </div>
                   )}
