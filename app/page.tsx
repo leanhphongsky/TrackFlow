@@ -940,35 +940,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Quick Shortcut Banner to Dedicated Charts Tab */}
-                  <div
-                    onClick={() => setActiveTab("charts")}
-                    className="mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#181818] to-[#141414] border border-white/5 hover:border-emerald-500/30 transition cursor-pointer flex items-center justify-between group shadow-xl"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-[#1db954] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow">
-                        <TrendingUp className="w-6 h-6 text-[#1db954]" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm sm:text-base font-black text-white group-hover:text-emerald-400 transition">
-                            Bảng xếp hạng âm nhạc thịnh hành
-                          </h3>
-                          <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                            24h Velocity
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-0.5 max-w-xl">
-                          Khám phá nghệ sĩ và bài hát bứt phá lượt xem nhiều nhất hôm nay tại Việt Nam, Hàn Quốc, Âu Mỹ và Châu Á trong tab riêng biệt.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 group-hover:translate-x-1 transition flex-shrink-0">
-                      <span className="hidden sm:inline">Mở Bảng xếp hạng</span>
-                      <span>→</span>
-                    </div>
-                  </div>
-
                   {/* Quick Liked Songs on Home if any */}
                   {favoriteSongs.length > 0 && (
                     <div className="mb-8">
