@@ -205,11 +205,9 @@ export async function GET() {
         theme: "V-Pop & Indie Việt",
         badge: "Việt Nam 🇻🇳",
         description: `Tuyển chọn các giai điệu V-Pop, Indie và Ballad Việt Nam từ ${mix1Artists} và nhiều nghệ sĩ khác.`,
-        coverUrl:
-          mix1Songs[0]?.image_url ||
-          "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
-        accentGradient: "from-purple-900/80 via-indigo-950 to-black",
-        accentColor: "#a855f7",
+        coverUrl: "/mixes/mix-1.jpg",
+        accentGradient: "from-amber-950/90 via-[#1c120c] to-black",
+        accentColor: "#f59e0b",
         artistsSummary: `${mix1Artists}, và nhiều hơn nữa`,
         songs: mix1Songs,
       },
@@ -220,11 +218,9 @@ export async function GET() {
         theme: "Chill, Lo-Fi & Acoustic",
         badge: "Thư giãn ☕",
         description: `Giai điệu lofi êm dịu, acoustic mộc mạc và chillout nhẹ nhàng từ ${mix2Artists} giúp bạn tập trung và thư giãn.`,
-        coverUrl:
-          mix2Songs[0]?.image_url ||
-          "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
-        accentGradient: "from-sky-950/90 via-slate-900 to-black",
-        accentColor: "#38bdf8",
+        coverUrl: "/mixes/mix-2.jpg",
+        accentGradient: "from-indigo-950/90 via-[#0d1322] to-black",
+        accentColor: "#6366f1",
         artistsSummary: `${mix2Artists}, và nhiều hơn nữa`,
         songs: mix2Songs,
       },
@@ -235,10 +231,8 @@ export async function GET() {
         theme: "US-UK Pop & Hip-Hop",
         badge: "Âu Mỹ 🌎",
         description: `Bùng nổ cùng những bản hit US-UK, Rap/Hip-hop và Pop đình đám nhất từ ${mix3Artists}.`,
-        coverUrl:
-          mix3Songs[0]?.image_url ||
-          "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=80",
-        accentGradient: "from-rose-950/90 via-[#1f0d11] to-black",
+        coverUrl: "/mixes/mix-3.jpg",
+        accentGradient: "from-rose-950/90 via-[#200911] to-black",
         accentColor: "#f43f5e",
         artistsSummary: `${mix3Artists}, và nhiều hơn nữa`,
         songs: mix3Songs,
@@ -250,11 +244,9 @@ export async function GET() {
         theme: "K-Pop & Asian Energy",
         badge: "Châu Á 🌸",
         description: `Giai điệu K-Pop & J-Pop bùng nổ năng lượng, vũ đạo và âm nhạc Châu Á từ ${mix4Artists}.`,
-        coverUrl:
-          mix4Songs[0]?.image_url ||
-          "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80",
-        accentGradient: "from-emerald-950/90 via-[#0a1811] to-black",
-        accentColor: "#10b981",
+        coverUrl: "/mixes/mix-4.jpg",
+        accentGradient: "from-red-950/90 via-[#1f0b0b] to-black",
+        accentColor: "#ef4444",
         artistsSummary: `${mix4Artists}, và nhiều hơn nữa`,
         songs: mix4Songs,
       },

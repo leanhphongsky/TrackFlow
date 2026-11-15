@@ -44,6 +44,7 @@ import {
   Flame,
   Shuffle,
   ShieldCheck,
+  TrendingUp,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
@@ -82,9 +83,9 @@ export default function Home() {
       theme: "V-Pop & Indie Việt",
       badge: "Việt Nam 🇻🇳",
       description: "Tuyển chọn các giai điệu V-Pop, Indie và Ballad Việt Nam từ Sơn Tùng M-TP, Vũ., Hoàng Dũng, Ngọt, Grey D và nhiều nghệ sĩ khác.",
-      coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
-      accentGradient: "from-purple-900/80 via-indigo-950 to-black",
-      accentColor: "#a855f7",
+      coverUrl: "/mixes/mix-1.jpg",
+      accentGradient: "from-amber-950/90 via-[#1c120c] to-black",
+      accentColor: "#f59e0b",
       artistsSummary: "Sơn Tùng M-TP, Vũ., Hoàng Dũng, Ngọt...",
       songs: [],
     },
@@ -95,9 +96,9 @@ export default function Home() {
       theme: "Chill, Lo-Fi & Acoustic",
       badge: "Thư giãn ☕",
       description: "Giai điệu lofi êm dịu, acoustic mộc mạc và chillout nhẹ nhàng giúp bạn tập trung và thư giãn.",
-      coverUrl: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
-      accentGradient: "from-sky-950/90 via-slate-900 to-black",
-      accentColor: "#38bdf8",
+      coverUrl: "/mixes/mix-2.jpg",
+      accentGradient: "from-indigo-950/90 via-[#0d1322] to-black",
+      accentColor: "#6366f1",
       artistsSummary: "Lofi Girl, Joji, Keshi, Wave to Earth...",
       songs: [],
     },
@@ -108,8 +109,8 @@ export default function Home() {
       theme: "US-UK Pop & Hip-Hop",
       badge: "Âu Mỹ 🌎",
       description: "Bùng nổ cùng những bản hit US-UK, Rap/Hip-hop và Pop đỉnh cao 24h qua.",
-      coverUrl: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=80",
-      accentGradient: "from-rose-950/90 via-[#1f0d11] to-black",
+      coverUrl: "/mixes/mix-3.jpg",
+      accentGradient: "from-rose-950/90 via-[#200911] to-black",
       accentColor: "#f43f5e",
       artistsSummary: "The Weeknd, Drake, Travis Scott, Billie Eilish...",
       songs: [],
@@ -121,9 +122,9 @@ export default function Home() {
       theme: "K-Pop & Asian Energy",
       badge: "Châu Á 🌸",
       description: "Giai điệu K-Pop & J-Pop bùng nổ năng lượng, vũ đạo và âm nhạc Châu Á.",
-      coverUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80",
-      accentGradient: "from-emerald-950/90 via-[#0a1811] to-black",
-      accentColor: "#10b981",
+      coverUrl: "/mixes/mix-4.jpg",
+      accentGradient: "from-red-950/90 via-[#1f0b0b] to-black",
+      accentColor: "#ef4444",
       artistsSummary: "NewJeans, IVE, Jung Kook, YOASOBI, Aespa...",
       songs: [],
     },
@@ -349,19 +350,20 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Fixed Spotify-Style Category Filter Navigation Bar on Home */}
-        {activeTab === "home" && !selectedArtist && (
+        {/* Fixed Spotify-Style Category Filter Navigation Bar on Home & Charts */}
+        {(activeTab === "home" || activeTab === "charts") && !selectedArtist && (
           <div className="h-14 px-6 bg-[#121212] border-b border-white/5 flex items-center gap-2 flex-shrink-0 z-20 overflow-x-auto scrollbar-none">
             {/* 1. All */}
             <button
               type="button"
               onClick={() => {
+                setActiveTab("home");
                 setHomeCategory("all");
                 setMusicSubFilter("all");
                 setPodcastSubFilter("all");
               }}
               className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
-                homeCategory === "all"
+                activeTab === "home" && homeCategory === "all"
                   ? "bg-white text-black font-bold shadow-sm"
                   : "bg-[#242424] text-white hover:bg-[#303030]"
               }`}
@@ -373,15 +375,16 @@ export default function Home() {
             <button
               type="button"
               onClick={() => {
+                setActiveTab("home");
                 setHomeCategory("music");
                 if (homeCategory !== "music") {
                   setMusicSubFilter("all");
                 }
               }}
               className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
-                homeCategory === "music" && musicSubFilter === "all"
+                activeTab === "home" && homeCategory === "music" && musicSubFilter === "all"
                   ? "bg-white text-black font-bold shadow-sm"
-                  : homeCategory === "music"
+                  : activeTab === "home" && homeCategory === "music"
                   ? "bg-white/20 text-white hover:bg-white/30"
                   : "bg-[#242424] text-white hover:bg-[#303030]"
               }`}
@@ -390,7 +393,7 @@ export default function Home() {
             </button>
 
             {/* 2b. Music Following Sub-Pill */}
-            {homeCategory === "music" && (
+            {activeTab === "home" && homeCategory === "music" && (
               <button
                 type="button"
                 onClick={() => {
@@ -407,19 +410,34 @@ export default function Home() {
               </button>
             )}
 
-            {/* 3. Podcasts */}
+            {/* 3. Bảng xếp hạng / Charts Tab Pill */}
+            <button
+              type="button"
+              onClick={() => setActiveTab("charts")}
+              className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 flex-shrink-0 ${
+                activeTab === "charts"
+                  ? "bg-white text-black font-bold shadow-sm"
+                  : "bg-[#242424] text-white hover:bg-[#303030]"
+              }`}
+            >
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Bảng xếp hạng</span>
+            </button>
+
+            {/* 4. Podcasts */}
             <button
               type="button"
               onClick={() => {
+                setActiveTab("home");
                 setHomeCategory("podcasts");
                 if (homeCategory !== "podcasts") {
                   setPodcastSubFilter("all");
                 }
               }}
               className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition flex-shrink-0 ${
-                homeCategory === "podcasts" && podcastSubFilter === "all"
+                activeTab === "home" && homeCategory === "podcasts" && podcastSubFilter === "all"
                   ? "bg-white text-black font-bold shadow-sm"
-                  : homeCategory === "podcasts"
+                  : activeTab === "home" && homeCategory === "podcasts"
                   ? "bg-white/20 text-white hover:bg-white/30"
                   : "bg-[#242424] text-white hover:bg-[#303030]"
               }`}
@@ -497,6 +515,41 @@ export default function Home() {
               onPlaySong={handlePlaySong}
               onOpenArtist={openArtist}
             />
+          ) : activeTab === "charts" ? (
+            /* VIEW: DEDICATED CHARTS & RANKINGS VIEW */
+            <div className="space-y-8 animate-fadeIn pb-12">
+              {/* Header Hero Banner */}
+              <div className="relative rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-emerald-950/80 via-slate-900 to-[#121212] border border-emerald-500/20 shadow-2xl overflow-hidden flex flex-col md:flex-row items-center md:items-end justify-between gap-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="p-1.5 rounded-lg bg-emerald-500/20 text-[#1db954]">
+                      <TrendingUp className="w-4 h-4 text-[#1db954]" />
+                    </span>
+                    <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                      Bảng xếp hạng âm nhạc
+                    </span>
+                  </div>
+                  <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                    Top Thịnh Hành &amp; Bứt Phá
+                  </h1>
+                  <p className="text-xs sm:text-sm text-gray-300 mt-2 max-w-xl">
+                    Bảng xếp hạng thời gian thực dựa trên độ tăng trưởng lượt xem (24h Velocity Growth) và thứ hạng từ YouTube Music trên toàn cầu.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab("home")}
+                  className="text-xs text-gray-400 hover:text-white underline self-start md:self-auto"
+                >
+                  ← Quay lại Trang chủ
+                </button>
+              </div>
+
+              {/* Dynamic Trending Artists Section with Multi-Region Boards */}
+              <TrendingArtistsSection onOpenArtist={openArtist} />
+
+              {/* Dynamic Trending Songs Section with Multi-Region Charts */}
+              <TrendingSongsSection onPlaySong={handlePlaySong} onOpenArtist={openArtist} />
+            </div>
           ) : activeTab === "terms" ? (
             /* VIEW: TERMS & LEGAL DISCLAIMER */
             <TermsView onBack={() => setActiveTab("home")} />
@@ -887,11 +940,34 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Dynamic Trending Artists Section with Multi-Region Boards & Real-Time Data */}
-                  <TrendingArtistsSection onOpenArtist={openArtist} />
-
-                  {/* Dynamic Trending Songs Section with Multi-Region Charts & YouTube Data */}
-                  <TrendingSongsSection onPlaySong={handlePlaySong} onOpenArtist={openArtist} />
+                  {/* Quick Shortcut Banner to Dedicated Charts Tab */}
+                  <div
+                    onClick={() => setActiveTab("charts")}
+                    className="mb-8 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#181818] to-[#141414] border border-white/5 hover:border-emerald-500/30 transition cursor-pointer flex items-center justify-between group shadow-xl"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-[#1db954] flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow">
+                        <TrendingUp className="w-6 h-6 text-[#1db954]" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm sm:text-base font-black text-white group-hover:text-emerald-400 transition">
+                            Bảng xếp hạng âm nhạc thịnh hành
+                          </h3>
+                          <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                            24h Velocity
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5 max-w-xl">
+                          Khám phá nghệ sĩ và bài hát bứt phá lượt xem nhiều nhất hôm nay tại Việt Nam, Hàn Quốc, Âu Mỹ và Châu Á trong tab riêng biệt.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 group-hover:translate-x-1 transition flex-shrink-0">
+                      <span className="hidden sm:inline">Mở Bảng xếp hạng</span>
+                      <span>→</span>
+                    </div>
+                  </div>
 
                   {/* Quick Liked Songs on Home if any */}
                   {favoriteSongs.length > 0 && (

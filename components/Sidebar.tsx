@@ -18,6 +18,7 @@ import {
   Download,
   FolderPlus,
   UserCheck,
+  TrendingUp,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { usePlaylist } from "@/context/PlaylistContext";
@@ -127,6 +128,22 @@ export default function Sidebar({
             >
               <Home className="w-5 h-5 text-current" />
               {activeTab === "home" && (
+                <span className="absolute left-0 w-1 h-5 bg-[#1db954] rounded-r-full" />
+              )}
+            </button>
+
+            {/* 2. Charts / Bảng xếp hạng */}
+            <button
+              onClick={() => handleNav(() => setActiveTab("charts"))}
+              className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition ${
+                activeTab === "charts"
+                  ? "bg-[#282828] text-[#1db954] shadow"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+              title="Bảng xếp hạng thịnh hành"
+            >
+              <TrendingUp className="w-5 h-5 text-current" />
+              {activeTab === "charts" && (
                 <span className="absolute left-0 w-1 h-5 bg-[#1db954] rounded-r-full" />
               )}
             </button>
@@ -442,6 +459,16 @@ export default function Sidebar({
             >
               <Home className="w-5 h-5 text-[#1db954]" />
               <span>Trang chủ</span>
+            </button>
+
+            <button
+              onClick={() => handleNav(() => setActiveTab("charts"))}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition ${
+                activeTab === "charts" ? "bg-[#282828] text-[#1db954]" : "hover:bg-white/5 text-gray-300"
+              }`}
+            >
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+              <span>Bảng xếp hạng</span>
             </button>
 
             <button
