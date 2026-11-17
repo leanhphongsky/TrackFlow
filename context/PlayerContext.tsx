@@ -472,7 +472,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Poll YouTube player progress when active
+  // Poll YouTube player progress when active & prefetch next song near track end (Liner buffer tuning)
+  const preloadedTrackIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (isYouTube && isPlaying) {
       timerRef.current = setInterval(() => {
@@ -480,7 +482,30 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           const curr = ytPlayerRef.current.getCurrentTime() || 0;
           const dur = ytPlayerRef.current.getDuration() || 0;
           setCurrentTime(curr);
-          if (dur > 0) setDuration(dur);
+          if (dur > 0) {
+            setDuration(dur);
+
+            // Preload next track metadata & lyrics at 85% progress for gapless switch
+            if (curr / dur > 0.85 && queueRef.current.length > 1 && currentSongRef.current) {
+              const currentIdx = queueRef.current.findIndex(
+                (s) => s.id === currentSongRef.current?.id || s.audio_url === currentSongRef.current?.audio_url
+              );
+              if (currentIdx !== -1 && currentIdx < queueRef.current.length - 1) {
+                const nextTrack = queueRef.current[currentIdx + 1];
+                const nextKey = String(nextTrack.id || nextTrack.audio_url);
+                if (preloadedTrackIdRef.current !== nextKey) {
+                  preloadedTrackIdRef.current = nextKey;
+                  const nextVId = nextTrack.videoId || extractYouTubeId(nextTrack.audio_url);
+                  // Warm up lyrics cache for next song
+                  fetch(
+                    `/api/youtube/lyrics?videoId=${encodeURIComponent(nextVId || "")}&title=${encodeURIComponent(
+                      nextTrack.title || ""
+                    )}&artist=${encodeURIComponent(nextTrack.artist || "")}`
+                  ).catch(() => {});
+                }
+              }
+            }
+          }
         }
       }, 100);
     } else {

@@ -102,7 +102,7 @@ export default function Sidebar({
 
       {/* DESKTOP: SLIM ICON RAIL (Liner Style ~72px) */}
       <aside
-        className={`hidden md:flex flex-col items-center justify-between w-[72px] h-full bg-[#121212] border-r border-[#242424] py-4 select-none flex-shrink-0 z-40 transition-all ${
+        className={`hidden md:flex flex-col items-center justify-between w-[72px] h-full bg-[#070709] border-r border-white/[0.06] py-4 select-none flex-shrink-0 z-40 transition-all ${
           currentSong ? "pb-28" : "pb-4"
         }`}
       >
@@ -111,7 +111,7 @@ export default function Sidebar({
           {/* Logo Disc Button */}
           <button
             onClick={() => handleNav(() => setActiveTab("home"))}
-            className="group relative flex items-center justify-center w-12 h-12 rounded-2xl bg-white/[0.04] hover:bg-white/10 border border-white/5 transition"
+            className="group relative flex items-center justify-center w-12 h-12 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] transition shadow-sm"
             title={`TrackFlow - ${t.nav.home}`}
           >
             <Disc3 className="w-6 h-6 text-[#1db954] animate-spin-slow group-hover:scale-110 transition-transform" />
@@ -124,8 +124,8 @@ export default function Sidebar({
               onClick={() => handleNav(() => setActiveTab("home"))}
               className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition ${
                 activeTab === "home"
-                  ? "bg-[#282828] text-white shadow"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  ? "bg-white/[0.12] text-white border border-white/10 shadow-sm"
+                  : "text-white/60 hover:text-white hover:bg-white/[0.05]"
               }`}
               title={t.nav.home}
             >
@@ -140,8 +140,8 @@ export default function Sidebar({
               onClick={() => handleNav(() => setActiveTab("charts"))}
               className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition ${
                 activeTab === "charts"
-                  ? "bg-[#282828] text-[#1db954] shadow"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  ? "bg-white/[0.12] text-emerald-400 border border-white/10 shadow-sm"
+                  : "text-white/60 hover:text-white hover:bg-white/[0.05]"
               }`}
               title={t.nav.charts}
             >
@@ -156,8 +156,8 @@ export default function Sidebar({
               onClick={() => handleNav(() => setActiveTab("search"))}
               className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition ${
                 activeTab === "search"
-                  ? "bg-[#282828] text-white shadow"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  ? "bg-white/[0.12] text-white border border-white/10 shadow-sm"
+                  : "text-white/60 hover:text-white hover:bg-white/[0.05]"
               }`}
               title={t.nav.search}
             >
@@ -172,8 +172,8 @@ export default function Sidebar({
               onClick={() => setIsLibraryFlyoutOpen(!isLibraryFlyoutOpen)}
               className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition ${
                 isLibraryFlyoutOpen || activeTab === "favorites" || activeTab === "playlist"
-                  ? "bg-[#282828] text-[#1db954] shadow"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
+                  ? "bg-white/[0.12] text-[#1db954] border border-white/10 shadow-sm"
+                  : "text-white/60 hover:text-white hover:bg-white/[0.05]"
               }`}
               title={t.nav.library}
             >

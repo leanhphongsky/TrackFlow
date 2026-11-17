@@ -391,58 +391,62 @@ export async function POST(req: Request) {
       const playlistName = (name && name.trim()) || "Playlist đã nhập";
       const playlistDesc = (description && description.trim()) || "Được nhập tự động vào TrackFlow";
 
-      // 1. Match any tracks that don't have videoId yet (e.g. from Spotify or Text)
-      // Process in smaller batches of 3 with gentle delay to ensure zero dropped songs
-      const matchedTracks: any[] = [];
-      const batchSize = 3;
-
-      for (let i = 0; i < tracks.length; i += batchSize) {
-        const chunk = tracks.slice(i, i + batchSize);
-        const resolved = await Promise.all(
-          chunk.map(async (t: any) => {
-            if (t.videoId && t.audio_url) {
-              return {
-                title: t.title || "Bài hát",
-                artist: t.artist || "Nghệ sĩ",
-                videoId: t.videoId,
-                audio_url: t.audio_url,
-                image_url: t.image_url || `https://i.ytimg.com/vi/${t.videoId}/hqdefault.jpg`,
-                duration: t.duration || 0,
-                views: t.views ? String(t.views) : null,
-              };
-            }
-            return await matchTrackToYouTube(t);
-          })
-        );
-
-        for (let idx = 0; idx < resolved.length; idx++) {
-          const item = resolved[idx];
-          if (item) {
-            matchedTracks.push(item);
-          } else {
-            // Absolute insurance fallback: ensure 100% preservation of all tracks
-            const original = chunk[idx];
-            matchedTracks.push({
-              title: original.title || "Bài hát",
-              artist: original.artist || "Nghệ sĩ chưa rõ",
-              videoId: original.videoId || "",
-              audio_url:
-                original.audio_url ||
-                `https://www.youtube.com/results?search_query=${encodeURIComponent(
-                  `${original.title} ${original.artist}`
-                )}`,
-              image_url: original.image_url || null,
-              duration: original.duration || 0,
-              views: null,
-            });
+      // 1. High-Performance Worker Pool Concurrency (Liner technique: mapConcurrent)
+      // Multiple workers concurrently pull from a shared cursor, avoiding pipeline stalls
+      const CONCURRENCY = 4;
+      const mapConcurrent = async <T, R>(
+        items: T[],
+        limit: number,
+        fn: (item: T, index: number) => Promise<R>
+      ): Promise<R[]> => {
+        const results: R[] = new Array(items.length);
+        let cursor = 0;
+        const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+          while (cursor < items.length) {
+            const idx = cursor++;
+            results[idx] = await fn(items[idx], idx);
           }
-        }
+        });
+        await Promise.all(workers);
+        return results;
+      };
 
-        // Brief delay between batches to respect rate limits
-        if (i + batchSize < tracks.length) {
-          await new Promise((r) => setTimeout(r, 100));
+      const resolvedTracks = await mapConcurrent(
+        tracks,
+        CONCURRENCY,
+        async (t: any, idx: number) => {
+          if (t.videoId && t.audio_url) {
+            return {
+              title: t.title || "Bài hát",
+              artist: t.artist || "Nghệ sĩ",
+              videoId: t.videoId,
+              audio_url: t.audio_url,
+              image_url: t.image_url || `https://i.ytimg.com/vi/${t.videoId}/hqdefault.jpg`,
+              duration: t.duration || 0,
+              views: t.views ? String(t.views) : null,
+            };
+          }
+          const matched = await matchTrackToYouTube(t);
+          if (matched) return matched;
+
+          // Insurance fallback: 100% preservation guarantee
+          return {
+            title: t.title || "Bài hát",
+            artist: t.artist || "Nghệ sĩ chưa rõ",
+            videoId: t.videoId || "",
+            audio_url:
+              t.audio_url ||
+              `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                `${t.title || ""} ${t.artist || ""}`
+              )}`,
+            image_url: t.image_url || null,
+            duration: t.duration || 0,
+            views: null,
+          };
         }
-      }
+      );
+
+      const matchedTracks = resolvedTracks.filter(Boolean);
 
       if (matchedTracks.length === 0) {
         return NextResponse.json(

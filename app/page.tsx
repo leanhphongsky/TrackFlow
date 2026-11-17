@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/Sidebar";
 import Player from "@/components/Player";
 import UploadModal from "@/components/UploadModal";
@@ -45,6 +45,7 @@ import {
   Shuffle,
   ShieldCheck,
   TrendingUp,
+  X,
 } from "lucide-react";
 import YoutubeIcon from "@/components/icons/YoutubeIcon";
 import { usePlayer } from "@/context/PlayerContext";
@@ -66,10 +67,12 @@ export default function Home() {
   const [musicSubFilter, setMusicSubFilter] = useState<"all" | "following">("all");
   const [podcastSubFilter, setPodcastSubFilter] = useState<"all" | "following">("all");
 
-  // YouTube Search state
+  // YouTube Search state (with Liner-inspired SWR cache & in-flight abort)
   const [ytResults, setYtResults] = useState<any[]>([]);
   const [ytChannels, setYtChannels] = useState<any[]>([]);
   const [isSearchingYt, setIsSearchingYt] = useState(false);
+  const searchCacheRef = useRef<Map<string, { results: any[]; channels: any[] }>>(new Map());
+  const searchAbortRef = useRef<AbortController | null>(null);
 
   // Selected Artist Profile state
   const [selectedArtist, setSelectedArtist] = useState<{
@@ -224,20 +227,88 @@ export default function Home() {
     setIsRightPanelOpen(true);
   };
 
-  // Search YouTube
+  // Live Instant Search (Liner technique: 250ms debounce + SWR Memory Cache + In-Flight Abort)
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (trimmed.length < 2) {
+      if (trimmed.length === 0 && activeTab === "search") {
+        setYtResults([]);
+        setYtChannels([]);
+      }
+      return;
+    }
+
+    const cacheKey = trimmed.toLowerCase();
+    const cached = searchCacheRef.current.get(cacheKey);
+    if (cached) {
+      setYtResults(cached.results);
+      setYtChannels(cached.channels);
+      setIsSearchingYt(false);
+      return;
+    }
+
+    // Cancel prior search request to prevent UI flicker
+    if (searchAbortRef.current) {
+      searchAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingYt(true);
+        const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(trimmed)}`, {
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const results = data.results || [];
+          const channels = data.channels || [];
+          searchCacheRef.current.set(cacheKey, { results, channels });
+          setYtResults(results);
+          setYtChannels(channels);
+        }
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.warn("Live search error:", err);
+        }
+      } finally {
+        setIsSearchingYt(false);
+      }
+    }, 250);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
+  // Manual submit or quick re-trigger
   const handleSearchSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!searchQuery.trim()) return;
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+
+    setSelectedArtist(null);
+    setActiveTab("search");
+
+    const cacheKey = trimmed.toLowerCase();
+    const cached = searchCacheRef.current.get(cacheKey);
+    if (cached) {
+      setYtResults(cached.results);
+      setYtChannels(cached.channels);
+      return;
+    }
 
     try {
       setIsSearchingYt(true);
-      setSelectedArtist(null);
-      setActiveTab("search");
-      const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(trimmed)}`);
       if (res.ok) {
         const data = await res.json();
-        setYtResults(data.results || []);
-        setYtChannels(data.channels || []);
+        const results = data.results || [];
+        const channels = data.channels || [];
+        searchCacheRef.current.set(cacheKey, { results, channels });
+        setYtResults(results);
+        setYtChannels(channels);
       }
     } catch (err) {
       console.error("YouTube search error:", err);
@@ -278,7 +349,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-black text-white font-sans">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#070709] text-white font-sans ambient-canvas">
       {/* Left Sidebar (Desktop Static + Mobile Slide-out Drawer) */}
       <Sidebar
         onOpenUpload={() => setIsUploadOpen(true)}
@@ -293,9 +364,9 @@ export default function Home() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#121212] m-0 md:m-2 md:ml-0 md:mr-0 rounded-none md:rounded-xl relative">
+      <main className="flex-1 flex flex-col h-full overflow-hidden bg-[#0a0a0d]/90 m-0 md:m-2 md:ml-0 md:mr-0 rounded-none md:rounded-2xl border-0 md:border md:border-white/[0.06] relative backdrop-blur-xl">
         {/* Top Navbar */}
-        <header className="h-16 px-3 sm:px-6 flex items-center justify-between border-b border-white/5 bg-[#121212]/90 backdrop-blur-md sticky top-0 z-30">
+        <header className="h-16 px-3 sm:px-6 flex items-center justify-between border-b border-white/[0.06] bg-[#0a0a0d]/70 backdrop-blur-2xl sticky top-0 z-30">
           {/* Mobile Drawer Trigger & Brand Disc on Mobile */}
           <div className="flex items-center gap-2 md:hidden mr-2">
             <button
@@ -317,21 +388,48 @@ export default function Home() {
           </div>
 
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 sm:gap-4 flex-1 max-w-lg">
-            <div className="relative w-full">
-              <Search className="w-4 h-4 absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="relative w-full group">
+              <Search className="w-4 h-4 absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1db954] transition" />
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (searchQuery.trim().length >= 2) setActiveTab("search");
+                }}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value.trim().length >= 2 && activeTab !== "search") {
+                    setSelectedArtist(null);
+                    setActiveTab("search");
+                  }
+                }}
                 placeholder={t.nav.searchPlaceholder}
-                className="w-full bg-[#242424] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-xs sm:text-sm text-white placeholder-gray-400 pl-8 sm:pl-10 pr-20 sm:pr-24 py-1.5 sm:py-2 rounded-full border border-transparent focus:border-white/20 focus:outline-none transition"
+                className="w-full bg-white/[0.06] hover:bg-white/[0.09] focus:bg-white/[0.12] text-xs sm:text-sm text-white placeholder-gray-400 pl-8 sm:pl-10 pr-20 sm:pr-24 py-1.5 sm:py-2 rounded-full border border-white/10 focus:border-emerald-500/40 focus:outline-none transition shadow-inner backdrop-blur-xl"
               />
-              <button
-                type="submit"
-                className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#1db954] hover:bg-[#1ed760] text-black text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full transition flex items-center gap-1 shadow"
-              >
-                {isSearchingYt ? <Loader2 className="w-3 h-3 animate-spin" /> : t.nav.searchButton}
-              </button>
+              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      if (activeTab === "search") {
+                        setYtResults([]);
+                        setYtChannels([]);
+                      }
+                    }}
+                    className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition"
+                    title="Xóa tìm kiếm"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="bg-[#1db954] hover:bg-[#1ed760] text-black text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full transition flex items-center gap-1 shadow"
+                >
+                  {isSearchingYt ? <Loader2 className="w-3 h-3 animate-spin" /> : t.nav.searchButton}
+                </button>
+              </div>
             </div>
           </form>
 
