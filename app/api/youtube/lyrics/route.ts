@@ -147,32 +147,120 @@ function parseLrc(lrcText: string): { start: number; dur: number; text: string }
   return lines;
 }
 
+/**
+ * Liner-inspired Lyric Candidate Quality & Sync Scoring Engine
+ * Distinguishes studio versions from concerts, acoustic, and remixes
+ */
+function scoreCandidate(
+  c: any,
+  cleanTitle: string,
+  primaryArtist: string,
+  targetDuration: number,
+  isOriginalLive: boolean,
+  isOriginalRemix: boolean
+): number {
+  if (!c || (!c.syncedLyrics && !c.plainLyrics)) return -9999;
+  let score = 0;
+
+  const cTitle = (c.trackName || "").toLowerCase();
+  const cArtist = (c.artistName || "").toLowerCase();
+  const cAlbum = (c.albumName || "").toLowerCase();
+  const normTitle = cleanTitle.toLowerCase();
+  const normArtist = primaryArtist.toLowerCase();
+
+  // 1. Sync level priority
+  if (c.syncedLyrics) {
+    score += 250;
+  } else if (c.plainLyrics) {
+    score += 30;
+  }
+
+  // 2. Strict live/concert penalty
+  const isCandidateLive =
+    /\b(live|concert|tour|the eras tour|live in|live at|live from|session|trực tiếp|show|festival)\b/i.test(cTitle) ||
+    /\b(live|concert|tour)\b/i.test(cAlbum);
+
+  const isCandidateRemix =
+    /\b(remix|speed up|slowed|reverb|karaoke|instrumental|tribute|cover|parody|acoustic)\b/i.test(cTitle);
+
+  if (isCandidateLive && !isOriginalLive) {
+    score -= 600; // Heavily reject live concert lyrics if user is playing studio song
+  } else if (!isCandidateLive && isOriginalLive) {
+    score -= 80;
+  }
+
+  if (isCandidateRemix && !isOriginalRemix) {
+    score -= 300; // Reject remix/speed up if original is standard
+  }
+
+  // 3. Title match accuracy
+  if (cTitle === normTitle) {
+    score += 120;
+  } else if (cTitle.includes(normTitle) || normTitle.includes(cTitle)) {
+    score += 70;
+  }
+
+  // 4. Artist match accuracy
+  if (normArtist && cArtist.includes(normArtist)) {
+    score += 90;
+  } else if (normArtist && normArtist.includes(cArtist)) {
+    score += 50;
+  }
+
+  // 5. Proximity to playing audio duration (Critical for selecting exact studio version)
+  if (targetDuration > 0 && c.duration > 0) {
+    const diff = Math.abs(c.duration - targetDuration);
+    if (diff <= 3) {
+      score += 200; // Near-perfect match
+    } else if (diff <= 8) {
+      score += 130;
+    } else if (diff <= 16) {
+      score += 70; // Video intro/outro range
+    } else if (diff <= 25) {
+      score += 0;
+    } else if (diff <= 35) {
+      score -= 150;
+    } else {
+      score -= 350; // Drastically different length (e.g. concert, acoustic, skit cut)
+    }
+  }
+
+  return score;
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const videoId = searchParams.get("videoId");
     const rawTitle = searchParams.get("title") || "";
     const rawArtist = searchParams.get("artist") || "";
+    const targetDuration = parseFloat(searchParams.get("duration") || "0");
+
+    const isOriginalLive = /\b(live|concert|tour|the eras tour|live in|live at|live from|session|trực tiếp|show|festival)\b/i.test(rawTitle);
+    const isOriginalRemix = /\b(remix|speed up|slowed|reverb)\b/i.test(rawTitle);
 
     const { primary: cleanTitle, candidates: titleCandidates } = cleanSongTitleForLyrics(rawTitle, rawArtist);
     const artistCandidates = cleanArtistForLyrics(rawArtist);
     const primaryArtist = artistCandidates[0] || "";
 
     // =========================================================================
-    // PRIORITY 1: LRCLIB (Verified studio synchronized karaoke lyrics)
+    // PRIORITY 1: LRCLIB (Verified studio synchronized karaoke lyrics with Duration & Keyword Scoring)
     // =========================================================================
     if (titleCandidates.length > 0) {
-      // 1A. Try Direct Get with candidate combinations
-      for (const tCandidate of titleCandidates) {
-        for (const aCandidate of artistCandidates.length > 0 ? artistCandidates : [""]) {
+      // 1A. Try Direct Get with target duration when available
+      for (const tCandidate of titleCandidates.slice(0, 3)) {
+        for (const aCandidate of artistCandidates.length > 0 ? artistCandidates.slice(0, 2) : [""]) {
           try {
             let lrcUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(tCandidate)}`;
             if (aCandidate) {
               lrcUrl += `&artist_name=${encodeURIComponent(aCandidate)}`;
             }
+            if (targetDuration > 0) {
+              lrcUrl += `&duration=${Math.round(targetDuration)}`;
+            }
 
             const lrcRes = await fetch(lrcUrl, {
-              headers: { "User-Agent": "TrackFlow/2.4.0 (https://trackflow.app)" },
+              headers: { "User-Agent": "TrackFlow/3.5.0 (https://trackflow.app)" },
               cache: "no-store",
             });
 
@@ -181,6 +269,14 @@ export async function GET(req: Request) {
               if (lrcData.syncedLyrics) {
                 const parsedLines = parseLrc(lrcData.syncedLyrics);
                 if (parsedLines.length > 0) {
+                  let suggestedOffset = 0;
+                  if (targetDuration > 0 && lrcData.duration > 0) {
+                    const diff = Math.round(targetDuration - lrcData.duration);
+                    if (diff >= 3 && diff <= 30) {
+                      suggestedOffset = diff;
+                    }
+                  }
+
                   return NextResponse.json({
                     hasLyrics: true,
                     isSynced: true,
@@ -188,6 +284,7 @@ export async function GET(req: Request) {
                     trackName: lrcData.trackName,
                     artistName: lrcData.artistName,
                     lines: parsedLines,
+                    suggestedOffset,
                   });
                 }
               }
@@ -198,7 +295,7 @@ export async function GET(req: Request) {
         }
       }
 
-      // 1B. Try LRCLIB Search with candidate queries
+      // 1B. LRCLIB Search with Quality Candidate Scoring & Live/Concert Protection
       const searchQueries = [
         primaryArtist ? `${cleanTitle} ${primaryArtist}` : cleanTitle,
         ...titleCandidates.map((t) => (primaryArtist ? `${t} ${primaryArtist}` : t)),
@@ -206,35 +303,70 @@ export async function GET(req: Request) {
       ];
       const uniqueQueries = Array.from(new Set(searchQueries));
 
-      for (const query of uniqueQueries.slice(0, 4)) {
+      const candidatePool: any[] = [];
+
+      for (const query of uniqueQueries.slice(0, 3)) {
         try {
           const sRes = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(query)}`, {
-            headers: { "User-Agent": "TrackFlow/2.4.0 (https://trackflow.app)" },
+            headers: { "User-Agent": "TrackFlow/3.5.0 (https://trackflow.app)" },
             cache: "no-store",
           });
 
           if (sRes.ok) {
             const results = await sRes.json();
             if (Array.isArray(results) && results.length > 0) {
-              // Find best candidate with synced lyrics
-              const target = results.find((r) => r.syncedLyrics) || results[0];
-              if (target?.syncedLyrics) {
-                const parsed = parseLrc(target.syncedLyrics);
-                if (parsed.length > 0) {
-                  return NextResponse.json({
-                    hasLyrics: true,
-                    isSynced: true,
-                    source: "lrclib",
-                    trackName: target.trackName,
-                    artistName: target.artistName,
-                    lines: parsed,
-                  });
-                }
-              }
+              candidatePool.push(...results);
             }
           }
         } catch {
           // continue
+        }
+      }
+
+      if (candidatePool.length > 0) {
+        // Deduplicate candidates by id
+        const seenCandidateIds = new Set<number | string>();
+        const uniqueCandidates = candidatePool.filter((c) => {
+          if (!c.id || seenCandidateIds.has(c.id)) return false;
+          seenCandidateIds.add(c.id);
+          return true;
+        });
+
+        // Rank candidates using Liner scoring engine
+        const scoredCandidates = uniqueCandidates
+          .map((c) => ({
+            candidate: c,
+            score: scoreCandidate(c, cleanTitle, primaryArtist, targetDuration, isOriginalLive, isOriginalRemix),
+          }))
+          .filter((item) => item.score > 0)
+          .sort((a, b) => b.score - a.score);
+
+        if (scoredCandidates.length > 0) {
+          const best = scoredCandidates[0].candidate;
+          const rawLrc = best.syncedLyrics || best.plainLyrics;
+          if (rawLrc) {
+            const parsed = best.syncedLyrics ? parseLrc(best.syncedLyrics) : [];
+
+            // Calculate suggested intro offset if duration differs moderately (video intro)
+            let suggestedOffset = 0;
+            if (targetDuration > 0 && best.duration > 0) {
+              const diff = Math.round(targetDuration - best.duration);
+              if (diff >= 3 && diff <= 30) {
+                // Video is longer than studio audio: likely a video intro
+                suggestedOffset = diff;
+              }
+            }
+
+            return NextResponse.json({
+              hasLyrics: true,
+              isSynced: Boolean(best.syncedLyrics && parsed.length > 0),
+              source: "lrclib",
+              trackName: best.trackName,
+              artistName: best.artistName,
+              lines: parsed.length > 0 ? parsed : rawLrc.split("\n").map((text: string) => ({ start: 0, dur: 0, text })),
+              suggestedOffset,
+            });
+          }
         }
       }
     }

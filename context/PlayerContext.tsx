@@ -111,17 +111,50 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   const toggleLyricsFullscreen = () => setIsLyricsFullscreen((prev) => !prev);
 
+  // Persistent lyrics offset wrapper: remembers user manual tuning per song
+  const setLyricsOffsetWithPersistence: React.Dispatch<React.SetStateAction<number>> = (action) => {
+    setLyricsOffset((prev) => {
+      const next = typeof action === "function" ? action(prev) : action;
+      const rounded = Math.round(next * 10) / 10;
+      const songKey = currentSongRef.current?.id || currentSongRef.current?.videoId || currentSongRef.current?.audio_url;
+      if (songKey && typeof window !== "undefined") {
+        try {
+          if (rounded === 0) {
+            localStorage.removeItem(`trackflow_lyric_offset_${songKey}`);
+          } else {
+            localStorage.setItem(`trackflow_lyric_offset_${songKey}`, String(rounded));
+          }
+        } catch {}
+      }
+      return rounded;
+    });
+  };
+
   // Automatically fetch lyrics whenever current song changes
   useEffect(() => {
-    setLyricsOffset(0);
     if (!currentSong) {
       setLyrics([]);
       setHasLyrics(false);
       setIsSyncedLyrics(false);
       setLyricsSource("");
       setLyricsMessage("");
+      setLyricsOffset(0);
       return;
     }
+
+    // Restore user saved offset for this specific track if previously adjusted
+    const songKey = currentSong.id || currentSong.videoId || currentSong.audio_url;
+    let userSavedOffset: number | null = null;
+    if (songKey && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(`trackflow_lyric_offset_${songKey}`);
+        if (stored !== null) {
+          const val = parseFloat(stored);
+          if (!isNaN(val)) userSavedOffset = val;
+        }
+      } catch {}
+    }
+    setLyricsOffset(userSavedOffset ?? 0);
 
     const videoId = currentSong.videoId || extractYouTubeId(currentSong.audio_url);
 
@@ -132,6 +165,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         if (videoId) params.set("videoId", videoId);
         if (currentSong?.title) params.set("title", currentSong.title);
         if (currentSong?.artist) params.set("artist", currentSong.artist);
+        const trackDuration = currentSong?.duration || duration || 0;
+        if (trackDuration > 0) params.set("duration", String(Math.round(trackDuration)));
 
         const res = await fetch(`/api/youtube/lyrics?${params.toString()}`);
         if (res.ok) {
@@ -142,6 +177,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             setLyricsSource(data.source || "");
             setLyrics(data.lines);
             setLyricsMessage("");
+
+            // If user has not manually overridden, adopt suggested offset from duration analysis
+            if (userSavedOffset === null && typeof data.suggestedOffset === "number" && data.suggestedOffset !== 0) {
+              setLyricsOffset(data.suggestedOffset);
+            }
           } else {
             setHasLyrics(false);
             setIsSyncedLyrics(false);
@@ -960,7 +1000,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         isSyncedLyrics,
         lyricsSource,
         lyricsOffset,
-        setLyricsOffset,
+        setLyricsOffset: setLyricsOffsetWithPersistence,
         lyricsMessage,
         loadingLyrics,
         isLyricsFullscreen,
