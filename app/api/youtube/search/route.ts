@@ -122,6 +122,32 @@ export async function GET(req: Request) {
         try {
           const innertubeData = await searchYouTubeMusicInnertube(trimmedQuery);
           if (innertubeData?.results && innertubeData.results.length > 0) {
+            // If InnerTube did not find an official artist card with avatar, look up direct channel avatar
+            if (!innertubeData.channels?.[0]?.avatar) {
+              const chLookup = await (ytSearch as any)({ query: trimmedQuery, type: "channel" }).catch(() => null);
+              if (chLookup?.channels?.[0]) {
+                const bestCh = chLookup.channels[0];
+                const channelAvatar = bestCh.image || bestCh.thumbnail;
+                if (channelAvatar) {
+                  if (innertubeData.channels.length > 0) {
+                    innertubeData.channels[0].avatar = channelAvatar;
+                    if (!innertubeData.channels[0].subscribers && bestCh.subCountLabel) {
+                      innertubeData.channels[0].subscribers = `${bestCh.subCountLabel} người đăng ký`;
+                    }
+                  } else {
+                    innertubeData.channels.push({
+                      channelId: bestCh.id || (bestCh.url ? bestCh.url.split("/channel/")[1] || "" : ""),
+                      title: bestCh.name || bestCh.title,
+                      avatar: channelAvatar,
+                      description: bestCh.about || `Kênh nghệ sĩ: ${bestCh.name || bestCh.title}`,
+                      subscribers: bestCh.subCountLabel ? `${bestCh.subCountLabel} người đăng ký` : "",
+                      verified: Boolean(bestCh.verified),
+                    });
+                  }
+                }
+              }
+            }
+
             setCachedSearch(cacheKey, innertubeData);
             return innertubeData;
           }

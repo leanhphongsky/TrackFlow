@@ -36,7 +36,7 @@ const TIMEOUT_MS = 12_000;
 
 // ─── Low-level transport ─────────────────────────────────────────────────────
 
-async function postInnertube(endpoint: string, body: object): Promise<any> {
+export async function postInnertube(endpoint: string, body: object): Promise<any> {
   const url = `${INNERTUBE_BASE}/${endpoint}?prettyPrint=false`;
 
   const controller = new AbortController();
@@ -364,7 +364,12 @@ export async function searchYouTubeMusicInnertube(query: string): Promise<{
   results: any[];
   channels: any[];
 }> {
-  const trackResults = await searchInnertube(query, "track");
+  // Query track-filtered results and top-result card in parallel
+  const [trackResults, rawUnfiltered] = await Promise.all([
+    searchInnertube(query, "track").catch(() => []),
+    postInnertube("search", { query }).catch(() => null),
+  ]);
+
   if (!trackResults || trackResults.length === 0) {
     return { results: [], channels: [] };
   }
@@ -382,25 +387,64 @@ export async function searchYouTubeMusicInnertube(query: string): Promise<{
     viewsFormatted: "",
   }));
 
-  const seenArtists = new Set<string>();
   const channels: any[] = [];
+  const seenArtists = new Set<string>();
 
-  for (const t of trackResults) {
-    if (!t.artist) continue;
-    const lower = t.artist.toLowerCase();
-    if (seenArtists.has(lower)) continue;
-    seenArtists.add(lower);
+  // 1. Check if the unfiltered search has an official circular Artist Card
+  if (rawUnfiltered) {
+    const sec0 =
+      rawUnfiltered.contents?.tabbedSearchResultsRenderer?.tabs?.[0]?.tabRenderer?.content?.sectionListRenderer?.contents?.[0];
+    const card = sec0?.musicCardShelfRenderer;
+    const cardTitle = getText(card?.title);
+    const cardSub = getText(card?.subtitle);
+    const isArtistCard =
+      cardSub.toLowerCase().includes("artist") ||
+      card?.title?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType === "MUSIC_PAGE_TYPE_ARTIST" ||
+      card?.onTap?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType === "MUSIC_PAGE_TYPE_ARTIST";
 
-    channels.push({
-      channelId: t.channelId || "",
-      title: t.artist,
-      avatar: t.image_url || null,
-      description: `Kênh nghệ sĩ: ${t.artist}`,
-      subscribers: "",
-      verified: true,
-    });
+    if (cardTitle && isArtistCard) {
+      const thumbs = card.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails || [];
+      const avatar = thumbs[thumbs.length - 1]?.url || thumbs[0]?.url || null;
+      const browseId =
+        card.title?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId ||
+        card.onTap?.browseEndpoint?.browseId ||
+        "";
 
-    if (channels.length >= 3) break;
+      seenArtists.add(cardTitle.toLowerCase());
+      channels.push({
+        channelId: browseId,
+        title: cardTitle,
+        avatar: avatar || null,
+        description: `Kênh chính thức: ${cardTitle}`,
+        subscribers: cardSub,
+        verified: true,
+      });
+    }
+  }
+
+  // 2. If no official artist card was found, check if the query closely matches an artist from the track results
+  if (channels.length === 0) {
+    const queryLower = query.toLowerCase().trim();
+    for (const t of trackResults) {
+      if (!t.artist) continue;
+      const lower = t.artist.toLowerCase();
+      if (seenArtists.has(lower)) continue;
+
+      // Only add if query matches artist name
+      if (lower.includes(queryLower) || queryLower.includes(lower)) {
+        seenArtists.add(lower);
+        channels.push({
+          channelId: t.channelId || "",
+          title: t.artist,
+          avatar: null, // Note: never use track image_url as artist avatar!
+          description: `Kênh nghệ sĩ: ${t.artist}`,
+          subscribers: "",
+          verified: true,
+        });
+      }
+
+      if (channels.length >= 2) break;
+    }
   }
 
   return { results, channels };
