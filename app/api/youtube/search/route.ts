@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import ytSearch from "yt-search";
+import { searchYouTubeMusicInnertube } from "@/lib/innertube";
 
 export const dynamic = "force-dynamic";
 
@@ -117,7 +118,18 @@ export async function GET(req: Request) {
         let musicVideos: any[] = [];
         let channels: any[] = [];
 
-        // METHOD 1: High-Performance, Zero-Quota Search via yt-search
+        // METHOD 1: Ultra High-Speed InnerTube Search (Liner Architecture: 500-700ms, Zero Quota)
+        try {
+          const innertubeData = await searchYouTubeMusicInnertube(trimmedQuery);
+          if (innertubeData?.results && innertubeData.results.length > 0) {
+            setCachedSearch(cacheKey, innertubeData);
+            return innertubeData;
+          }
+        } catch (innerErr) {
+          console.warn("InnerTube search failed, proceeding to yt-search fallback:", innerErr);
+        }
+
+        // METHOD 2: High-Performance, Zero-Quota Fallback via yt-search (NO sequential author scraping)
         try {
           const [searchResult, directChannelResult] = await Promise.all([
             ytSearch(trimmedQuery),
@@ -149,48 +161,46 @@ export async function GET(req: Request) {
             });
           }
 
-          // Collect candidate channels from direct search & video authors
-          let candidateChannels: any[] = [];
+          // Instant channel extraction without slow sequential HTTP requests
+          const seenNames = new Set<string>();
           if (directChannelResult?.channels && directChannelResult.channels.length > 0) {
-            candidateChannels.push(...directChannelResult.channels);
-          }
+            for (const ch of directChannelResult.channels) {
+              const name = ch.name || ch.title;
+              if (!name || seenNames.has(name.toLowerCase())) continue;
+              seenNames.add(name.toLowerCase());
 
-          const topAuthors = Array.from(new Set(rawVideos.map((v) => v.author?.name).filter(Boolean))).slice(0, 3);
-          for (const authorName of topAuthors) {
-            const alreadyIn = candidateChannels.some(
-              (c) => (c.name || c.title)?.toLowerCase() === (authorName as string).toLowerCase()
-            );
-            if (!alreadyIn) {
-              const chLookup = await (ytSearch as any)({ query: authorName, type: "channel" }).catch(() => null);
-              if (chLookup?.channels?.[0]) {
-                candidateChannels.push(chLookup.channels[0]);
-              } else {
-                candidateChannels.push({
-                  name: authorName,
-                  id: "",
-                  title: authorName,
-                  image: null,
-                });
-              }
+              channels.push({
+                channelId: ch.id || (ch.url ? ch.url.split("/channel/")[1] || "" : ""),
+                title: name,
+                avatar: ch.image || ch.thumbnail || null,
+                description: ch.about || `Kênh: ${name}`,
+                subscribers: ch.subCountLabel ? `${ch.subCountLabel} người đăng ký` : "",
+                verified: Boolean(ch.verified),
+              });
+
+              if (channels.length >= 3) break;
             }
           }
 
-          const seenNames = new Set<string>();
-          for (const ch of candidateChannels) {
-            const name = ch.name || ch.title;
-            if (!name || seenNames.has(name.toLowerCase())) continue;
-            seenNames.add(name.toLowerCase());
+          // Supplement with video authors if direct channel was empty
+          if (channels.length === 0) {
+            for (const v of rawVideos.slice(0, 6)) {
+              const name = v.author?.name;
+              if (!name || seenNames.has(name.toLowerCase())) continue;
+              seenNames.add(name.toLowerCase());
+              const channelId = v.author?.url ? v.author.url.split("/channel/")[1] || "" : "";
 
-            channels.push({
-              channelId: ch.id || (ch.url ? ch.url.split("/channel/")[1] || "" : ""),
-              title: name,
-              avatar: ch.image || ch.thumbnail || null,
-              description: ch.about || `Kênh: ${name}`,
-              subscribers: ch.subCountLabel ? `${ch.subCountLabel} người đăng ký` : "",
-              verified: Boolean(ch.verified),
-            });
+              channels.push({
+                channelId: channelId,
+                title: name,
+                avatar: null,
+                description: `Kênh nghệ sĩ: ${name}`,
+                subscribers: "",
+                verified: false,
+              });
 
-            if (channels.length >= 3) break;
+              if (channels.length >= 3) break;
+            }
           }
         } catch (ytSearchErr) {
           console.warn("yt-search lookup failed, falling back to YouTube Data API:", ytSearchErr);

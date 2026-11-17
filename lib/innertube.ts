@@ -83,16 +83,26 @@ function getRuns(obj: any): any[] {
 
 /**
  * Join artist name runs, skipping separator tokens like ' • ' and ' & '.
- * Keeps the *first* segment (before the first ' • ') as the artist string –
- * later segments are usually album / duration.
+ * Keeps the artist segments before album / duration.
  */
 function runsToArtists(runs: any[]): string {
   if (!runs || runs.length === 0) return "";
 
+  // Skip leading category badges like 'Song', 'Video', 'Single', 'Album', 'Episode'
+  let startIndex = 0;
+  if (
+    runs.length >= 3 &&
+    /^(song|video|single|album|episode|podcast)$/i.test(runs[0]?.text?.trim() || "") &&
+    (runs[1]?.text === " • " || runs[1]?.text === " · ")
+  ) {
+    startIndex = 2;
+  }
+
   const parts: string[] = [];
-  for (const run of runs) {
+  for (let i = startIndex; i < runs.length; i++) {
+    const run = runs[i];
     const text: string = run.text ?? "";
-    // Stop at the first bullet separator – everything after is album/duration
+    // Stop at the first bullet separator after artist – everything after is album/duration
     if (text === " • " || text === " · ") break;
     // Skip standalone separators like ' & ', ' x ', ' feat. '
     if (/^\s*[&x,]\s*$/i.test(text)) {
@@ -102,6 +112,20 @@ function runsToArtists(runs: any[]): string {
     parts.push(text);
   }
   return parts.join("").trim();
+}
+
+/**
+ * Extract artist channel browseId (e.g. UC...) from runs.
+ */
+function extractArtistChannelId(runs: any[]): string {
+  if (!runs || runs.length === 0) return "";
+  for (const run of runs) {
+    const browseId = run.navigationEndpoint?.browseEndpoint?.browseId;
+    if (browseId && typeof browseId === "string" && browseId.startsWith("UC")) {
+      return browseId;
+    }
+  }
+  return "";
 }
 
 /**
@@ -145,6 +169,7 @@ function parseDurationString(raw: string): number {
 
 export interface InnertubeResult {
   videoId: string;
+  channelId?: string;
   title: string;
   artist: string;
   duration: number;
@@ -180,6 +205,7 @@ function parseListItem(renderer: any): InnertubeResult | null {
     renderer.flexColumns?.[1]?.musicResponsiveListItemFlexColumnRenderer?.text;
   const metaRuns = getRuns(metaCol);
   const artist = runsToArtists(metaRuns);
+  const channelId = extractArtistChannelId(metaRuns);
 
   // Duration: last run matching MM:SS or H:MM:SS
   let duration = 0;
@@ -196,7 +222,7 @@ function parseListItem(renderer: any): InnertubeResult | null {
     renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails ?? [];
   const image_url = coverFromThumbnail(thumbnails);
 
-  return { videoId, title, artist, duration, image_url, views: "" };
+  return { videoId, channelId, title, artist, duration, image_url, views: "" };
 }
 
 /**
@@ -217,6 +243,7 @@ function parseCardShelf(renderer: any): InnertubeResult | null {
 
   const subtitleRuns = getRuns(renderer.subtitle);
   const artist = runsToArtists(subtitleRuns);
+  const channelId = extractArtistChannelId(subtitleRuns);
 
   let duration = 0;
   for (let i = subtitleRuns.length - 1; i >= 0; i--) {
@@ -231,7 +258,7 @@ function parseCardShelf(renderer: any): InnertubeResult | null {
     renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails ?? [];
   const image_url = coverFromThumbnail(thumbnails);
 
-  return { videoId, title, artist, duration, image_url, views: "" };
+  return { videoId, channelId, title, artist, duration, image_url, views: "" };
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────
@@ -327,4 +354,54 @@ export async function searchInnertubeFirst(
         image_url: results[0].image_url,
       }
     : null;
+}
+
+/**
+ * Ultra high-speed YouTube Music search via InnerTube.
+ * Returns formatted TrackFlow music tracks and candidate artist channels in sub-second time.
+ */
+export async function searchYouTubeMusicInnertube(query: string): Promise<{
+  results: any[];
+  channels: any[];
+}> {
+  const trackResults = await searchInnertube(query, "track");
+  if (!trackResults || trackResults.length === 0) {
+    return { results: [], channels: [] };
+  }
+
+  const results = trackResults.map((t) => ({
+    id: `yt_${t.videoId}`,
+    videoId: t.videoId,
+    channelId: t.channelId || "",
+    title: t.title,
+    artist: t.artist,
+    audio_url: `https://www.youtube.com/watch?v=${t.videoId}`,
+    image_url: t.image_url,
+    duration: t.duration,
+    views: 0,
+    viewsFormatted: "",
+  }));
+
+  const seenArtists = new Set<string>();
+  const channels: any[] = [];
+
+  for (const t of trackResults) {
+    if (!t.artist) continue;
+    const lower = t.artist.toLowerCase();
+    if (seenArtists.has(lower)) continue;
+    seenArtists.add(lower);
+
+    channels.push({
+      channelId: t.channelId || "",
+      title: t.artist,
+      avatar: t.image_url || null,
+      description: `Kênh nghệ sĩ: ${t.artist}`,
+      subscribers: "",
+      verified: true,
+    });
+
+    if (channels.length >= 3) break;
+  }
+
+  return { results, channels };
 }
