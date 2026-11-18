@@ -21,6 +21,8 @@ import PodcastsSection from "@/components/PodcastsSection";
 import FullscreenLyricsView from "@/components/FullscreenLyricsView";
 import ChillView from "@/components/ChillView";
 import MixDetailView from "@/components/MixDetailView";
+import MixFluidSquare from "@/components/MixFluidSquare";
+import ListeningNowSection from "@/components/ListeningNowSection";
 import { DailyMixItem } from "@/app/api/songs/mixes/route";
 import { Song } from "@/lib/db";
 import {
@@ -54,6 +56,19 @@ import { usePlaylist } from "@/context/PlaylistContext";
 import { useLanguage } from "@/context/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
+const DEFAULT_LISTENING_TRACKS: Song[] = [
+  { id: "ln-1", title: "addiction", artist: "LONOWN", duration: 209, image_url: "https://i.ytimg.com/vi/W4vVvVn3v0E/hqdefault.jpg", audio_url: "" },
+  { id: "ln-2", title: "the kill 2", artist: "Lex Amarni", duration: 122, image_url: "https://i.ytimg.com/vi/aZ3j11W79q0/hqdefault.jpg", audio_url: "" },
+  { id: "ln-3", title: "addiction (Slowed)", artist: "LONOWN", duration: 234, image_url: "https://i.ytimg.com/vi/W4vVvVn3v0E/hqdefault.jpg", audio_url: "" },
+  { id: "ln-4", title: "cachalot", artist: "ONDA ANDAR", duration: 121, image_url: "https://i.ytimg.com/vi/u4b08_M1f74/hqdefault.jpg", audio_url: "" },
+  { id: "ln-5", title: "Fever", artist: "Buckshot", duration: 145, image_url: "https://i.ytimg.com/vi/gS9J5gJ3bT8/hqdefault.jpg", audio_url: "" },
+  { id: "ln-6", title: "type london", artist: "ONDA ANDAR", duration: 104, image_url: "https://i.ytimg.com/vi/9gN8G6P6W4U/hqdefault.jpg", audio_url: "" },
+  { id: "ln-7", title: "worry (Slowed)", artist: "LONOWN, riserayss", duration: 202, image_url: "https://i.ytimg.com/vi/q_H8h398p1A/hqdefault.jpg", audio_url: "" },
+  { id: "ln-8", title: "Earrings", artist: "Malcolm Todd", duration: 152, image_url: "https://i.ytimg.com/vi/j5J5K3m4T4o/hqdefault.jpg", audio_url: "" },
+  { id: "ln-9", title: "Heat Waves", artist: "Glass Animals", duration: 238, image_url: "https://i.ytimg.com/vi/mRD0-GxqHVo/hqdefault.jpg", audio_url: "" },
+  { id: "ln-10", title: "poster boy", artist: "Malcolm Todd", duration: 138, image_url: "https://i.ytimg.com/vi/z18XkH1N6r4/hqdefault.jpg", audio_url: "" },
+];
+
 export default function Home() {
   const { t, language } = useLanguage();
   const [songs, setSongs] = useState<Song[]>([]);
@@ -61,6 +76,7 @@ export default function Home() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("home"); // "home" | "search" | "favorites"
   const [searchQuery, setSearchQuery] = useState("");
+  const [listeningNowTracks, setListeningNowTracks] = useState<Song[]>([]);
 
   // Category navigation state: "all" | "music" | "podcasts"
   const [homeCategory, setHomeCategory] = useState<"all" | "music" | "podcasts">("all");
@@ -217,9 +233,25 @@ export default function Home() {
     }
   };
 
+  const fetchListeningNow = async () => {
+    try {
+      const res = await fetch("/api/songs/trending");
+      if (res.ok) {
+        const data = await res.json();
+        const list = data.allTracks || (data.categories && data.categories[0]?.songs) || [];
+        if (list.length > 0) {
+          setListeningNowTracks(list.slice(0, 10));
+        }
+      }
+    } catch (err) {
+      console.warn("Lỗi khi tải trending cho Listening Now:", err);
+    }
+  };
+
   useEffect(() => {
     fetchSongs();
     fetchDailyMixes();
+    fetchListeningNow();
   }, [user?.id]);
 
   const handlePlaySong = (song: any, queue?: any[], isPlaylistContext?: boolean) => {
@@ -997,7 +1029,7 @@ export default function Home() {
                     <div className="mb-9">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2.5">
-                          <span className="w-5 h-5 rounded-lg bg-gradient-to-br from-rose-500 to-orange-400 shadow-sm flex-shrink-0" />
+                          <MixFluidSquare />
                           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                             {t.mixes.title}
                           </h2>
@@ -1033,13 +1065,10 @@ export default function Home() {
                               {/* Gradient Shading Overlay for maximum text legibility */}
                               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-black/25 pointer-events-none" />
 
-                              {/* Top Left Mini Logo & Regional Badge */}
+                              {/* Top Left Mini Logo (clean, minimal like Liner) */}
                               <div className="flex items-center justify-between z-10">
-                                <span className="w-6 h-6 rounded-lg bg-black/60 backdrop-blur-md flex items-center justify-center text-xs font-black text-white border border-white/10 shadow">
+                                <span className="w-6 h-6 rounded-lg bg-black/50 backdrop-blur-md flex items-center justify-center text-xs font-black text-white border border-white/10 shadow">
                                   ♫
-                                </span>
-                                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-white border border-white/10">
-                                  {mix.badge}
                                 </span>
                               </div>
 
@@ -1080,6 +1109,15 @@ export default function Home() {
                         ))}
                       </div>
                     </div>
+                  )}
+
+                  {/* 🔥 Listening right now (Liner Dual-Column 2x5 Grid) */}
+                  {homeCategory === "all" && (
+                    <ListeningNowSection
+                      tracks={listeningNowTracks.length > 0 ? listeningNowTracks : DEFAULT_LISTENING_TRACKS}
+                      onPlaySong={handlePlaySong}
+                      onOpenArtist={(name) => openArtist({ name })}
+                    />
                   )}
 
                   {/* Quick Liked Songs on Home if any */}

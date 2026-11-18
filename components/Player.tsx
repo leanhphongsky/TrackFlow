@@ -71,20 +71,39 @@ export default function Player({
 
   return (
     <>
-      {/* 1. Desktop Modern Bottom Player Bar (Liner Style) */}
+      {/* 1. Desktop Modern Floating Island Player (Liner Inspired) */}
       {currentSong && (
-        <div className="fixed bottom-0 left-0 right-0 h-20 bg-[#121212]/95 border-t border-white/10 backdrop-blur-2xl px-6 hidden md:flex items-center justify-between z-50 text-white select-none shadow-[0_-8px_30px_rgba(0,0,0,0.6)]">
+        <div className="fixed bottom-3 left-4 right-4 max-w-6xl mx-auto h-[76px] rounded-2xl bg-[#121217]/90 border border-white/10 backdrop-blur-2xl px-5 hidden md:flex items-center justify-between z-50 text-white select-none shadow-[0_12px_40px_rgba(0,0,0,0.75)] transition-all overflow-hidden group/player">
+          {/* Subtle Glowing Top Edge Scrub Bar (Liner Style) */}
+          <div
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const clickX = e.clientX - rect.left;
+              const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+              seekTo(ratio * (duration || 1));
+            }}
+            className="absolute top-0 left-0 right-0 h-[3px] group-hover/player:h-[5px] bg-white/10 hover:bg-white/20 transition-all cursor-pointer z-30"
+          >
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 via-[#1db954] to-teal-400 transition-all duration-100 ease-linear shadow-[0_0_8px_rgba(29,185,84,0.6)]"
+              style={{ width: `${((currentTime || 0) / (duration || 1)) * 100}%` }}
+            />
+          </div>
+
           {/* Left: Song Info */}
-          <div className="flex items-center gap-3.5 w-1/4 min-w-[200px]">
-            <div className="relative group flex-shrink-0">
+          <div className="flex items-center gap-3.5 w-1/4 min-w-[210px]">
+            <div
+              onClick={onOpenChill || toggleLyricsFullscreen}
+              className="relative group flex-shrink-0 cursor-pointer"
+            >
               {currentSong.image_url ? (
                 <img
                   src={currentSong.image_url}
                   alt={currentSong.title}
-                  className="w-12 h-12 rounded-xl object-cover shadow-md group-hover:scale-105 transition"
+                  className="w-12 h-12 rounded-xl object-cover shadow-md group-hover:scale-105 transition border border-white/10"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-[#202020] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
                   <Music className="w-5 h-5 text-gray-400" />
                 </div>
               )}
@@ -96,7 +115,10 @@ export default function Player({
             </div>
 
             <div className="overflow-hidden min-w-0 flex-1">
-              <p className="font-bold text-sm text-white truncate hover:underline cursor-pointer">
+              <p
+                onClick={onOpenChill || toggleLyricsFullscreen}
+                className="font-bold text-sm text-white truncate hover:text-[#1db954] transition cursor-pointer"
+              >
                 {currentSong.title}
               </p>
               <p className="text-xs text-gray-400 truncate hover:text-white transition cursor-pointer mt-0.5">
@@ -128,8 +150,8 @@ export default function Player({
           </div>
 
           {/* Center: Controls & Scrubber */}
-          <div className="flex flex-col items-center justify-center w-2/4 max-w-[560px] gap-1.5">
-            <div className="flex items-center gap-6">
+          <div className="flex flex-col items-center justify-center w-2/4 max-w-[540px] gap-1">
+            <div className="flex items-center gap-5">
               <button
                 onClick={toggleLoop}
                 className={`transition ${isLooping ? "text-[#1db954]" : "text-gray-400 hover:text-white"}`}
@@ -140,7 +162,7 @@ export default function Player({
 
               <button
                 onClick={prevSong}
-                className="text-gray-400 hover:text-white transition hover:scale-105 active:scale-95"
+                className="text-gray-300 hover:text-white transition hover:scale-105 active:scale-95"
                 title={t.player.previous}
               >
                 <SkipBack className="w-5 h-5 fill-current" />
@@ -160,16 +182,16 @@ export default function Player({
 
               <button
                 onClick={nextSong}
-                className="text-gray-400 hover:text-white transition hover:scale-105 active:scale-95"
+                className="text-gray-300 hover:text-white transition hover:scale-105 active:scale-95"
                 title={t.player.next}
               >
                 <SkipForward className="w-5 h-5 fill-current" />
               </button>
             </div>
 
-            {/* Seek Progress Bar */}
+            {/* Seek Progress Bar & Time */}
             <div className="flex items-center gap-2 w-full text-[11px] text-gray-400 font-mono">
-              <span className="w-9 text-right">{formatTime(currentTime)}</span>
+              <span className="w-9 text-right text-[10px]">{formatTime(currentTime)}</span>
               <div className="relative flex-1 group flex items-center cursor-pointer">
                 <input
                   type="range"
@@ -177,74 +199,79 @@ export default function Player({
                   max={duration || 100}
                   value={currentTime}
                   onChange={(e) => seekTo(Number(e.target.value))}
-                  className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none"
+                  className="w-full h-1 bg-white/15 rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none"
                 />
               </div>
-              <span className="w-10">{formatTime(duration)}</span>
+              <span className="w-10 text-[10px]">{formatTime(duration)}</span>
             </div>
           </div>
 
-          {/* Right: Lyrics Karaoke, Video/Canvas Toggle & Volume */}
-          <div className="flex items-center justify-end gap-2.5 w-1/4 min-w-[150px]">
-            {/* Chill Mode Visualizer Toggle */}
-            {onOpenChill && (
-              <button
-                onClick={onOpenChill}
-                className="p-2 rounded-full text-purple-400 hover:text-purple-300 hover:bg-purple-500/15 transition shadow-sm"
-                title={t.player.chillMode}
-              >
-                <Waves className="w-5 h-5" />
-              </button>
-            )}
+          {/* Right: Liner-Style Segmented Glass Toolbox */}
+          <div className="flex items-center justify-end gap-2 w-1/4 min-w-[190px]">
+            <div className="flex items-center gap-1 bg-white/[0.04] border border-white/5 rounded-xl p-1 shadow-inner">
+              {/* Chill Mode Visualizer Toggle */}
+              {onOpenChill && (
+                <button
+                  onClick={onOpenChill}
+                  className="p-1.5 rounded-lg text-purple-400 hover:text-purple-300 hover:bg-purple-500/15 transition shadow-sm"
+                  title={t.player.chillMode}
+                >
+                  <Waves className="w-4 h-4" />
+                </button>
+              )}
 
-            {/* Fullscreen Karaoke Lyrics Toggle */}
-            <button
-              onClick={toggleLyricsFullscreen}
-              className={`p-2 rounded-full transition ${
-                isLyricsFullscreen
-                  ? "text-[#1db954] bg-[#1db954]/20 shadow-[0_0_12px_rgba(29,185,84,0.3)]"
-                  : hasLyrics
-                  ? "text-gray-300 hover:text-[#1db954] hover:bg-white/10"
-                  : "text-gray-400 hover:text-white hover:bg-white/10"
-              }`}
-              title={t.player.lyrics}
-            >
-              <Mic2 className="w-5 h-5" />
-            </button>
-
-            {/* Right Panel / Canvas Toggle */}
-            {onToggleRightPanel && (
+              {/* Fullscreen Karaoke Lyrics Toggle */}
               <button
-                onClick={onToggleRightPanel}
-                className={`p-2 rounded-full transition ${
-                  isRightPanelOpen
-                    ? "text-[#1db954] bg-white/10"
+                onClick={toggleLyricsFullscreen}
+                className={`p-1.5 rounded-lg transition ${
+                  isLyricsFullscreen
+                    ? "text-[#1db954] bg-[#1db954]/20 shadow-[0_0_12px_rgba(29,185,84,0.3)]"
+                    : hasLyrics
+                    ? "text-gray-300 hover:text-[#1db954] hover:bg-white/10"
                     : "text-gray-400 hover:text-white hover:bg-white/10"
                 }`}
-                title={t.player.nowPlayingInfo}
+                title={t.player.lyrics}
               >
-                <Tv className="w-5 h-5" />
+                <Mic2 className="w-4 h-4" />
               </button>
-            )}
 
-            <button onClick={toggleMute} className="text-gray-400 hover:text-white transition">
-              {isMuted || volume === 0 ? (
-                <VolumeX className="w-5 h-5" />
-              ) : volume < 0.5 ? (
-                <Volume1 className="w-5 h-5" />
-              ) : (
-                <Volume2 className="w-5 h-5" />
+              {/* Right Panel / Canvas Toggle */}
+              {onToggleRightPanel && (
+                <button
+                  onClick={onToggleRightPanel}
+                  className={`p-1.5 rounded-lg transition ${
+                    isRightPanelOpen
+                      ? "text-[#1db954] bg-white/10"
+                      : "text-gray-400 hover:text-white hover:bg-white/10"
+                  }`}
+                  title={t.player.nowPlayingInfo}
+                >
+                  <Tv className="w-4 h-4" />
+                </button>
               )}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={isMuted ? 0 : volume}
-              onChange={(e) => setVolumeLevel(Number(e.target.value))}
-              className="w-24 h-1 bg-[#4d4d4d] rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none"
-            />
+            </div>
+
+            {/* Volume Control */}
+            <div className="flex items-center gap-1.5 bg-white/[0.04] border border-white/5 rounded-xl px-2.5 py-1.5">
+              <button onClick={toggleMute} className="text-gray-400 hover:text-white transition">
+                {isMuted || volume === 0 ? (
+                  <VolumeX className="w-4 h-4" />
+                ) : volume < 0.5 ? (
+                  <Volume1 className="w-4 h-4" />
+                ) : (
+                  <Volume2 className="w-4 h-4" />
+                )}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={isMuted ? 0 : volume}
+                onChange={(e) => setVolumeLevel(Number(e.target.value))}
+                className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[#1db954] focus:outline-none"
+              />
+            </div>
           </div>
         </div>
       )}
